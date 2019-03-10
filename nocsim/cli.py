@@ -60,6 +60,11 @@ throughput, injection_rate = nocsim.metrics.throughput(routers, packets, args.fl
 print("    throughput: {:3.3f} flit-routers per cycle".format(throughput))
 print("injection rate: {:3.3f} flit-routers per cycle".format(injection_rate))
 
+print("---- LATENCY ---------------------------------------------------------")
+latency, throughput = nocsim.metrics.latency(routers, packets, args.flits_per_tick, args.ticks)
+print("   latency: {:3.3f} flit-routers per cycle".format(latency))
+print("throughput: {:3.3f} flit-routers per cycle".format(throughput))
+
 with open("routers.json", "w") as f:
     json.dump(nocsim.simulation.dump_routers(routers), f)
 
