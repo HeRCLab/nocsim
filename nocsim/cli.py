@@ -65,6 +65,11 @@ latency, throughput = nocsim.metrics.latency(routers, packets, args.flits_per_ti
 print("   latency: {:3.3f} flit-routers per cycle".format(latency))
 print("throughput: {:3.3f} flit-routers per cycle".format(throughput))
 
+print("---- THROUGHPUT (flits per cycle) ------------------------------------")
+throughput, num_routers = nocsim.metrics.throughput_fpc(routers, packets, args.flits_per_tick, args.ticks)
+print("  throughput: {:3.3f} flit per cycle".format(throughput))
+print("# of routers: {:3.3f}".format(num_routers))
+
 with open("routers.json", "w") as f:
     json.dump(nocsim.simulation.dump_routers(routers), f)
 
