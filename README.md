@@ -26,3 +26,25 @@ a virtual environment for this purpose.
 * tqdm
 * colormap
 * easydev
+
+## Metrics
+
+For a given simulation, we might vary the minimum and maximum number of flits
+injected per cycle (which are injected into random routers in the array), the
+network topography, number of routers, and routing algorithm. We collect the
+following metrics (based largely on those used by Kapre & Gray):
+
+* Throughput in flit-routers per cycle with respect to flit-routers per cycle.
+* Average Latency in cycles with respect to throughput in flit-routers per
+  cycle.
+* Throughput in flits per cycle with respect to routers.
+
+**NOTE** nocsim makes the assumption that every router is associated with
+exactly one PE.
+
+**NOTE** nocsim makes the assumption that every packet is associated with
+exactly one flit.
+
+**NOTE** because nocsim is a software based simulation, it is not able to
+measure the resource utilization or maximum achievable clock rate for each
+configuration.
