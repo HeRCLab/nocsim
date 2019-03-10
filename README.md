@@ -34,7 +34,8 @@ injected per cycle (which are injected into random routers in the array), the
 network topography, number of routers, and routing algorithm. We collect the
 following metrics (based largely on those used by Kapre & Gray):
 
-* Throughput in flit-routers per cycle with respect to flit-routers per cycle.
+* Throughput in flit-routers per cycle with respect to injection rate
+  flit-routers per cycle.
 * Average Latency in cycles with respect to throughput in flit-routers per
   cycle.
 * Throughput in flits per cycle with respect to routers.
