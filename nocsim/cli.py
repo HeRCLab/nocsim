@@ -24,10 +24,13 @@ parser.add_argument("--flits_per_tick", "-p", default=0.5, type=float,
         help="Specify chance that a given PE tries to send a flit " +
         "each tick (default: 0.5)")
 
+parser.add_argument("--score_method", "-S", default="cartesian",
+        choices = ["cartesian", "DOR"],
+        help="Change the method which is used to score possible links" + 
+        " which a packet might take. (default: cartesian)")
+
 parser.add_argument("--ticks", "-T", default=10000, type=int,
         help="Specify number of ticks to run for (default: 10000)")
-
-# TODO: allow selecting routing algorithm
 
 args = parser.parse_args()
 
@@ -36,11 +39,20 @@ routers = None
 if args.topography == "mesh":
     routers = nocsim.simulation.generate_mesh(args.size, args.size)
 
-packets, backpressured, spawned = nocsim.simulation.simulate(routers, args.flits_per_tick, args.ticks)
+sort_method = nocsim.simulation.sort_method_none
+score_method = None
+if args.score_method == "cartesian":
+    score_method = nocsim.simulation.score_method_cartesian
+elif args.score_method == "DOR":
+    score_method = nocsim.simulation.score_method_DOR
+
+packets, backpressured, spawned = nocsim.simulation.simulate(routers, args.flits_per_tick, args.ticks, sort_method, score_method)
 
 print("---- GENERAL ---------------------------------------------------------")
 print("total packets: {}".format(len(packets)))
-print("total cycles : {}".format(args.ticks))
+print(" total cycles: {}".format(args.ticks))
+print(" score method: {}".format(str(score_method)))
+print("  sort method: {}".format(str(sort_method)))
 
 print("---- BACKPRESSURE ----------------------------------------------------")
 print("    mean # backpressured PEs / cycle: {}".format(statistics.mean(backpressured)))

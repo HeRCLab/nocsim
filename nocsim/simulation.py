@@ -49,8 +49,33 @@ def score_method_cartesian(links, packet):
 
     return (x[1] for x in scored)
 
+def score_method_DOR(links, packet):
+    """score_method_DOR
 
-def simulate(routers, packets_per_tick=0.5, run_for=50000):
+    Implements dimension-ordered routing. First the packet is routed to the
+    Y coordinate (row) of it's destination, then to the X coordinate (column).
+
+    :param links:
+    :param packet:
+    """
+
+    # Already on the right row, so we only allow links where the row does
+    # not change
+    if packet.dest.row == packet.router.row:
+        links = [link for link in links if link.row == packet.router.row]
+
+    # Stay in the same column and consider different rows
+    else:
+        links = [link for link in links if link.col == packet.router.col]
+
+    # We now have only allowable links for DOR routing. We can now pass this
+    # on to the cartesian scoring method, since it will select an appropriate
+    # link from those that remain.
+
+    return score_method_cartesian(links, packet)
+
+
+def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_method_none, score_method=score_method_cartesian):
     packets = []
 
     # number of times a PE wanted to spawn a flit, but the router did not
@@ -73,8 +98,7 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000):
         # calculate routes for this tick
         for row in range(height):
             for col in range(width):
-                routers[row][col].route(sort_method_none,
-                        score_method_cartesian)
+                routers[row][col].route(sort_method, score_method)
 
         # generate flits for this tick
         for row in range(height):
