@@ -111,9 +111,18 @@ throughput, num_routers = nocsim.metrics.throughput_fpc(routers, packets, args.f
 results["# of routers"] = num_routers
 latency_worst = nocsim.metrics.latency_worst(routers, packets, args.flits_per_tick, args.ticks)
 results["worst case latency"] = latency_worst
+overall_inflation, inflation_by_dist = nocsim.metrics.path_inflation(routers, packets)
+results["median inflation"] = statistics.median(overall_inflation)
+results["mean inflation"] = statistics.mean(overall_inflation)
+results["stdev inflation"] = statistics.stdev(overall_inflation)
+results["variance inflation"] = statistics.variance(overall_inflation)
 
 for k in results.keys():
     print(k, ":", results[k])
+
+
+for dist in inflation_by_dist.keys():
+    print(dist, ":", statistics.median(inflation_by_dist[dist]), statistics.mean(inflation_by_dist[dist]))
 
 print('\t'.join((k for k in results.keys())))
 print('\t'.join((str(results[k]) for k in results.keys())))

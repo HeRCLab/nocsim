@@ -4,7 +4,7 @@ ticks=1000
 
 all: data/DOR_mesh.tsv data/cartesian_mesh.tsv all_figures
 
-all_figures: figures/throughput.pdf figures/latency.pdf figures/latency_worst.pdf figures/congestion.pdf
+all_figures: figures/throughput.pdf figures/latency.pdf figures/latency_worst.pdf figures/congestion.pdf figures/inflation.pdf
 
 figures/throughput.pdf: data/throughput.csv
 	mkdir -p figures
@@ -170,6 +170,49 @@ data/congestion_cartesian_torus.csv : data/cartesian_torus.tsv
 data/congestion_DOR_torus.csv: data/DOR_torus.tsv
 	xsv select -d '\t' "injection rate","congestion" < data/DOR_torus.tsv | \
 		sed '1d' > $@
+
+
+figures/inflation.pdf: data/inflation.csv
+	mkdir -p figures
+	gnuplot \
+		-e 'set terminal pdf' \
+		-e 'set datafile separator ","' \
+		-e 'set key outside below' \
+		-e 'set title "inflation"' \
+		-e 'set xlabel "injection rate (flit-routers per cycle)"' \
+		-e 'set ylabel "inflation (mean # hops / minimal path)"' \
+		-e 'plot "data/inflation.csv" using 1:2 with linespoints title "mesh (cartesian scoring)", "data/inflation.csv" using 3:4 with linespoints title "torus (cartesian scoring)", "data/inflation.csv" using 5:6 with linespoints title "mesh (DOR scoring)", "data/inflation.csv" using 7:8 with linespoints title "torus (DOR scoring)"' \
+		> $@.tmp
+	mv $@.tmp $@
+
+# cartesian mesh, cartesian torus, DOR mesh, DOR torus
+data/inflation.csv: data/inflation_cartesian.csv data/inflation_DOR.csv
+	paste -d, data/inflation_cartesian.csv data/inflation_DOR.csv > $@
+
+# cartesian mesh, cartesian torus
+data/inflation_cartesian.csv: data/inflation_cartesian_mesh.csv data/inflation_cartesian_torus.csv
+	paste -d, data/inflation_cartesian_mesh.csv data/inflation_cartesian_torus.csv > $@
+
+# DOR mesh, DOR torus
+data/inflation_DOR.csv: data/inflation_DOR_mesh.csv data/inflation_DOR_torus.csv
+	paste -d, data/inflation_DOR_mesh.csv data/inflation_DOR_torus.csv > $@
+
+data/inflation_cartesian_mesh.csv : data/cartesian_mesh.tsv
+	xsv select -d '\t' "injection rate","mean inflation" < data/cartesian_mesh.tsv | \
+		sed '1d' > $@
+
+data/inflation_DOR_mesh.csv: data/DOR_mesh.tsv
+	xsv select -d '\t' "injection rate","mean inflation" < data/DOR_mesh.tsv | \
+		sed '1d' > $@
+
+data/inflation_cartesian_torus.csv : data/cartesian_torus.tsv
+	xsv select -d '\t' "injection rate","mean inflation" < data/cartesian_torus.tsv | \
+		sed '1d' > $@
+
+data/inflation_DOR_torus.csv: data/DOR_torus.tsv
+	xsv select -d '\t' "injection rate","mean inflation" < data/DOR_torus.tsv | \
+		sed '1d' > $@
+
 
 
 data/DOR_mesh.tsv: nocsim/cli.py

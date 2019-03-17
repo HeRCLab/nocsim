@@ -1,3 +1,6 @@
+import statistics
+import math
+
 def throughput(routers, packets, packets_per_tick, duration):
     """throughput
 
@@ -74,3 +77,25 @@ def throughput_fpc(routers, packets, packets_per_tick, duration):
 
     return (len(routed_packets) / duration, num_routers)
 
+def path_inflation(routers, packets):
+    """path_inflation
+
+    Packet # of hops vs minimal path length.
+
+    :param routers:
+    :param packets:
+    """
+
+    overall = []
+    by_dist = {}
+
+    for packet in packets:
+        dist = abs(packet.src.row - packet.dest.row) + abs(packet.src.col - packet.dest.col)
+        actual = len(packet.history)
+
+        overall.append(actual / dist)
+        if dist not in by_dist:
+            by_dist[dist] = []
+        by_dist[dist].append(actual / dist)
+
+    return overall, by_dist

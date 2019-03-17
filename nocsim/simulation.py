@@ -185,9 +185,15 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_meth
                     continue
 
                 # pick a destination at random
-                dest_row = random.randint(0, height - 1)
-                dest_col = random.randint(0, width - 1)
-                dest_router = routers[dest_row][dest_col]
+                dest_row = row
+                dest_col = col
+                dest_router = None
+
+                # don't route to ourselves
+                while (dest_row == row) and (dest_col == col):
+                    dest_row = random.randint(0, height - 1)
+                    dest_col = random.randint(0, width - 1)
+                    dest_router = routers[dest_row][dest_col]
 
                 # we found a suitable router, add the packet to it
                 p = nocsim.packet.Packet(src_router, dest_router, idnum, tick)
