@@ -36,8 +36,67 @@ def generate_mesh(width, height):
 
     return routers
 
-def sort_method_none(packets):
+def generate_torus(width, height):
+    """generate_torus
+
+    Generates a 2d-directional torus configuration.
+
+    :param width:
+    :param height:
+    """
+    routers = []
+
+    # instantiate all the routers
+    count = 0
+    for row in range(height):
+        routers.append([])
+        for col in range(width):
+            routers[row].append(nocsim.router.Router(row, col, count))
+            count += 1
+
+    # link them together
+    for row in range(height):
+        for col in range(width):
+            for coord in [[row + 1, col], [row, col + 1]]:
+                if coord[0] >= height:
+                    routers[row][col].links.append(routers[0][coord[1]])
+
+                elif coord[1] >= width:
+                    routers[row][col].links.append(routers[coord[0]][0])
+
+                else:
+                    routers[row][col].links.append(routers[coord[0]][coord[1]])
+
+    return routers
+
+def sort_method_none(packets, router):
     return packets
+
+def sort_method_EWNS(packets, router):
+    N = None
+    W = None
+    S = None
+    E = None
+
+    for packet in packets:
+        if len(packet.history) < 1:
+            continue
+
+        if packet.history[-1].row < router.row:
+            N = packet
+        elif packet.history[-1].row > router.row:
+            S = packet
+        elif packet.history[-1].col > router.col:
+            E = packet
+        else:
+            W = packet
+
+    result = [p for p in [E, W, N, S] if p is not None]
+    for packet in packets:
+        if packet not in result:
+            result.append(packet)
+
+    return result
 
 def score_method_cartesian(links, packet):
     scored = []

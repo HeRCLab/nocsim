@@ -17,7 +17,8 @@ class Packet:
         this.created_tick = created_tick
 
     def __str__(this):
-        return "<Packet {},{} - ({}) -> {},{}>".format(
+        return "<Packet {}@{},{}: {},{} - ({}) -> {},{}>".format(
+                this.id, this.router.row, this.router.col,
                 this.src.row, this.src.col, this.steps, this.dest.row,
                 this.dest.col)
 

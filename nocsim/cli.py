@@ -14,8 +14,9 @@ import nocsim.metrics
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--topography", "-t", default="mesh", choices = ["mesh"],
-        help="Specify the top of topography to use. 'mesh': bidirectional mesh")
+parser.add_argument("--topography", "-t", default="mesh", choices = ["mesh", "torus"],
+        help="Specify the top of topography to use. 'mesh': bidirectional "+
+        "mesh, 'torus': 2D directional torus")
 
 parser.add_argument("--size", "-s", default=10, type=int,
         help="Specify the grid size as an integer (default: 10)")
@@ -60,7 +61,11 @@ routers = None
 if args.topography == "mesh":
     routers = nocsim.simulation.generate_mesh(args.size, args.size)
 
-sort_method = nocsim.simulation.sort_method_none
+elif args.topography == "torus":
+    routers = nocsim.simulation.generate_torus(args.size, args.size)
+
+#  sort_method = nocsim.simulation.sort_method_none
+sort_method = nocsim.simulation.sort_method_EWNS
 score_method = None
 if args.score_method == "cartesian":
     score_method = nocsim.simulation.score_method_cartesian
@@ -96,6 +101,8 @@ latency, throughput = nocsim.metrics.latency(routers, packets, args.flits_per_ti
 results["latency"] = latency
 throughput, num_routers = nocsim.metrics.throughput_fpc(routers, packets, args.flits_per_tick, args.ticks)
 results["# of routers"] = num_routers
+latency_worst = nocsim.metrics.latency_worst(routers, packets, args.flits_per_tick, args.ticks)
+results["worst case latency"] = latency_worst
 
 print('\t'.join((k for k in results.keys())))
 print('\t'.join((str(results[k]) for k in results.keys())))

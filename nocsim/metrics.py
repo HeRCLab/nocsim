@@ -43,6 +43,19 @@ def latency(routers, packets, packets_per_tick, duration):
 
     return (the_latency, the_throughput)
 
+def latency_worst(routers, packets, packets_per_tick, duration):
+    num_routers = len(routers) * len(routers[0])
+    num_flits = len(packets)
+
+    routed_packets = [p for p in packets if p.done]
+
+    worst = 0
+    for p in routed_packets:
+            if len(p.history) > worst:
+                worst = len(p.history)
+
+    return worst
+
 def throughput_fpc(routers, packets, packets_per_tick, duration):
     """throughput_fpc
 

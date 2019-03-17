@@ -45,7 +45,14 @@ class Router:
             sys.stderr.write(str(this) + "\n")
             sys.stderr.write(str(this.incoming) + "\n")
 
-        packets = sortmethod(this.incoming)
+        packets = sortmethod(this.incoming, this)
+
+        if len(packets) != len(this.incoming):
+            # this should never happen
+            sys.stderr.write("------ BAD ---\n")
+            sys.stderr.write("dropped packets! sort method is broken\n")
+            sys.stderr.write(str(this.incoming) + "\n")
+            sys.stderr.write(str(packets) + "\n")
 
         used = []
         deflected = 0
