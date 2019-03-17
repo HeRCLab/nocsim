@@ -114,7 +114,7 @@ indefinitely until the attached router is ready to accept them.
 
 Each flit spawned is given a randomly chosen destination router.
 
-**NOTE** packets do not "exist" until the router they are injected into is
-ready to accept them, so metrics such as time taken for a given flit to travel
-to it's destination do not account for waiting time while the PE "wants" to
-inject the flit, but has deferred due to backpressure. 
+**NOTE** flits do not "exist" until the router they are injected into is ready
+to accept them, so metrics such as time taken for a given flit to travel to
+it's destination do not account for waiting time while the PE "wants" to inject
+the flit, but has deferred due to backpressure.
