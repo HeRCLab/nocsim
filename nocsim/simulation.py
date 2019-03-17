@@ -121,18 +121,22 @@ def score_method_DOR(links, packet):
     # Already on the right row, so we only allow links where the row does
     # not change
     if packet.dest.row == packet.router.row:
-        links = [link for link in links if link.row == packet.router.row]
+        preferred = [link for link in links if link.row == packet.router.row]
+        alternate = [link for link in links if link.row != packet.router.row]
 
     # Stay in the same column and consider different rows
     else:
-        links = [link for link in links if link.col == packet.router.col]
+        preferred = [link for link in links if link.col == packet.router.col]
+        alternate = [link for link in links if link.col != packet.router.col]
 
     # We now have only allowable links for DOR routing. We can now pass this
     # on to the cartesian scoring method, since it will select an appropriate
     # link from those that remain.
 
-    return score_method_cartesian(links, packet)
+    scored_preferred = score_method_cartesian(preferred, packet)
+    scored_alternate = score_method_cartesian(alternate, packet)
 
+    return list(scored_preferred) + list(scored_alternate)
 
 def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_method_none, score_method=score_method_cartesian):
     packets = []

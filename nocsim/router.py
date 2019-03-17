@@ -63,6 +63,7 @@ class Router:
                 packet.done = True
                 continue
 
+            found_link = False
             for link in scoremethod(this.links, packet):
                 if link in used:
                     deflected = True
@@ -72,7 +73,14 @@ class Router:
                     packet.notify_route(link, deflected)
                     link.add_incoming(packet)
                     routed += 1
+                    found_link = True
                     break
+
+            if not found_link:
+                sys.stderr.write("------ BAD --- \n")
+                sys.stderr.write("did not find link for packet!\n")
+                sys.stderr.write(str(packet))
+                sys.stderr.write(str(this))
 
         this.routed.append(routed)
         this.deflected.append(deflected)
