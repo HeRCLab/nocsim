@@ -84,6 +84,7 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_meth
 
     # spawned
     spawned = []
+    queued = []
 
     height = len(routers)
     width = len(routers[0])
@@ -94,6 +95,7 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_meth
     for tick in tqdm.tqdm(range(run_for)):
         backpressured_this_tick = 0
         spawned_this_tick = 0
+        queued_this_cycle = 0
 
         # calculate routes for this tick
         for row in range(height):
@@ -105,11 +107,20 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_meth
             for col in range(width):
                 src_router = routers[row][col]
 
-                # with P=packets_per_tick, generate a flit from this PE
-                if random.random() > packets_per_tick:
+                # with P=packets_per_tick, this PE decides it want's to
+                # spawn a flit
+                if random.random() <= packets_per_tick:
+                    src_router.want_to_send += 1
+
+                queued_this_cycle += src_router.want_to_send
+
+                # if this PE does not want to send a flit right now, then
+                # don't
+                if src_router.want_to_send <= 0:
                     continue
 
-                # backpressured
+                # check if this PE is currently back-pressured, and if not
+                # send a flit
                 if len(src_router.incoming_next) >= len(src_router.links):
                     backpressured_this_tick += 1
                     continue
@@ -123,8 +134,11 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_meth
                 p = nocsim.packet.Packet(src_router, dest_router, idnum, tick)
                 idnum += 1
                 spawned_this_tick += 1
+                src_router.want_to_send -= 1
+                queued_this_cycle -= 1
                 src_router.add_incoming(p)
                 packets.append(p)
+                queued.append(queued_this_cycle)
 
         backpressured.append(backpressured_this_tick)
         spawned.append(spawned_this_tick)
@@ -134,7 +148,7 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_meth
             for col in range(width):
                 routers[row][col].flip()
 
-    return packets, backpressured, spawned
+    return packets, backpressured, spawned, queued
 
 
 def dump_routers(routers):

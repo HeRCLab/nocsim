@@ -50,6 +50,27 @@ exactly one flit.
 measure the resource utilization or maximum achievable clock rate for each
 configuration.
 
+The following metrics are also gathered, which are specific to how nocsim is
+implemented:
+
+* **Backpressure**: each time a PE wants to inject a packet into the network,
+  but the attached router cannot accept it, the backpressure value for that
+  simulation cycle is incremented by 1. A backpressure value of 5 for a
+  specific would suggest that 5 PEs wanted to inject a flit that cycle and
+  could not due to network congestion.
+
+* **Spawned**: each time a flit is spawned (injected) within a given cycle, the
+  spawned value for that cycle is incremented by 1. A spawned value of 5 for a
+  given cycle would suggest that 5 flits were created on that cycle.
+  The sum of the spawned and backpressure values for a given tick will exactly
+  equal the number of PEs that "wanted" to inject a flit that tick.
+
+* **Queued**: each cycle, the queued value is set to the number of flits which
+  are currently held back (buffered within their PE) due to network congestion
+  (backpressure). The first derivative of this value is a strong proxy for
+  network congestion -- a highly congested network will cause many flits to be
+  spawned rather than injected into the network.
+
 ## Score Methods
 
 nocsim supports several *Scoring Methods*, this is an abstraction used when a
@@ -80,3 +101,20 @@ The following scoring methods are supported:
   are found, then cartesian distance is used as a tie-breaker (note that this
   is an implement ion detail of nocsim -- the same behavior could be
   implemented in hardware using a simple compactor).
+
+# How Flits are Spawned
+
+On each simulation cycle, with a probability of *flits_per_tick*, each PE
+(router) in the network enqueues a flit to be sent. If it would be impossible
+to route the flit this cycle (i.e. there are as many incoming flits as there
+are outgoing links), then the router "backpressures" the PE and the flit is
+"saved" for a later cycle.  In other words, though the network which is
+simulated is bufferless, it is assumed that each connected PE will buffer flits
+indefinitely until the attached router is ready to accept them.
+
+Each flit spawned is given a randomly chosen destination router.
+
+**NOTE** packets do not "exist" until the router they are injected into is
+ready to accept them, so metrics such as time taken for a given flit to travel
+to it's destination do not account for waiting time while the PE "wants" to
+inject the flit, but has deferred due to backpressure. 

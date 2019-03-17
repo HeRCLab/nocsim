@@ -6,6 +6,7 @@ class Router:
         this.row           = row
         this.col           = col
         this.id            = idnum
+        this.want_to_send  = 0
         this.links         = []
         this.incoming      = []
         this.incoming_next = []

@@ -26,13 +26,34 @@ parser.add_argument("--flits_per_tick", "-p", default=0.5, type=float,
 
 parser.add_argument("--score_method", "-S", default="cartesian",
         choices = ["cartesian", "DOR"],
-        help="Change the method which is used to score possible links" + 
+        help="Change the method which is used to score possible links" +
         " which a packet might take. (default: cartesian)")
 
 parser.add_argument("--ticks", "-T", default=10000, type=int,
         help="Specify number of ticks to run for (default: 10000)")
 
 args = parser.parse_args()
+
+def linreg(X, Y):
+    # https://mubaris.com/posts/linear-regression/
+
+    # Mean X and Y
+    mean_x = statistics.mean(X)
+    mean_y = statistics.mean(Y)
+
+    # Total number of values
+    m = len(X)
+
+    # Using the formula to calculate b1 and b2
+    numer = 0
+    denom = 0
+    for i in range(m):
+        numer += (X[i] - mean_x) * (Y[i] - mean_y)
+        denom += (X[i] - mean_x) ** 2
+    b1 = numer / denom
+    b0 = mean_y - (b1 * mean_x)
+
+    return b0, b1
 
 routers = None
 
@@ -46,7 +67,7 @@ if args.score_method == "cartesian":
 elif args.score_method == "DOR":
     score_method = nocsim.simulation.score_method_DOR
 
-packets, backpressured, spawned = nocsim.simulation.simulate(routers, args.flits_per_tick, args.ticks, sort_method, score_method)
+packets, backpressured, spawned, queued = nocsim.simulation.simulate(routers, args.flits_per_tick, args.ticks, sort_method, score_method)
 
 print("---- GENERAL ---------------------------------------------------------")
 print("total packets: {}".format(len(packets)))
@@ -59,13 +80,21 @@ print("    mean # backpressured PEs / cycle: {}".format(statistics.mean(backpres
 print("  median # backpressured PEs / cycle: {}".format(statistics.median(backpressured)))
 print("   stdev # backpressured PEs / cycle: {}".format(statistics.stdev(backpressured)))
 print("variance # backpressured PEs / cycle: {}".format(statistics.variance(backpressured)))
+print ("                  linear regression: {}".format(linreg(range(len(backpressured)), backpressured)))
 
 print("---- SPAWNED ---------------------------------------------------------")
 print("    mean # spawned PEs / cycle: {}".format(statistics.mean(spawned)))
 print("  median # spawned PEs / cycle: {}".format(statistics.median(spawned)))
 print("   stdev # spawned PEs / cycle: {}".format(statistics.stdev(spawned)))
 print("variance # spawned PEs / cycle: {}".format(statistics.variance(spawned)))
+print ("            linear regression: {}".format(linreg(range(len(spawned)), spawned)))
 
+print("---- QUEUED ----------------------------------------------------------")
+print("    mean # queued PEs / cycle: {}".format(statistics.mean(queued)))
+print("  median # queued PEs / cycle: {}".format(statistics.median(queued)))
+print("   stdev # queued PEs / cycle: {}".format(statistics.stdev(queued)))
+print("variance # queued PEs / cycle: {}".format(statistics.variance(queued)))
+print("            linear regression: {}".format(linreg(range(len(queued)), queued)))
 
 print("---- THROUGHPUT ------------------------------------------------------")
 throughput, injection_rate = nocsim.metrics.throughput(routers, packets, args.flits_per_tick, args.ticks)
