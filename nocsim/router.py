@@ -44,6 +44,7 @@ class Router:
             sys.stderr.write("------ BAD ---\n")
             sys.stderr.write(str(this) + "\n")
             sys.stderr.write(str(this.incoming) + "\n")
+            sys.exit(1)
 
         packets = sortmethod(this.incoming, this)
 
@@ -53,6 +54,7 @@ class Router:
             sys.stderr.write("dropped packets! sort method is broken\n")
             sys.stderr.write(str(this.incoming) + "\n")
             sys.stderr.write(str(packets) + "\n")
+            sys.exit(1)
 
         used = []
         deflected = False
@@ -81,6 +83,7 @@ class Router:
                 sys.stderr.write("did not find link for packet!\n")
                 sys.stderr.write(str(packet))
                 sys.stderr.write(str(this))
+                sys.exit(1)
 
         this.routed.append(routed)
         this.deflected.append(deflected)

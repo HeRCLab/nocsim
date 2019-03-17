@@ -1,6 +1,6 @@
 .PHONY: clean all all_figures
 
-ticks=1000
+ticks=200
 
 all: data/DOR_mesh.tsv data/cartesian_mesh.tsv all_figures
 
@@ -217,55 +217,55 @@ data/inflation_DOR_torus.csv: data/DOR_torus.tsv
 
 data/DOR_mesh.tsv: nocsim/cli.py
 	mkdir -p data
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.1 2>/dev/null | tail -n 2 > $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.2 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.3 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.4 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.5 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.6 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.7 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.8 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.9 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 1.0 2>/dev/null | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.1 | tail -n 2 > $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.2 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.3 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.4 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.5 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.6 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.7 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.8 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 0.9 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S DOR -p 1.0 | tail -n 1 >> $@
 
 data/cartesian_mesh.tsv: nocsim/cli.py
 	mkdir -p data
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.1 2>/dev/null | tail -n 2 > $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.2 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.3 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.4 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.5 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.6 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.7 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.8 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.9 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 1.0 2>/dev/null | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.1 | tail -n 2 > $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.2 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.3 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.4 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.5 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.6 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.7 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.8 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 0.9 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t mesh -T $(ticks) -S cartesian -p 1.0 | tail -n 1 >> $@
 
 data/DOR_torus.tsv: nocsim/cli.py
 	mkdir -p data
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.1 2>/dev/null | tail -n 2 > $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.2 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.3 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.4 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.5 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.6 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.7 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.8 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.9 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 1.0 2>/dev/null | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.1 | tail -n 2 > $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.2 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.3 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.4 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.5 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.6 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.7 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.8 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 0.9 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S DOR -p 1.0 | tail -n 1 >> $@
 
 data/cartesian_torus.tsv: nocsim/cli.py
 	mkdir -p data
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.1 2>/dev/null | tail -n 2 > $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.2 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.3 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.4 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.5 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.6 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.7 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.8 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.9 2>/dev/null | tail -n 1 >> $@
-	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 1.0 2>/dev/null | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.1 | tail -n 2 > $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.2 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.3 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.4 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.5 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.6 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.7 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.8 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 0.9 | tail -n 1 >> $@
+	python3 nocsim/cli.py -t torus -T $(ticks) -S cartesian -p 1.0 | tail -n 1 >> $@
 
 
 clean:

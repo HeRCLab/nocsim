@@ -155,7 +155,8 @@ def simulate(routers, packets_per_tick=0.5, run_for=50000, sort_method=sort_meth
     idnum = 0
 
     # simulate
-    for tick in tqdm.tqdm(range(run_for)):
+    #  for tick in tqdm.tqdm(range(run_for)):
+    for tick in range(run_for):
         backpressured_this_tick = 0
         spawned_this_tick = 0
         queued_this_cycle = 0
