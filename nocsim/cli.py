@@ -74,11 +74,19 @@ elif args.score_method == "DOR":
 
 packets, backpressured, spawned, queued = nocsim.simulation.simulate(routers, args.flits_per_tick, args.ticks, sort_method, score_method)
 
+deflected = [p.deflected for p in packets]
+
+congestion = linreg(range(len(queued)), queued)[1]
+
 results = {}
+results["congestion"] = congestion
 results["total packets"] = len(packets)
 results["total cycles"] = args.ticks
 results["score method"] = str(score_method)
 results["sort method"] = str(sort_method)
+results["mean deflected"] = statistics.mean(deflected)
+results["median deflected"] = statistics.median(deflected)
+results["stdev deflected"] = statistics.stdev(deflected)
 results["mean # backpressured PEs / cycle"] = statistics.mean(backpressured)
 results["median # backpressured PEs / cycle"] = statistics.median(backpressured)
 results["stdev # backpressured PEs / cycle"] = statistics.stdev(backpressured)
@@ -103,6 +111,9 @@ throughput, num_routers = nocsim.metrics.throughput_fpc(routers, packets, args.f
 results["# of routers"] = num_routers
 latency_worst = nocsim.metrics.latency_worst(routers, packets, args.flits_per_tick, args.ticks)
 results["worst case latency"] = latency_worst
+
+for k in results.keys():
+    print(k, ":", results[k])
 
 print('\t'.join((k for k in results.keys())))
 print('\t'.join((str(results[k]) for k in results.keys())))

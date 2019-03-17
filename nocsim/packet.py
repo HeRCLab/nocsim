@@ -27,7 +27,8 @@ class Packet:
 
     def notify_route(this, link, deflected):
         this.steps += 1
-        this.deflected += deflected
+        if deflected:
+            this.deflected += 1
         this.history.append(this.router)
         this.router = link
 

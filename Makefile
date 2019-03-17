@@ -1,10 +1,10 @@
 .PHONY: clean all all_figures
 
-ticks=100
+ticks=1000
 
 all: data/DOR_mesh.tsv data/cartesian_mesh.tsv all_figures
 
-all_figures: figures/throughput.pdf figures/latency.pdf figures/latency_worst.pdf
+all_figures: figures/throughput.pdf figures/latency.pdf figures/latency_worst.pdf figures/congestion.pdf
 
 figures/throughput.pdf: data/throughput.csv
 	mkdir -p figures
@@ -127,6 +127,48 @@ data/latency_worst_cartesian_torus.csv : data/cartesian_torus.tsv
 
 data/latency_worst_DOR_torus.csv: data/DOR_torus.tsv
 	xsv select -d '\t' "injection rate","worst case latency" < data/DOR_torus.tsv | \
+		sed '1d' > $@
+
+figures/congestion.pdf: data/congestion.csv
+	mkdir -p figures
+	gnuplot \
+		-e 'set terminal pdf' \
+		-e 'set datafile separator ","' \
+		-e 'set key outside below' \
+		-e 'set title "congestion"' \
+		-e 'set logscale y' \
+		-e 'set xlabel "injection rate (flit-routers per cycle)"' \
+		-e 'set ylabel "congestion score"' \
+		-e 'plot "data/congestion.csv" using 1:2 with linespoints title "mesh (cartesian scoring)", "data/congestion.csv" using 3:4 with linespoints title "torus (cartesian scoring)", "data/congestion.csv" using 5:6 with linespoints title "mesh (DOR scoring)", "data/congestion.csv" using 7:8 with linespoints title "torus (DOR scoring)"' \
+		> $@.tmp
+	mv $@.tmp $@
+
+# cartesian mesh, cartesian torus, DOR mesh, DOR torus
+data/congestion.csv: data/congestion_cartesian.csv data/congestion_DOR.csv
+	paste -d, data/congestion_cartesian.csv data/congestion_DOR.csv > $@
+
+# cartesian mesh, cartesian torus
+data/congestion_cartesian.csv: data/congestion_cartesian_mesh.csv data/congestion_cartesian_torus.csv
+	paste -d, data/congestion_cartesian_mesh.csv data/congestion_cartesian_torus.csv > $@
+
+# DOR mesh, DOR torus
+data/congestion_DOR.csv: data/congestion_DOR_mesh.csv data/congestion_DOR_torus.csv
+	paste -d, data/congestion_DOR_mesh.csv data/congestion_DOR_torus.csv > $@
+
+data/congestion_cartesian_mesh.csv : data/cartesian_mesh.tsv
+	xsv select -d '\t' "injection rate","congestion" < data/cartesian_mesh.tsv | \
+		sed '1d' > $@
+
+data/congestion_DOR_mesh.csv: data/DOR_mesh.tsv
+	xsv select -d '\t' "injection rate","congestion" < data/DOR_mesh.tsv | \
+		sed '1d' > $@
+
+data/congestion_cartesian_torus.csv : data/cartesian_torus.tsv
+	xsv select -d '\t' "injection rate","congestion" < data/cartesian_torus.tsv | \
+		sed '1d' > $@
+
+data/congestion_DOR_torus.csv: data/DOR_torus.tsv
+	xsv select -d '\t' "injection rate","congestion" < data/DOR_torus.tsv | \
 		sed '1d' > $@
 
 

@@ -40,7 +40,7 @@ class Router:
         this.incoming_next = []
 
     def route(this, sortmethod, scoremethod):
-        if not len(this.links) >= len(this.incoming):
+        if len(this.incoming) > len(this.links):
             sys.stderr.write("------ BAD ---\n")
             sys.stderr.write(str(this) + "\n")
             sys.stderr.write(str(this.incoming) + "\n")
@@ -55,7 +55,7 @@ class Router:
             sys.stderr.write(str(packets) + "\n")
 
         used = []
-        deflected = 0
+        deflected = False
         routed = 0
         for packet in packets:
             # packet has arrived!
@@ -65,7 +65,7 @@ class Router:
 
             for link in scoremethod(this.links, packet):
                 if link in used:
-                    deflected += 1
+                    deflected = True
                     continue
                 else:
                     used.append(link)
