@@ -25,14 +25,32 @@
 
 /* debug printf */
 #ifdef EBUG
-#define dprintf(...) do { fprintf(stderr, "%s:%d:%s(): ",__FILE__, __LINE__, __func__);\
+#define dbprintf(...) do { fprintf(stderr, "%s:%d:%s(): ",__FILE__, __LINE__, __func__);\
 	     fprintf(stderr, __VA_ARGS__); } while (0)
 #else
-#define dprintf(...)
+#define dbprintf(...)
 #endif
+
+#ifdef EBUG
+#define dbprint_node(node) do { nocsim_print_node(stderr, node); } while(0)
+#else
+#define dbprint_node(node)
+#endif
+
+/* convert a linked list node containing a node to just the node */
+#define NOCSIM_LL2N(node) ((nocsim_node*) (node->data))
 
 int main(int argc, char** argv);
 
 ll_node* nocsim_grid_parse_file(FILE* stream);
+void nocsim_grid_parse_router(char* def, ll_node* head);
+void nocsim_grid_parse_PE(char* def, ll_node* head);
+void nocsim_grid_parse_link(char* def, ll_node* head);
+
+nocsim_node* nocsim_allocate_node(nocsim_node_type type, unsigned int row, unsigned int col, char* id);
+char* nocsim_fmt_node(nocsim_node* node);
+void nocsim_print_node(FILE* stream, nocsim_node* node);
+void nocsim_dump_graphviz(FILE* stream, ll_node* head);
+void nocsim_append_ll(ll_node* head, void* data);
 
 #endif

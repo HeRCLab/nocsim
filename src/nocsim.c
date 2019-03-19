@@ -1,7 +1,7 @@
 #include "nocsim.h"
 
 int main(int argc, char** argv) {
-	dprintf("beginning nocsim version %i.%i.%i\n",
+	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
 			NOCSIM_VERSION_MINOR,
 			NOCSIM_VERSION_PATCH
