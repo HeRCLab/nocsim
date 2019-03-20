@@ -57,7 +57,7 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 	free(rest);
 
 	dbprintf("dumping in-memory representation of grid definition... \n");
-	for (cursor = head->next; cursor != NULL; cursor = cursor->next) {
+	foreach_element(cursor, head) {
 		dbprintf("\t");
 		dbprint_node(NOCSIM_LL2N(cursor));
 		drprintf("\n");
@@ -185,7 +185,7 @@ void nocsim_grid_parse_link(char* def, ll_node* head) {
 	dbprintf("parsed link declaration from='%s' to='%s'\n", from_id, to_id);
 
 	from = NULL; to=NULL;
-	for (cursor = head->next; cursor != NULL; cursor = cursor->next) {
+	foreach_element(cursor, head) {
 		if (!strncmp(to_id, NOCSIM_LL2N(cursor)->id, NOCSIM_GRID_LINELEN)) {
 			to = NOCSIM_LL2N(cursor);
 		}

@@ -40,6 +40,8 @@
 /* convert a linked list node containing a node to just the node */
 #define NOCSIM_LL2N(node) ((nocsim_node*) (node->data))
 
+#define foreach_element(cursor, head) for (cursor = head->next; cursor != NULL; cursor = cursor->next)
+
 int main(int argc, char** argv);
 
 ll_node* nocsim_grid_parse_file(FILE* stream);
