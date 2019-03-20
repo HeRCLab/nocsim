@@ -6,6 +6,22 @@
 /**
  * @brief Parse an entire file containing a grid definition
  *
+ * While it is generally possible to traverse the grid using the links it
+ * contains (although a grid could certainly contain disconnected sub-graphs)
+ * every node (PE or router) which is created is installed into a linked list.
+ * The head of this list is returned.
+ *
+ * A grid definition may contain, in any order, any of the following types
+ * of declarations:
+ *
+ * router ID ROW COL
+ *
+ * PE ID ROW COL
+ *
+ * link ID ID
+ *
+ * behavior ID BEHAVIOR
+ *
  * @param stream
  *
  * @return linked list of all nodes in the grid
@@ -44,6 +60,9 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 
 		} else if (!strncmp(token, "link", NOCSIM_GRID_LINELEN)) {
 			nocsim_grid_parse_link(rest, head);
+
+		} else if (!strncmp(token, "behavior", NOCSIM_GRID_LINELEN)) {
+			nocsim_grid_parse_behavior(rest, head);
 
 		} else {
 			err(1, "syntax error in grid definition, unknown token '%s'", token);
@@ -180,7 +199,7 @@ void nocsim_grid_parse_link(char* def, ll_node* head) {
 	}
 
 	if (sscanf(def, "%s %s\n", from_id, to_id) <= 0) {
-		err(1, "syntax error in grid definition, did not understand PE declaration '%s'", def);
+		err(1, "syntax error in grid definition, did not understand link declaration '%s'", def);
 	}
 	dbprintf("parsed link declaration from='%s' to='%s'\n", from_id, to_id);
 
@@ -213,6 +232,7 @@ void nocsim_grid_parse_link(char* def, ll_node* head) {
 	link->to = to;
 	link->from = from;
 	link->packet = NULL;
+	link->packet_next = NULL;
 
 	if ((from->type == node_PE) && (to->type == node_PE)) {
 		err(1, "cannot create illegal link from PE '%s' to PE '%s'",
@@ -257,5 +277,63 @@ void nocsim_grid_parse_link(char* def, ll_node* head) {
 
 
 	}
+
+}
+
+/**
+ * @brief Parse a behavior declaration and assign it to the given router.
+ *
+ * Supported behaviors:
+ *
+ * * "DOR"
+ *
+ * @param def
+ * @param head
+ */
+void nocsim_grid_parse_behavior(char* def, ll_node* head) {
+	char* id;
+	char* behavior_name;
+	ll_node* cursor;
+	ll_node* target;
+
+	if ((id = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
+		err(1, NULL);
+	}
+
+	if ((behavior_name = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
+		err(1, NULL);
+	}
+
+	if (sscanf(def, "%s %s\n", id, behavior_name) <= 0) {
+		err(1, "syntax error in grid definition, did not understand behavior declaration '%s'", def);
+	}
+	dbprintf("parsed behavior declaration id='%s' behavior_name='%s'\n",
+			id, behavior_name);
+
+	target = NULL;
+	foreach_element(cursor, head) {
+		if (!strncmp(id, NOCSIM_LL2N(cursor)->id, NOCSIM_GRID_LINELEN)) {
+			if (target != NULL) {
+				err(1, "duplicated ID %s\n", id);
+			}
+
+			if (NOCSIM_LL2N(cursor)->type != node_router) {
+				err(1, "may not declare behavior for non-router node %s\n", id);
+			}
+
+			target = cursor;
+		}
+	}
+
+	if (target == NULL) {
+		err(1, "cannot declare behavior for unknown ID %s\n", id);
+	}
+
+	if (!strncmp(behavior_name, "DOR", NOCSIM_GRID_LINELEN)) {
+		NOCSIM_LL2N(target)->behavior = nocsim_behavior_DOR;
+	} else {
+		err(1, "unknown behavior %s\n", behavior_name);
+	}
+
 
 }

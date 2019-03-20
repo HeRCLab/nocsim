@@ -48,11 +48,14 @@ ll_node* nocsim_grid_parse_file(FILE* stream);
 void nocsim_grid_parse_router(char* def, ll_node* head);
 void nocsim_grid_parse_PE(char* def, ll_node* head);
 void nocsim_grid_parse_link(char* def, ll_node* head);
+void nocsim_grid_parse_behavior(char* def, ll_node* head);
 
 nocsim_node* nocsim_allocate_node(nocsim_node_type type, unsigned int row, unsigned int col, char* id);
 char* nocsim_fmt_node(nocsim_node* node);
 void nocsim_print_node(FILE* stream, nocsim_node* node);
 void nocsim_dump_graphviz(FILE* stream, ll_node* head);
 void nocsim_append_ll(ll_node* head, void* data);
+
+void nocsim_behavior_DOR(nocsim_node node);
 
 #endif

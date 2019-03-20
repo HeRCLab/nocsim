@@ -68,6 +68,7 @@ typedef struct nocsim_link_t {
 	nocsim_node* from;
 	nocsim_node* to;
 	nocsim_packet* packet;
+	nocsim_packet* packet_next;
 } nocsim_link;
 
 #endif
