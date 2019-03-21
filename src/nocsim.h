@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <err.h>
 #include <string.h>
+#include <time.h>
+#include <limits.h>
 
 #define NOCSIM_VERSION_PATCH 1
 #define NOCSIM_VERSION_MINOR 0
