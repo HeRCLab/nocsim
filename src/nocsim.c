@@ -1,6 +1,9 @@
 #include "nocsim.h"
 
 int main(int argc, char** argv) {
+	ll_node* head;
+	unsigned int tick;
+
 	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
 			NOCSIM_VERSION_MINOR,
@@ -29,5 +32,8 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	nocsim_grid_parse_file(stdin);
+	head = nocsim_grid_parse_file(stdin);
+
+	tick = 0;
+	nocsim_step(head, tick);
 }

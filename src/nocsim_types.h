@@ -38,7 +38,7 @@ struct nocsim_node_t;
 struct nocsim_link_t;
 
 /* function pointer which we will call to perform routing for each node */
-typedef void (*nocsim_behavior)(struct nocsim_node_t node);
+typedef void (*nocsim_behavior)(struct nocsim_node_t* node);
 
 typedef struct nocsim_node_t {
 	nocsim_node_type type;

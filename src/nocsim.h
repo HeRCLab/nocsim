@@ -56,6 +56,8 @@ void nocsim_print_node(FILE* stream, nocsim_node* node);
 void nocsim_dump_graphviz(FILE* stream, ll_node* head);
 void nocsim_append_ll(ll_node* head, void* data);
 
-void nocsim_behavior_DOR(nocsim_node node);
+void nocsim_behavior_DOR(nocsim_node* node);
+
+void nocsim_step(ll_node* head, unsigned int tick);
 
 #endif

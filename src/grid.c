@@ -72,9 +72,12 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 		*token = 0; *rest = 0;
 	}
 
+	dbprintf("reached end of grid definition file\n");
+
 	free(token);
 	free(rest);
 
+#ifdef EBUG
 	dbprintf("dumping in-memory representation of grid definition... \n");
 	foreach_element(cursor, head) {
 		dbprintf("\t");
@@ -82,9 +85,9 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 		drprintf("\n");
 	}
 
-	dbprintf("reached end of grid definition file\n");
-
-	nocsim_dump_graphviz(stdout, head);
+	dbprintf("graphviz dump of in-memory representation\n");
+	nocsim_dump_graphviz(stderr, head);
+#endif
 
 	return head;
 }
