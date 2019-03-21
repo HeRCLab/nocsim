@@ -34,6 +34,8 @@ typedef struct ll_node_t {
 	void* data;
 } ll_node;
 
+typedef ll_node* list;
+
 struct nocsim_node_t;
 struct nocsim_link_t;
 
@@ -48,6 +50,8 @@ typedef struct nocsim_node_t {
 	struct nocsim_link_t* outgoing[NOCSIM_NUM_LINKS];
 	char* id;
 	ll_node* extra;
+	unsigned int node_number;
+	unsigned int type_number;
 
 	/**** only used for PE type ******************************************/
 	size_t fifo_size;
@@ -58,17 +62,27 @@ typedef struct nocsim_node_t {
 
 } nocsim_node;
 
-typedef struct nocsim_packet_t {
+typedef struct nocsim_flit_t{
 	nocsim_node* from;
 	nocsim_node* to;
-	unsigned int age;
-} nocsim_packet;
+	unsigned long spawned_at;
+	unsigned long flit_no;
+} nocsim_flit;
 
 typedef struct nocsim_link_t {
 	nocsim_node* from;
 	nocsim_node* to;
-	nocsim_packet* packet;
-	nocsim_packet* packet_next;
+	nocsim_flit* flit;
+	nocsim_flit* flit_next;
 } nocsim_link;
+
+typedef struct nocsim_meta_t {
+	unsigned int RNG_seed;
+	unsigned int num_PE;
+	unsigned int num_router;
+	unsigned int num_node;
+	unsigned long flit_no;
+	unsigned long tick;
+} nocsim_meta;
 
 #endif

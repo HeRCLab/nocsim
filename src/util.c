@@ -46,11 +46,11 @@ nocsim_node* nocsim_allocate_node(nocsim_node_type type, unsigned int row, unsig
 	n->extra->next = NULL;
 
 	n->fifo_size = 0;
-	if ((n->fifo_head = malloc(sizeof(ll_node))) == NULL) {
-		err(1, "could not allocate FIFO for node id=%s", id);
-	}
-
+	n->fifo_head = NULL;
 	n->behavior = NULL;
+
+	n->node_number = 0;
+	n->type_number = 0;
 
 	return n;
 }
@@ -97,21 +97,21 @@ void nocsim_dump_graphviz(FILE* stream, ll_node* head) {
 
 	foreach_element(cursor, head) {
 		/* XXX: this might be bad, unsigned int might be too short */
-		fprintf(stream, "%x [label=\"%s\"]\n",
-			(unsigned int) NOCSIM_LL2N(cursor),
-			NOCSIM_LL2N(cursor)->id
+		fprintf(stream, "\"%x\" [label=\"%s\"]\n",
+			(unsigned int) ll2node(cursor),
+			ll2node(cursor)->id
 		);
 	}
 
 	foreach_element(cursor, head) {
 		for (nocsim_direction d = N; d <= P; d++) {
-			if (NOCSIM_LL2N(cursor)->outgoing[d] == NULL) {
+			if (ll2node(cursor)->outgoing[d] == NULL) {
 				continue;
 			}
 
-			fprintf(stream, "%x -> %x\n",
-				(unsigned int) NOCSIM_LL2N(cursor),
-				(unsigned int) NOCSIM_LL2N(cursor)->outgoing[d]->to
+			fprintf(stream, "\"%x\" -> \"%x\"\n",
+				(unsigned int) ll2node(cursor),
+				(unsigned int) ll2node(cursor)->outgoing[d]->to
 			);
 		}
 	}
@@ -133,3 +133,25 @@ void nocsim_append_ll(ll_node* head, void* data) {
 	head->next = node;
 }
 
+/**
+ * @brief Return 1 with probability P, and return 0 with probability 1-P.
+ *
+ * @param P
+ *
+ * @return
+ */
+unsigned char with_P(float P) {
+	if ((P < 0) || (P > 1.0)) {
+		err(1, "P=%f out of bounds", P);
+	}
+
+	if (rand() < (P * (1.0f * RAND_MAX))) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+unsigned int randrange(unsigned int lower, unsigned int upper) {
+	return (((1.0f * rand()) / (1.0f * RAND_MAX)) * upper) + lower;
+}

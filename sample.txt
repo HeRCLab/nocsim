@@ -1,0 +1,70 @@
+config RNG_seed 1
+router 100 0 0
+PE 200 0 0
+behavior 100 DOR
+link 100 200
+link 200 100
+router 101 0 1
+PE 201 0 1
+behavior 101 DOR
+link 101 201
+link 201 101
+router 102 0 2
+PE 202 0 2
+behavior 102 DOR
+link 102 202
+link 202 102
+router 110 1 0
+PE 210 1 0
+behavior 110 DOR
+link 110 210
+link 210 110
+router 111 1 1
+PE 211 1 1
+behavior 111 DOR
+link 111 211
+link 211 111
+router 112 1 2
+PE 212 1 2
+behavior 112 DOR
+link 112 212
+link 212 112
+router 120 2 0
+PE 220 2 0
+behavior 120 DOR
+link 120 220
+link 220 120
+router 121 2 1
+PE 221 2 1
+behavior 121 DOR
+link 121 221
+link 221 121
+router 122 2 2
+PE 222 2 2
+behavior 122 DOR
+link 122 222
+link 222 122
+link 100 101
+link 101 100
+link 100 110
+link 110 100
+link 101 102
+link 102 101
+link 101 111
+link 111 101
+link 102 112
+link 112 102
+link 110 111
+link 111 110
+link 110 120
+link 120 110
+link 111 112
+link 112 111
+link 111 121
+link 121 111
+link 112 122
+link 122 112
+link 120 121
+link 121 120
+link 121 122
+link 122 121

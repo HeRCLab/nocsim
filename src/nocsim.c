@@ -5,8 +5,7 @@ int main(int argc, char** argv) {
 	const char* errstr;
 	unsigned int tick;
 	unsigned int seed;
-
-	seed = (unsigned int) time(NULL);
+	unsigned char flag_seed = 0;
 
 	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
@@ -39,6 +38,7 @@ int main(int argc, char** argv) {
 					err(1, "could not parse RNG seed '%s'",
 							optarg);
 				}
+				flag_seed = 1;
 				break;
 
 			case '?':
@@ -50,7 +50,20 @@ int main(int argc, char** argv) {
 		err(1, "extraneous option: %s", argv[optind]);
 	}
 
-	printf("metadata RNG_seed %u\n", seed);
+	head = nocsim_grid_parse_file(stdin);
+
+	printf("config RNG_seed %u\n", ll2meta(head)->RNG_seed);
+	printf("meta num_PE %u\n", ll2meta(head)->num_PE);
+	printf("meta num_router %u\n", ll2meta(head)->num_router);
+	printf("meta num_node %u\n", ll2meta(head)->num_node);
+
+	if (flag_seed == 1) {
+		ll2meta(head)->RNG_seed = seed;
+	} else {
+		seed = ll2meta(head)->RNG_seed;
+	}
+
+	printf("meta RNG_seed %u\n", seed);
 
 #ifdef __OpenBSD__
 	srand_deterministic(seed);
@@ -58,12 +71,12 @@ int main(int argc, char** argv) {
 	srand(seed);
 #endif
 
-	printf("metadata randsig1 %u\n", rand());
-	printf("metadata randsig2 %u\n", rand());
-	printf("metadata randsig3 %u\n", rand());
-
-	head = nocsim_grid_parse_file(stdin);
+	printf("meta randsig1 %u\n", rand());
+	printf("meta randsig2 %u\n", rand());
+	printf("meta randsig3 %u\n", rand());
 
 	tick = 0;
-	nocsim_step(head, tick);
+	for (int i = 0 ; i < 100000 ; i++) {
+		nocsim_step(head);
+	}
 }
