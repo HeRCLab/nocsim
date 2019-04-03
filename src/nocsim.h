@@ -1,18 +1,20 @@
 #ifndef NOCSIM_H
 #define NOCSIM_H
 
+#ifndef __OpenBSD__
 #define _POSIX_C_SOURCE 2
+#endif
 
 #include "nocsim_types.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <err.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <limits.h>
-#include <errno.h>
+#include <unistd.h>
 
 #define NOCSIM_VERSION_PATCH 1
 #define NOCSIM_VERSION_MINOR 0
@@ -76,5 +78,6 @@ void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit);
 
 void nocsim_step(ll_node* head);
 void nocsim_inject(ll_node* head, nocsim_node* from);
+void nocsim_handle_arrival(ll_node* cursor, nocsim_direction dir);
 
 #endif

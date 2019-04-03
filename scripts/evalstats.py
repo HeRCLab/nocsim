@@ -9,6 +9,8 @@ injected = {}
 tickno = -1
 hops = {}
 arrived = {}
+pending = 0
+pending_at = {}
 num_PE = -1
 
 for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin):
@@ -46,7 +48,15 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
         arrived[flitid] = tickno
 
     elif line[0] == "tick":
+        pending_at[tickno] = pending
+        pending = 0
         tickno = int(line[1])
+
+    elif line[0] == "push":
+        pending += 1
+
+    elif line[0] == "pop":
+        pending += 1
 
 def crunchstat(vals, title):
     headers = []
@@ -75,11 +85,16 @@ results = [
         tickno + 1,
 ]
 
-h1, r1 = crunchstat(injected.values(), "flits injected per tick per PE")
+h1, r1 = crunchstat(
+        [v/num_PE for v in injected.values()],
+        "flits injected per tick per PE")
 h2, r2 = crunchstat(hops.values(), "hops per flit")
+h3, r3 = crunchstat(
+        [v/num_PE for v in pending_at.values()],
+        "pending flits per tick per PE")
 
-headers += h1 + h2
-results += r1 + r2
+headers += h1 + h2 + h3
+results += r1 + r2 + r3
 
 sys.stderr.write("\t".join(headers))
 sys.stderr.write("\n")

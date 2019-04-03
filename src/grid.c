@@ -32,7 +32,9 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 	char* token;
 	char* rest;
 	ll_node* head;
+#ifdef EBUG
 	ll_node* cursor;
+#endif
 	nocsim_meta* meta;
 
 	alloc(sizeof(ll_node), head);

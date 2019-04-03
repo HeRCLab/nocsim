@@ -73,23 +73,67 @@ void nocsim_step(ll_node* head) {
 	foreach_element(cursor, head) {
 		for (nocsim_direction dir = N ; dir <= P ; dir++) {
 			if (ll2node(cursor)->incoming[dir] != NULL) {
-				if (ll2node(cursor)->incoming[dir]->flit != NULL) {
-					if (ll2node(cursor)->incoming[dir]->flit->to == ll2node(cursor)) {
-						printf("arrived %lu at %s\n",
-							ll2node(cursor)->incoming[dir]->flit->flit_no,
-							ll2node(cursor)->id);
-
-						/* delete the flit */
-						ll2node(cursor)->incoming[dir]->flit = NULL;
-						free((ll2node(cursor)->incoming[dir]->flit));
-					}
-				}
+				nocsim_handle_arrival(cursor, dir);
 			}
 
 		}
 	}
 
 	ll2meta(head)->tick++;
+}
+
+/**
+ * @brief Handle a single node's incoming flits for a specific direction.
+ *
+ * @param cursor
+ * @param dir
+ */
+void nocsim_handle_arrival(ll_node* cursor, nocsim_direction dir) {
+	ll_node* temp;
+
+	// do nothing if there isn't anything coming from this direction
+	if (ll2node(cursor)->incoming[dir]->flit == NULL) {
+		return;
+	} else if (ll2node(cursor)->incoming[dir]->flit->to == ll2node(cursor)) {
+		printf("arrived %lu at %s\n",
+			ll2node(cursor)->incoming[dir]->flit->flit_no,
+			ll2node(cursor)->id);
+
+		/* delete the flit */
+		ll2node(cursor)->incoming[dir]->flit = NULL;
+		free((ll2node(cursor)->incoming[dir]->flit));
+
+	} else if (dir == P) {
+		/* insert into top of FIFO, as this should always be going back
+		 * into the PE that injected it */
+
+		
+		ll2node(cursor)->fifo_size++;
+
+		/* save the next element, even if it's null */
+		temp = ll2node(cursor)->fifo_head->next;
+
+		/* allocate list element */
+		alloc(sizeof(list), ll2node(cursor)->fifo_head->next);
+
+		/* insert the data */
+		ll2node(cursor)->fifo_head->next->data = (void*) ll2node(cursor)->incoming[P]->flit;
+
+
+		/* append the rest of the list */
+		ll2node(cursor)->fifo_head->next->next = temp;
+
+		printf("backrouted %lu at %s\n",
+			ll2node(cursor)->incoming[dir]->flit->flit_no,
+			ll2node(cursor)->id);
+
+		printf("push %lu into %s\n",
+				ll2node(cursor)->incoming[dir]->flit->flit_no,
+				ll2node(cursor)->id);
+
+		/* remove the flit from the incoming list */
+		ll2node(cursor)->incoming[P]->flit = NULL;
+	}
 }
 
 /**

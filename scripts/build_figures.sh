@@ -8,7 +8,7 @@ make
 
 SIZE=10
 SEED=13245
-TICKS=16000
+TICKS=160
 
 mkdir -p out
 rm -f out/*
@@ -24,3 +24,7 @@ for topo in mesh ; do
 		done
 	done
 done ) | parallel --bar
+
+cat $(ls -1 out/*.err | head -n1) > out/results.tsv
+cat out/*.out >> out/results.tsv
+rm out/*.out out/*.err

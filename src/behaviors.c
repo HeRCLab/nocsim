@@ -46,7 +46,8 @@ void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit) {
 #define routelink(dir) if (iflink(dir)) { node->outgoing[dir]->flit_next = flit; \
 	printf("route %lu %s to %s->%s via %s\n", \
 		flit->flit_no, NOCSIM_DIRECTION_TO_STR(dir), \
-		node->id, node->outgoing[dir]->to->id, node->id);}
+		node->id, node->outgoing[dir]->to->id, node->id); \
+		return; }
 
 	if (flit->to->row > node->row) {
 		     routelink(S)
@@ -79,6 +80,15 @@ void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit) {
 		else routelink(N)
 		else routelink(E)
 	}
+
+	/* PE should have the same row,col as the router */
+	if ((flit->from->col == node->col) && (flit->from->row == node->row)) {
+		routelink(P);
+	}
+
+	err(1, "cannot route flit %lu from node %s, no available links",
+			flit->flit_no, node->id);
+
 #undef routelink
 #undef iflink
 }
