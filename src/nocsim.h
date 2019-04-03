@@ -1,6 +1,8 @@
 #ifndef NOCSIM_H
 #define NOCSIM_H
 
+#define _POSIX_C_SOURCE 2
+
 #include "nocsim_types.h"
 
 #include <stdio.h>
