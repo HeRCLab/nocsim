@@ -25,8 +25,6 @@ grant.
 
 ## Input Format
 
-**TODO**
-
 [sample.txt](./sample.txt)
 
 ## Output Format

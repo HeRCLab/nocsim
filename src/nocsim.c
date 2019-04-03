@@ -6,6 +6,7 @@ int main(int argc, char** argv) {
 	unsigned int tick;
 	unsigned int seed;
 	unsigned char flag_seed = 0;
+	unsigned char flag_graphviz = 0;
 
 	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
@@ -21,7 +22,7 @@ int main(int argc, char** argv) {
 
 	int opt;
 
-	while ((opt = getopt(argc, argv, "Vs:")) != -1) {
+	while ((opt = getopt(argc, argv, "Vs:g")) != -1) {
 		switch(opt) {
 			case 'V':
 				printf("nocsim %i.%i.%i\n",
@@ -41,6 +42,10 @@ int main(int argc, char** argv) {
 				flag_seed = 1;
 				break;
 
+			case 'g':
+				flag_graphviz = 1;
+				break;
+
 			case '?':
 				err(1, "unknown option: %c", optopt);
 		}
@@ -52,7 +57,15 @@ int main(int argc, char** argv) {
 
 	head = nocsim_grid_parse_file(stdin);
 
+	if (flag_graphviz == 1) {
+		nocsim_dump_graphviz(stdout, head);
+		exit(0);
+	}
+
 	printf("config RNG_seed %u\n", ll2meta(head)->RNG_seed);
+	printf("config max_ticks %u\n", ll2meta(head)->max_ticks);
+	printf("config default_P_inject %f\n", ll2meta(head)->default_P_inject);
+	printf("config title %s\n", ll2meta(head)->title);
 	printf("meta num_PE %u\n", ll2meta(head)->num_PE);
 	printf("meta num_router %u\n", ll2meta(head)->num_router);
 	printf("meta num_node %u\n", ll2meta(head)->num_node);
@@ -76,7 +89,7 @@ int main(int argc, char** argv) {
 	printf("meta randsig3 %u\n", rand());
 
 	tick = 0;
-	for (int i = 0 ; i < 100000 ; i++) {
+	for (unsigned int i = 0 ; i < ll2meta(head)->max_ticks ; i++) {
 		nocsim_step(head);
 	}
 }

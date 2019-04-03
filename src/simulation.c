@@ -10,7 +10,7 @@ void nocsim_step(ll_node* head) {
 	/* PEs generate packets */
 	foreach_element(cursor, head) {
 		if (ll2node(cursor)->type == node_PE) {
-			if (with_P(0.1)) {
+			if (with_P(ll2node(cursor)->P_inject)) {
 				nocsim_inject(head, ll2node(cursor));
 			}
 		}
@@ -147,7 +147,10 @@ void nocsim_inject(ll_node* head, nocsim_node* from) {
 	cursor->next = flit_elem;
 	from->fifo_size++;
 
-	printf("inject %lu from %s to %s\n", flit->flit_no, from->id, to->id);
+	printf("inject %lu from %s %u %u to %s %u %u\n",
+			flit->flit_no,
+			from->id, from->row, from->col,
+			to->id, to->row, to->col);
 	printf("push %lu into %s\n", flit->flit_no, from->id);
 
 

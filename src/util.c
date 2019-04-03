@@ -47,6 +47,7 @@ nocsim_node* nocsim_allocate_node(nocsim_node_type type, unsigned int row, unsig
 
 	n->fifo_size = 0;
 	n->fifo_head = NULL;
+	n->P_inject = 0;
 	n->behavior = NULL;
 
 	n->node_number = 0;

@@ -16,7 +16,7 @@
  *
  * router ID ROW COL
  *
- * PE ID ROW COL
+ * PE ID ROW COL P_inject
  *
  * link ID ID
  *
@@ -58,12 +58,14 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 	meta->num_node = 0;
 	meta->flit_no = 0;
 	meta->tick = 0;
+	meta->default_P_inject = 0;
+	meta->title = "unspecified";
 
 	head->data = (void*) meta;
 
 	*token = 0; *rest = 0;
 
-	while(fscanf(stream, "%s %[a-zA-Z0-9_ ]\n", token, rest) != EOF) {
+	while(fscanf(stream, "%s %[a-zA-Z0-9._ ]\n", token, rest) != EOF) {
 		dbprintf("token='%s' rest='%s'\n", token, rest);
 
 		if (!strncmp(token, "router", NOCSIM_GRID_LINELEN)) {
@@ -80,7 +82,7 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 
 		} else if (!strncmp(token, "config", NOCSIM_GRID_LINELEN)) {
 			nocsim_grid_parse_config(rest, meta);
-			
+
 		} else {
 			err(1, "syntax error in grid definition, unknown token '%s'", token);
 
@@ -167,6 +169,8 @@ void nocsim_grid_parse_PE(char* def, ll_node* head) {
 	char* id;
 	unsigned int row;
 	unsigned int col;
+	float P_inject;
+	int num_assigned;
 	nocsim_node* PE;
 	ll_node* tail;
 
@@ -180,17 +184,25 @@ void nocsim_grid_parse_PE(char* def, ll_node* head) {
 		err(1, NULL);
 	}
 
-	if (sscanf(def, "%s %u %u\n", id, &row, &col) <= 0) {
+	num_assigned = sscanf(def, "%s %u %u %f\n", id, &row, &col, &P_inject);
+	if (num_assigned < 3) {
 		err(1, "syntax error in grid definition, did not understand PE declaration '%s'", def);
+
+	} else if (num_assigned < 4) {
+		// use default P_inject
+		P_inject = ll2meta(head)->default_P_inject;
+		dbprintf("PE definition does not specify P_inject, using default\n");
 	}
 
-	dbprintf("parsed PE declaration id='%s' row=%u col=%u\n", id, row, col);
+	dbprintf("parsed PE declaration id='%s' row=%u col=%u P_inject=%f\n",
+			id, row, col, P_inject);
 
 	PE = nocsim_allocate_node(node_PE, row, col, id);
 
 	alloc(sizeof(list), PE->fifo_head);
 	PE->fifo_head->next = NULL;
 	PE->fifo_head->data = NULL;
+	PE->P_inject = P_inject;
 	PE->node_number = ll2meta(head)->num_node;
 	ll2meta(head)->num_node++;
 	PE->type_number = ll2meta(head)->num_PE;
@@ -378,6 +390,9 @@ void nocsim_grid_parse_behavior(char* def, ll_node* head) {
  * Supported config keys:
  *
  * * RNG_seed
+ * * max_ticks
+ * * default_P_inject
+ * * title
  *
  * @param def
  * @param head
@@ -387,6 +402,8 @@ void nocsim_grid_parse_config(char* def, nocsim_meta * meta) {
 	char* val;
 	const char* errstr;
 	unsigned int seed;
+	unsigned int max_ticks;
+	float default_P_inject;
 
 	errstr = NULL;
 
@@ -408,10 +425,30 @@ void nocsim_grid_parse_config(char* def, nocsim_meta * meta) {
 	if (!strncmp(key, "RNG_seed", NOCSIM_GRID_LINELEN)) {
 		seed = (unsigned int) strtonum(val, 0, UINT_MAX, &errstr);
 		if (errstr != NULL) {
-			err(1, "could not parse RNG seed '%s'",
-					val);
+			err(1, "could not parse RNG seed '%s'", val);
 		}
 		meta->RNG_seed = seed;
+		dbprintf("meta->RNG_seed=%u\n", seed);
+
+	} else if (!strncmp(key, "max_ticks", NOCSIM_GRID_LINELEN)) {
+		max_ticks = (unsigned int) strtonum(val, 0, UINT_MAX, &errstr);
+		if (errstr != NULL) {
+			err(1, "could not parse max_ticks '%s'", val);
+		}
+		meta->max_ticks = max_ticks;
+		dbprintf("meta->max_ticks=%u\n", max_ticks);
+
+	} else if (!strncmp(key, "default_P_inject", NOCSIM_GRID_LINELEN)) {
+		default_P_inject = strtof(val, NULL);
+		if (errno == ERANGE) {
+			err(1, "could not parse default_P_inject '%s'", val);
+		}
+		meta->default_P_inject = default_P_inject;
+		dbprintf("meta->default_P_inject=%f\n", default_P_inject);
+
+	} else if (!strncmp(key, "title", NOCSIM_GRID_LINELEN)) {
+		meta->title = val;
+		dbprintf("meta->title=%s\n", val);
 
 	} else {
 		err(1, "invalid config definition '%s' unknown key '%s'",

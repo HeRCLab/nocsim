@@ -56,6 +56,7 @@ typedef struct nocsim_node_t {
 	/**** only used for PE type ******************************************/
 	size_t fifo_size;
 	ll_node* fifo_head;
+	float P_inject;
 
 	/**** only used for router type **************************************/
 	nocsim_behavior behavior;
@@ -83,6 +84,9 @@ typedef struct nocsim_meta_t {
 	unsigned int num_node;
 	unsigned long flit_no;
 	unsigned long tick;
+	float default_P_inject;
+	unsigned int max_ticks;
+	char* title;
 } nocsim_meta;
 
 #endif

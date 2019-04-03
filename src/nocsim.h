@@ -10,6 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include <limits.h>
+#include <errno.h>
 
 #define NOCSIM_VERSION_PATCH 1
 #define NOCSIM_VERSION_MINOR 0
