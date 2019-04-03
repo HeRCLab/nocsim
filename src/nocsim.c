@@ -7,6 +7,9 @@ int main(int argc, char** argv) {
 	unsigned int seed;
 	unsigned char flag_seed = 0;
 	unsigned char flag_graphviz = 0;
+	struct timeval start_time;
+	struct timeval end_time;
+	unsigned long long elapsed_ms;
 
 	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
@@ -89,9 +92,17 @@ int main(int argc, char** argv) {
 	printf("meta randsig3 %u\n", rand());
 
 	tick = 0;
+	gettimeofday(&start_time, NULL);
 	for (unsigned int i = 0 ; i < ll2meta(head)->max_ticks ; i++) {
 		nocsim_step(head);
 	}
+	gettimeofday(&end_time, NULL);
+
+	elapsed_ms = \
+		((end_time.tv_sec - start_time.tv_sec) * 100) +
+		((end_time.tv_usec - start_time.tv_usec) / 100);
+
+	printf("meta elapsed_ms %llu\n", elapsed_ms);
 
 	printf("meta status done\n");
 }

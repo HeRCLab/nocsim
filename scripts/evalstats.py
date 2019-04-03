@@ -12,6 +12,7 @@ arrived = {}
 pending = 0
 pending_at = {}
 num_PE = -1
+elapsed_ms = -1
 
 for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin):
     if line[0] == "config" and line[1] == "title":
@@ -58,6 +59,9 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
     elif line[0] == "pop":
         pending += 1
 
+    elif line[0] == "meta" and line[1] == "elapsed_ms":
+        elapsed_ms = int(line[2])
+
 def crunchstat(vals, title):
     headers = []
     results = []
@@ -75,6 +79,8 @@ headers = [
     "total flits arrived",
     "number of PEs",
     "total ticks",
+    "elapsed ms",
+    "Hz"
 ]
 
 results = [
@@ -83,6 +89,8 @@ results = [
         len(arrived),
         num_PE,
         tickno + 1,
+        elapsed_ms,
+        tickno / (elapsed_ms / 100)
 ]
 
 h1, r1 = crunchstat(

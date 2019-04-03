@@ -15,6 +15,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #define NOCSIM_VERSION_PATCH 1
 #define NOCSIM_VERSION_MINOR 0

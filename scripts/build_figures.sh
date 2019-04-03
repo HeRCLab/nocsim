@@ -8,7 +8,7 @@ make
 
 SIZE=10
 SEED=13245
-TICKS=160
+TICKS=1600
 
 mkdir -p out
 rm -f out/*
