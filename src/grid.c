@@ -379,6 +379,10 @@ void nocsim_grid_parse_behavior(char* def, ll_node* head) {
 
 	if (!strncmp(behavior_name, "DOR", NOCSIM_GRID_LINELEN)) {
 		ll2node(target)->behavior = nocsim_behavior_DOR;
+
+	} else if (!strncmp(behavior_name, "ADOR", NOCSIM_GRID_LINELEN)) {
+		ll2node(target)->behavior = nocsim_behavior_ADOR;
+
 	} else {
 		err(1, "unknown behavior %s\n", behavior_name);
 	}

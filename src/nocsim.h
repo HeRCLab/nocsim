@@ -75,6 +75,7 @@ unsigned char with_P(float P);
 unsigned int randrange(unsigned int lower, unsigned int upper);
 
 void nocsim_behavior_DOR(nocsim_node* node);
+void nocsim_behavior_ADOR(nocsim_node* node);
 void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit);
 
 void nocsim_step(ll_node* head);

@@ -18,6 +18,7 @@ elapsed_ms = -1
 routed = {}
 arrived_at = {}
 pending_slope = {}
+done = False
 
 for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin):
     if line[0] == "config" and line[1] == "title":
@@ -25,6 +26,9 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
 
     if line[0] == "meta" and line[1] == "num_PE":
         num_PE = int(line[2])
+
+    if line[0] == "meta" and line[1] == "status" and line[2] == "done":
+        done = True
 
     if line[0] == "meta" and line[1] == "num_router":
         num_router = int(line[2])
@@ -141,6 +145,8 @@ h6, r6 = crunchstat(
 
 headers += h1 + h2 + h3 + h4 + h5 + h6
 results += r1 + r2 + r3 + r4 + r5 + r6
+
+assert done
 
 sys.stderr.write("\t".join(headers))
 sys.stderr.write("\n")

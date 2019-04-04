@@ -11,5 +11,7 @@ gnuplot \
 	-e 'set xlabel "injection rate (flit-PEs per cycle)"' \
 	-e 'set ylabel "pending flits (flits per cycle per PE)"' \
 	-e "plot 'out/results_mesh_DOR.tsv' using $injrate:$pending with linespoints title \"mesh, DOR\", \
-'out/results_torus_DOR.tsv' using $injrate:$pending with linespoints title \"torus, DOR\"" \
+'out/results_torus_DOR.tsv' using $injrate:$pending with linespoints title \"torus, DOR\", \
+'out/results_mesh_ADOR.tsv' using $injrate:$pending with linespoints title \"mesh, ADOR\", \
+'out/results_torus_ADOR.tsv' using $injrate:$pending with linespoints title \"torus, ADOR\"" \
 > out/mean_pending.$GP_EXT

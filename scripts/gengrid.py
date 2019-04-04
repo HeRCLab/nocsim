@@ -8,7 +8,7 @@ parser.add_argument("--topography", "-t", choices=["mesh", "torus"], required=Tr
 parser.add_argument("--title", "-T", default=None)
 parser.add_argument("--P_inject", "-P", type=float, required=True)
 parser.add_argument("--seed", "-S", type=int, required=True)
-parser.add_argument("--behavior", "-b", choices=["DOR"], required=True)
+parser.add_argument("--behavior", "-b", choices=["DOR", "ADOR"], required=True)
 parser.add_argument("--output", "-o", default=sys.stdout)
 parser.add_argument("--ticks", "-k", type=int, required=True)
 

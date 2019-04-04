@@ -1,10 +1,10 @@
 CC=cc
 
 # debugging
-# CFLAGS=-O0 -g -Wall -Wextra -pedantic -std=c99 -DEBUG
+CFLAGS=-O0 -g3 -Wall -Wextra -pedantic -std=c99 -DEBUG
 
 # production
-CFLAGS=-O3 -Wall -Wextra -pedantic -std=c99 -Werror
+# CFLAGS=-O3 -Wall -Wextra -pedantic -std=c99
 
 CFLAGS+=$$(pkg-config --cflags libbsd 2>/dev/null)
 LIBS+=$$(pkg-config --libs libbsd 2>/dev/null)
