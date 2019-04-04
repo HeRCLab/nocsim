@@ -4,18 +4,18 @@ cd "$(dirname "$0")"
 cd ..
 
 make clean
-make
+make -j4
 
 SIZE=10
 SEED=13245
-TICKS=1600
+TICKS=32000
 
 mkdir -p out
 rm -f out/*
 (
-for topo in mesh ; do
-	for P in 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 \
-		0.75 0.8 0.85 0.9 0.95 1.0 ; do
+for topo in mesh torus ; do
+	for P in 0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 \
+		0.75 0.8 0.85 0.9 0.95 0.99 1.0 ; do
 		for behavior in DOR ; do
 			printf "python3 scripts/gengrid.py --size $SIZE \
 --topography $topo --P_inject $P --seed $SEED --behavior $behavior \

@@ -56,3 +56,35 @@ if args.topography == "mesh":
                 print("link {} {}".format(routers[row][col], routers[coord[0]][coord[1]]), file=args.output)
                 print("link {} {}".format(routers[coord[0]][coord[1]], routers[row][col]), file=args.output)
 
+elif args.topography == "torus":
+    routers = []
+
+    # instantiate all the routers
+    for row in range(args.size):
+        routers.append([])
+        for col in range(args.size):
+            R = "R{:03d}{:03d}".format(row, col)
+            P = "P{:03d}{:03d}".format(row, col)
+            routers[row].append(R)
+            print("router {} {} {}".format(R, row, col), file=args.output)
+            print("behavior {} {}".format(R, args.behavior), file=args.output)
+            print("PE {} {} {}".format(P, row, col), file=args.output)
+            print("link {} {}".format(P, R), file=args.output)
+            print("link {} {}".format(R, P), file=args.output)
+
+    # link them together
+    for row in range(args.size):
+        for col in range(args.size):
+            for coord in [[row + 1, col], [row, col + 1]]:
+                if coord[0] >= args.size:
+                    #  routers[row][col].links.append(routers[0][coord[1]])
+                    print("link {} {}".format(routers[row][col], routers[0][coord[1]]))
+
+                elif coord[1] >= args.size:
+                    #  routers[row][col].links.append(routers[coord[0]][0])
+                    print("link {} {}".format(routers[row][col], routers[coord[0]][0]))
+
+                else:
+                    #  routers[row][col].links.append(routers[coord[0]][coord[1]])
+                    print("link {} {}".format(routers[row][col], routers[coord[0]][coord[1]]))
+

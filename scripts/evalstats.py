@@ -8,6 +8,7 @@ tick = {}
 injected = {}
 tickno = -1
 hops = {}
+age = {}
 arrived = {}
 pending = 0
 pending_at = {}
@@ -42,7 +43,10 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
         flitid  = int(line[1])
         if flitid not in hops:
             hops[flitid] = 0
+        if flitid not in age:
+            age[flitid] = 0
         hops[flitid] += 1
+        age[flitid] += 1
 
     elif line[0] == "arrived":
         flitid  = int(line[1])
@@ -58,6 +62,9 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
 
     elif line[0] == "pop":
         pending += 1
+        flitid  = int(line[1])
+        # handle time in flight vs age (backrouting)
+        hops[flitid] = 0
 
     elif line[0] == "meta" and line[1] == "elapsed_ms":
         elapsed_ms = int(line[2])
@@ -65,9 +72,9 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
 def crunchstat(vals, title):
     headers = []
     results = []
-    for s in ["mean", "median", "mode", "stdev", "variance"]:
+    for s in ["mean", "median", "stdev", "variance"]:
         headers.append("{} {}".format(s, title))
-    for f in [statistics.mean, statistics.median, statistics.mode, statistics.stdev, statistics.variance]:
+    for f in [statistics.mean, statistics.median, statistics.stdev, statistics.variance]:
         results.append(f(vals))
 
     return headers, results
@@ -90,7 +97,7 @@ results = [
         num_PE,
         tickno + 1,
         elapsed_ms,
-        tickno / (elapsed_ms / 100)
+        tickno / (elapsed_ms / 1000)
 ]
 
 h1, r1 = crunchstat(
@@ -100,9 +107,12 @@ h2, r2 = crunchstat(hops.values(), "hops per flit")
 h3, r3 = crunchstat(
         [v/num_PE for v in pending_at.values()],
         "pending flits per tick per PE")
+h4, r4 = crunchstat(
+        age.values(),
+        "flit age")
 
-headers += h1 + h2 + h3
-results += r1 + r2 + r3
+headers += h1 + h2 + h3 + h4
+results += r1 + r2 + r3 + r4
 
 sys.stderr.write("\t".join(headers))
 sys.stderr.write("\n")
