@@ -17,6 +17,7 @@ num_router = -1
 elapsed_ms = -1
 routed = {}
 arrived_at = {}
+pending_slope = {}
 
 for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin):
     if line[0] == "config" and line[1] == "title":
@@ -72,14 +73,15 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
 
     elif line[0] == "tick":
         pending_at[tickno] = pending
-        pending = 0
+        if (tickno > 1) :
+            pending_slope[tickno] = pending_at[tickno] - pending_at[tickno - 1]
         tickno = int(line[1])
 
     elif line[0] == "push":
         pending += 1
 
     elif line[0] == "pop":
-        pending += 1
+        pending -= 1
         flitid  = int(line[1])
         # handle time in flight vs age (backrouting)
         hops[flitid] = 0
@@ -133,9 +135,12 @@ h4, r4 = crunchstat(
 h5, r5 = crunchstat(
         [r/num_PE for r in arrived_at.values()],
         "throughput")
+h6, r6 = crunchstat(
+        [v/num_PE for v in pending_slope.values()],
+        "change in pending flits per tick per PE")
 
-headers += h1 + h2 + h3 + h4 + h5
-results += r1 + r2 + r3 + r4 + r5
+headers += h1 + h2 + h3 + h4 + h5 + h6
+results += r1 + r2 + r3 + r4 + r5 + r6
 
 sys.stderr.write("\t".join(headers))
 sys.stderr.write("\n")
