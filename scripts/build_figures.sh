@@ -38,3 +38,5 @@ export GP_EXT=pdf
 ( for f in scripts/figures/*.sh ; do
 	printf "sh '$f'\n"
 done ) | parallel --bar
+
+pdfunite out/*.pdf out/all.pdf

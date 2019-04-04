@@ -51,27 +51,27 @@ void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit) {
 
 	if (flit->to->row > node->row) {
 		     routelink(S)
+		else routelink(N)
 		else routelink(E)
 		else routelink(W)
-		else routelink(N)
 
 	} else if (flit->to->row < node->row) {
 		     routelink(N)
+		else routelink(S)
 		else routelink(E)
 		else routelink(W)
-		else routelink(S)
 
 	} else if (flit->to->col > node->col) {
 		     routelink(E)
+		else routelink(W)
 		else routelink(S)
 		else routelink(N)
-		else routelink(W)
 
 	} else if (flit->to->col < node->col) {
 		     routelink(W)
+		else routelink(E)
 		else routelink(S)
 		else routelink(N)
-		else routelink(E)
 
 	} else {
 		     routelink(P)
