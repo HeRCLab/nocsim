@@ -13,7 +13,10 @@ arrived = {}
 pending = 0
 pending_at = {}
 num_PE = -1
+num_router = -1
 elapsed_ms = -1
+routed = {}
+arrived_at = {}
 
 for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin):
     if line[0] == "config" and line[1] == "title":
@@ -21,6 +24,9 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
 
     if line[0] == "meta" and line[1] == "num_PE":
         num_PE = int(line[2])
+
+    if line[0] == "meta" and line[1] == "num_router":
+        num_router = int(line[2])
 
     elif line[0] == "inject":
         flitid  = int(line[1])
@@ -47,10 +53,22 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
             age[flitid] = 0
         hops[flitid] += 1
         age[flitid] += 1
+        if tickno not in routed:
+            routed[tickno] = 0
+        routed[tickno] += 1
+
+    elif line[0] == "backrouted":
+        # don't count flits that were backrouted towards throughput
+        if tickno not in routed:
+            routed[tickno] = 0
+        routed[tickno] -= 1
 
     elif line[0] == "arrived":
         flitid  = int(line[1])
         arrived[flitid] = tickno
+        if tickno not in arrived_at:
+            arrived_at[tickno] = 0
+        arrived_at[tickno] += 1
 
     elif line[0] == "tick":
         pending_at[tickno] = pending
@@ -68,6 +86,8 @@ for line in ([f.strip() for f in l.split() if f.strip != ""] for l in sys.stdin)
 
     elif line[0] == "meta" and line[1] == "elapsed_ms":
         elapsed_ms = int(line[2])
+        if (elapsed_ms == 0):
+            elapsed_ms = 1
 
 def crunchstat(vals, title):
     headers = []
@@ -87,7 +107,7 @@ headers = [
     "number of PEs",
     "total ticks",
     "elapsed ms",
-    "Hz"
+    "Hz",
 ]
 
 results = [
@@ -110,9 +130,12 @@ h3, r3 = crunchstat(
 h4, r4 = crunchstat(
         age.values(),
         "flit age")
+h5, r5 = crunchstat(
+        [r/num_PE for r in arrived_at.values()],
+        "throughput")
 
-headers += h1 + h2 + h3 + h4
-results += r1 + r2 + r3 + r4
+headers += h1 + h2 + h3 + h4 + h5
+results += r1 + r2 + r3 + r4 + r5
 
 sys.stderr.write("\t".join(headers))
 sys.stderr.write("\n")
