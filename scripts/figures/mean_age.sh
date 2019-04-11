@@ -10,6 +10,7 @@ gnuplot \
 	-e 'set title "Mean Flit Age at Arrival vs Injection Rate"' \
 	-e 'set xlabel "injection rate (flit-PEs per cycle)"' \
 	-e 'set ylabel "age (cycles)"' \
+	-e 'set logscale y' \
 	-e "plot 'out/results_mesh_DOR.tsv' using $injrate:$age with linespoints title \"mesh, DOR\", \
 'out/results_torus_DOR.tsv' using $injrate:$age with linespoints title \"torus, DOR\", \
 'out/results_utorus_DOR.tsv' using $injrate:$age with linespoints title \"udirected torus, DOR\", \

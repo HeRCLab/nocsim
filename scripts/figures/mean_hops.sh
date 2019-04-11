@@ -10,6 +10,7 @@ gnuplot \
 	-e 'set title "Mean Hops Per Flit vs Injection Rate"' \
 	-e 'set xlabel "injection rate (flit-PEs per cycle)"' \
 	-e 'set ylabel "mean hops (hops per flit)"' \
+	-e 'set logscale y' \
 	-e "plot 'out/results_mesh_DOR.tsv' using $injrate:$hops with linespoints title \"mesh, DOR\", \
 'out/results_torus_DOR.tsv' using $injrate:$hops with linespoints title \"torus, DOR\", \
 'out/results_utorus_DOR.tsv' using $injrate:$hops with linespoints title \"undirected torus, DOR\", \
