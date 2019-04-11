@@ -1,6 +1,12 @@
 #!/bin/sh
 
-# generate all data and figures
+# This script generates a collection of figures and results, which it places in
+# the "out" directory in the top-level of this project.
+
+# These figures and results are specifically for the poster "A Review of
+# FPGA-Oriented Network-on-Chip Routing Algorithms & Topographies" presented at
+# Discover USC, April 2019. They also serve as a useful representative example
+# of how to use nocsim to generate re-producible results.
 
 # Environment variables:
 #
@@ -15,8 +21,13 @@ cd ..
 make clean
 make -j4
 
+# Grid size
 SIZE=10
+
+# RNG seed to use, to ensure deterministic output
 SEED=13245
+
+# Number of ticks to run for
 TICKS=64000
 
 mkdir -p out

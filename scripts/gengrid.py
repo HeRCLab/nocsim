@@ -1,16 +1,44 @@
-import sys
+#!/usr/bin/env python3
+
+
 import argparse
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="Generate nocsim grid definitions.")
 
-parser.add_argument("--size", "-s", type=int, required=True)
-parser.add_argument("--topography", "-t", choices=["mesh", "torus", "utorus"], required=True)
-parser.add_argument("--title", "-T", default=None)
-parser.add_argument("--P_inject", "-P", type=float, required=True)
-parser.add_argument("--seed", "-S", type=int, required=True)
-parser.add_argument("--behavior", "-b", choices=["DOR", "ADOR"], required=True)
-parser.add_argument("--output", "-o", default=sys.stdout)
-parser.add_argument("--ticks", "-k", type=int, required=True)
+parser.add_argument("--size", "-s", type=int, required=True,
+        help="Grid size. All generated grids are square, and this is the "+
+        "side length in routers.")
+
+parser.add_argument("--topography", "-t", choices=["mesh", "torus", "utorus"],
+        help="Specify the topogrophy to generate. 'mesh' refers to an " +
+        "undirected mesh, 'torus' refers to a directed torus, and 'utorus' " +
+        "refers to an undirected torus.", required=True)
+
+parser.add_argument("--title", "-T", default=None,
+        help="Simulation title, for reference purposes. If unspecified, " +
+        "it will be generated based on other parameters.")
+
+parser.add_argument("--P_inject", "-P", type=float, required=True,
+        help="Probability in 0..1.0 that a given PE injects a flit " +
+        "on a given cycle. This P is used for all nodes in the grid.")
+
+parser.add_argument("--seed", "-S", type=int, required=True,
+        help="RNG seed to use.")
+
+parser.add_argument("--behavior", "-b", choices=["DOR", "ADOR"], required=True,
+        help="Routing behavior to use for all routers in the grid. " +
+        "DOR routing prioritizes packets based on what direction they " +
+        "enter the router from. ADOR routing works similarly, but first " +
+        "routes the oldest flit optimally before using DOR on remaining flits")
+
+parser.add_argument("--output", "-o", default=sys.stdout,
+        help="Specify output file. If unspecified, standard out is used. " +
+        "If the output file is specified as 'auto', then then " +
+        "./the_title.txt is used (with the_title being replaced with " +
+        "the value of -T")
+
+parser.add_argument("--ticks", "-k", type=int, required=True,
+        help="Number of ticks to run the simulation for.")
 
 args = parser.parse_args()
 

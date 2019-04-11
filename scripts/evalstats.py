@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+
+# This script consumes a nocsim simulation log on standard input. It writes
+# out a single line of tab-separated values to standard out corresponding to
+# values interesting statistics about the simulation run.
+
+# A tab-separated header is written out on standard error which describes the
+# schema of the output values.
+
 import sys
 import math
 import statistics
