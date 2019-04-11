@@ -4,7 +4,7 @@ import argparse
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--size", "-s", type=int, required=True)
-parser.add_argument("--topography", "-t", choices=["mesh", "torus"], required=True)
+parser.add_argument("--topography", "-t", choices=["mesh", "torus", "utorus"], required=True)
 parser.add_argument("--title", "-T", default=None)
 parser.add_argument("--P_inject", "-P", type=float, required=True)
 parser.add_argument("--seed", "-S", type=int, required=True)
@@ -77,14 +77,43 @@ elif args.topography == "torus":
         for col in range(args.size):
             for coord in [[row + 1, col], [row, col + 1]]:
                 if coord[0] >= args.size:
-                    #  routers[row][col].links.append(routers[0][coord[1]])
                     print("link {} {}".format(routers[row][col], routers[0][coord[1]]))
 
                 elif coord[1] >= args.size:
-                    #  routers[row][col].links.append(routers[coord[0]][0])
                     print("link {} {}".format(routers[row][col], routers[coord[0]][0]))
 
                 else:
-                    #  routers[row][col].links.append(routers[coord[0]][coord[1]])
                     print("link {} {}".format(routers[row][col], routers[coord[0]][coord[1]]))
+
+elif args.topography == "utorus":
+    routers = []
+
+    # instantiate all the routers
+    for row in range(args.size):
+        routers.append([])
+        for col in range(args.size):
+            R = "R{:03d}{:03d}".format(row, col)
+            P = "P{:03d}{:03d}".format(row, col)
+            routers[row].append(R)
+            print("router {} {} {}".format(R, row, col), file=args.output)
+            print("behavior {} {}".format(R, args.behavior), file=args.output)
+            print("PE {} {} {}".format(P, row, col), file=args.output)
+            print("link {} {}".format(P, R), file=args.output)
+            print("link {} {}".format(R, P), file=args.output)
+
+    # link them together
+    for row in range(args.size):
+        for col in range(args.size):
+            for coord in [[row + 1, col], [row, col + 1]]:
+                if coord[0] >= args.size:
+                    print("link {} {}".format(routers[row][col], routers[0][coord[1]]))
+                    print("link {} {}".format(routers[0][coord[1]], routers[row][col]))
+
+                elif coord[1] >= args.size:
+                    print("link {} {}".format(routers[row][col], routers[coord[0]][0]))
+                    print("link {} {}".format(routers[coord[0]][0], routers[row][col]))
+
+                else:
+                    print("link {} {}".format(routers[row][col], routers[coord[0]][coord[1]]))
+                    print("link {} {}".format(routers[coord[0]][coord[1]], routers[row][col]))
 
