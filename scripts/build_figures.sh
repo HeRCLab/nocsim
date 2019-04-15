@@ -28,7 +28,7 @@ SIZE=10
 SEED=13245
 
 # Number of ticks to run for
-TICKS=64000
+TICKS=640
 
 mkdir -p out
 rm -f out/*
@@ -56,8 +56,29 @@ cat out/headers.tsv out/torus.*.ADOR.out > out/results_torus_ADOR.tsv
 cat out/headers.tsv out/utorus.*.ADOR.out > out/results_utorus_ADOR.tsv
 rm -f out/*.out out/*.err out/headers.tsv
 
+export GP_TERMINAL="set terminal eps font 'DejaVu Serif'"
+export GP_EXT=eps
+
+( for f in scripts/figures/*.sh ; do
+	printf "sh '$f'\n"
+done ) | parallel $PARALLEL_OPTS --bar
+
 export GP_TERMINAL="set terminal pdf font 'DejaVu Serif'"
 export GP_EXT=pdf
+
+( for f in scripts/figures/*.sh ; do
+	printf "sh '$f'\n"
+done ) | parallel $PARALLEL_OPTS --bar
+
+export GP_TERMINAL="set terminal svg font 'DejaVu Serif'"
+export GP_EXT=svg
+
+( for f in scripts/figures/*.sh ; do
+	printf "sh '$f'\n"
+done ) | parallel $PARALLEL_OPTS --bar
+
+export GP_TERMINAL="set terminal png font 'DejaVu Serif'"
+export GP_EXT=png
 
 ( for f in scripts/figures/*.sh ; do
 	printf "sh '$f'\n"
