@@ -17,7 +17,7 @@ network on chip topographies and routing algorithms.
 routers and PEs, as well as directional links between them. Each router has a
 "behavior", which specifies how it routes the set of packets being sent into it
 on each simulation tick. Each PE has an injection rate *P* which is the chance
-that it "decides" to inject a flit (packet) into it's attached router each
+that it "decides" to inject a flit (packet) into its attached router on each
 simulation cycle.
 
 The grid definition also includes metadata, such as a simulation title, RNG
@@ -25,10 +25,12 @@ seed (used to ensure deterministic output), and so on.
 
 A collection of scripts are provided to reproduce the results presented in the
 above noted poster in the [scripts/](./scripts/) directory. Among these are
-[gengrid.py](./scripts/gengrid.py), which will pro aromatically generate grid
-definitions for variety of common topographies and routing strategies, as well
+[gengrid.py](./scripts/gengrid.py), which will programatically generate grid
+definitions for a variety of common topographies and routing strategies, as well
 as [evalstats.py](./scripts/evalstats.py) which is used to evaluate various
 statistics about a simulation run of nocsim.
+
+## How to build `nocsim`
 
 The nocsim source code is located in the [src/](./src/) directory, and may be
 compiled via `make`. Note that `libbsd` is required to compile nocsim.
@@ -39,16 +41,16 @@ The `evalstats.py` script will gather a variety of metrics. These are described
 as follows:
 
 * Age: the age of all flits at time of arrival.
-* Hops: the number of hops that a flit takes after it leaves it's originating
+* Hops: the number of hops that a flit takes after it leaves its originating
   PE.
-* Pending Flits: the number of flits which pending across all PEs and cycles.
-  A flit is pending once it's originating PE has "decided" to inject it, but
+* Pending Flits: the number of flits pending across all PEs and cycles.
+  A flit is pending once its originating PE has "decided" to inject it, but
   it has not yet been routed into the NoC.
 * Change in Pending Flits: the numerically calculated slope in the above
   Pending Flits metric.
 * Throughput: the number of flits which arrived on a given cycle.
 
-All matrics are calculated with respect to injection rate.
+All metrics are calculated with respect to injection rate.
 
 **NOTE**: for the purposes of these results, it is assumed that all PEs have
 the same injection rate. Although nocsim supports specifying a separate
@@ -61,7 +63,7 @@ be injected. In the future, `nocsim` will allow for the FIFO size to be
 explicitly restricted, but this is not currently permitted.
 
 Backpressure is implemented by causing routers to "backroute" any incoming
-flit coming from it's attached PE on any tick where all incoming non-PE links
+flit coming from its attached PE on any tick where all incoming non-PE links
 contain a flit (since the number of incoming and outgoing links to a router
 must be equal, and each incoming flit must be routed).
 
@@ -70,14 +72,14 @@ the FIFO.
 
 ## Limitations & Caveats
 
-`nocsim` is a software simulator for a construct that be implemented in
+`nocsim` is a software simulator for a construct that is to be implemented in
 hardware. As a result, it has several limitations and caveats inherent to
-it's design.
+its design.
 
 The most significant limitation is that `nocsim` has no mechanism to compute
 the cost of a given topography or routing algorithm when implemented in
 hardware. For example, it would likely prove very difficult to
-place-and-router an underacted torus, as the links on the "edges" would need
+place-and-route an undirected torus, as the links on the "edges" would need
 to be very long.
 
 `nocsim` also cannot account for issues such as propagation delay, maximum
@@ -92,14 +94,14 @@ grid elements.
 
 ## Future Work
 
-There are number of ways in which `nocsim` and it's associated scripts and
+There are number of ways in which `nocsim` and its associated scripts and
 other tooling could be improved in the future.
 
 * Additional routing behaviors could be implemented.
 
 * Support for generating other, more complex topographies could be added.
 
-* A mathematical model could be design against which to compare the results
+* A mathematical model could be designed, against which to compare the results
   of `nocsim`.
 
 * A graphical front-end could be written, allowing for detailed observation
