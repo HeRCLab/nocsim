@@ -3,6 +3,7 @@
 
 #ifndef __OpenBSD__
 #define _POSIX_C_SOURCE 2
+#include <bsd/stdlib.h>
 #endif
 
 #include "nocsim_types.h"
