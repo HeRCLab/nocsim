@@ -8,11 +8,9 @@ workflows:
 
 jobs:
   compile:
-    parallelism: 2
+    parallelism: 1
     docker:
       - image: gcc:8.2
     steps:
       - checkout
-      - run: pwd
-      - run: ls -lah
-      - run: ./scripts.ci.sh
+      - run: ./scripts/ci.sh
