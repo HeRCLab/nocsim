@@ -29,7 +29,7 @@ jobs:
       - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
       - checkout
-      - run: sh ./scripts/ci/lint.sh
+      - run: sh ./scripts/ci/sample.sh
 
   valgrind:
     docker:
@@ -37,4 +37,4 @@ jobs:
     steps:
       - checkout
       - run: apt install --yes valgrind
-      - run: sh ./scripts/ci/lint.sh
+      - run: sh ./scripts/ci/valgrind.sh
