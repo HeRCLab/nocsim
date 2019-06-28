@@ -13,4 +13,6 @@ jobs:
       - image: gcc:8.2
     steps:
       - checkout
+      - run: pwd
+      - run ls -lah
       - run: ./scripts.ci.sh
