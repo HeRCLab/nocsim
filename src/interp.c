@@ -46,8 +46,9 @@ void nocsim_interp(FILE* stream) {
 	nocsim_state* state;
 	Tcl_Interp *interp;
 	char* line;
-	size_t length;
+	size_t length = 0;
 	nodelist* l;
+	int rc;
 
 /*** initialize nocsim state *************************************************/
 	alloc(sizeof(nocsim_state), state);
@@ -67,16 +68,23 @@ void nocsim_interp(FILE* stream) {
 
 /*** initialize TCL interpreter **********************************************/
 	interp = Tcl_CreateInterp();
+	if (interp == NULL) {
+		fprintf(stderr, "failed to create interpreter!\n");
+		exit(1);
+	}
 
 	Tcl_CreateObjCommand(interp, "nocsim_create_router",
 			nocsim_create_router, (ClientData) NULL,
 			(Tcl_CmdDeleteProc*) NULL);
 
 /*** main interpreter REPL ***************************************************/
-	while (getline(&line, &length, stream) != -1) {
-		Tcl_Eval(interp, line);
-		printf("%s\n", Tcl_GetStringResult(interp));
-	}
+	Tcl_EvalFile(interp, "/dev/stdin");
+	/* while (getline(&line, &length, stream) != -1) { */
+	/*         rc = Tcl_Eval(interp, line); */
+	/*         if (rc != TCL_OK) { */
+	/*                 printf("TCL error: %s\n", Tcl_GetStringResult(interp)); */
+	/*         } */
+	/* } */
 
 /*** clean up ****************************************************************/
 } /* void nocsim_interp(FILE* stream) */

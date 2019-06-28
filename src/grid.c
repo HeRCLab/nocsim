@@ -172,7 +172,30 @@ void nocsim_grid_parse_router(char* def, nocsim_state* state) {
 	router->type_number = state->num_router;
 	state->num_node++;
 	state->num_router++;
-	
+
+	vec_push(state->nodes, router);
+}
+
+/**
+ * @brief Create a new router instance
+ *
+ * @param state
+ * @param id
+ * @param row
+ * @param col
+ */
+void nocsim_create_Router(nocsim_state* state, char* id, unsigned int row, unsigned int col) {
+	nocsim_node* router;
+
+	alloc(sizeof(nocsim_node), router);
+
+	nocsim_init_node(router, node_router, row, col, id);
+
+	router->node_number = state->num_node;
+	router->type_number = state->num_router;
+	state->num_node++;
+	state->num_router++;
+
 	vec_push(state->nodes, router);
 }
 
@@ -347,7 +370,7 @@ void nocsim_grid_parse_behavior(char* def, nocsim_state* state) {
 	nocsim_node* cursor;
 	nocsim_node* target;
 	unsigned int i;
-	
+
 	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), id);
 	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), behavior_name);
 
