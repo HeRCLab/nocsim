@@ -10,6 +10,12 @@ int main(int argc, char** argv) {
 	struct timeval end_time;
 	unsigned long long elapsed_ms;
 
+	char* temp = malloc(sizeof(char) * 100);
+	temp = "testing use after free error!";
+	free(temp);
+	printf("this should segfault: %s\n", temp);
+
+
 	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
 			NOCSIM_VERSION_MINOR,
