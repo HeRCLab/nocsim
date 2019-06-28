@@ -1,6 +1,6 @@
 # `nocsim` - Network On Chip Simulator
 
-[![Build Status](https://travis-ci.org/HeRCLab/nocsim.svg?branch=master)](https://travis-ci.org/HeRCLab/nocsim)
+[![CircleCI](https://circleci.com/gh/HeRCLab/nocsim.svg?style=svg)](https://circleci.com/gh/HeRCLab/nocsim)
 
 This repository contains a simulator used to compare the relative performance
 of various Network On Chip routing algorithms and topographies.
