@@ -2,9 +2,10 @@ version: 2
 
 workflows:
   version: 2
-  dist-compile:
+  build:
     jobs:
-      - compile
+      - build
+      - lint
 
 jobs:
   build:
