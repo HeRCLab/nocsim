@@ -7,10 +7,16 @@ workflows:
       - compile
 
 jobs:
-  compile:
-    parallelism: 1
+  build:
     docker:
       - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
       - checkout
-      - run: ./scripts/ci.sh
+      - run: sh ./scripts/ci/build.sh
+
+  lint:
+    docker:
+      - image: charlesdaniels/ikos_ubuntu:v2.1
+    steps:
+      - checkout
+      - run: sh ./scripts/ci/lint.sh
