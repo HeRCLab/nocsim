@@ -14,5 +14,5 @@ jobs:
     steps:
       - checkout
       - run: pwd
-      - run ls -lah
+      - run: ls -lah
       - run: ./scripts.ci.sh
