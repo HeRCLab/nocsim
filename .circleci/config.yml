@@ -40,7 +40,7 @@ jobs:
       - run: apt install --yes valgrind
       - run: sh ./scripts/ci/valgrind.sh
 
-  valgrind:
+  complexity:
     docker:
       - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
