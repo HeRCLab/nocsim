@@ -13,14 +13,7 @@
  *
  * @return
  */
-nocsim_node* nocsim_allocate_node(nocsim_node_type type, unsigned int row, unsigned int col, char* id) {
-
-	nocsim_node* n;
-
-	if ((n = malloc(sizeof(nocsim_node))) == NULL) {
-		err(1, "could not allocate node with id=%s", id);
-	}
-
+void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, unsigned int col, char* id) {
 
 	n->type = type;
 	n->row = row;
@@ -52,8 +45,6 @@ nocsim_node* nocsim_allocate_node(nocsim_node_type type, unsigned int row, unsig
 
 	n->node_number = 0;
 	n->type_number = 0;
-
-	return n;
 }
 
 char* nocsim_fmt_node(nocsim_node* node) {
@@ -91,28 +82,29 @@ void nocsim_print_node(FILE* stream, nocsim_node* node) {
  *
  * @param node
  */
-void nocsim_dump_graphviz(FILE* stream, ll_node* head) {
-	ll_node* cursor;
+void nocsim_dump_graphviz(FILE* stream, nocsim_state* state) {
+	nocsim_node* cursor;
+	unsigned int i;
 
 	fprintf(stream, "digraph G {\n");
 
-	foreach_element(cursor, head) {
+	vec_foreach(state->nodes, cursor, i) {
 		/* XXX: this might be bad, unsigned int might be too short */
-		fprintf(stream, "\"%x\" [label=\"%s\"]\n",
-			(unsigned int) ll2node(cursor),
-			ll2node(cursor)->id
+		fprintf(stream, "\"%p\" [label=\"%s\"]\n",
+			(void*) cursor,
+			cursor->id
 		);
 	}
 
-	foreach_element(cursor, head) {
+	vec_foreach(state->nodes, cursor, i) {
 		for (nocsim_direction d = N; d <= P; d++) {
-			if (ll2node(cursor)->outgoing[d] == NULL) {
+			if (cursor->outgoing[d] == NULL) {
 				continue;
 			}
 
-			fprintf(stream, "\"%x\" -> \"%x\"\n",
-				(unsigned int) ll2node(cursor),
-				(unsigned int) ll2node(cursor)->outgoing[d]->to
+			fprintf(stream, "\"%p\" -> \"%p\"\n",
+				(void*) cursor,
+				(void*) cursor->outgoing[d]->to
 			);
 		}
 	}

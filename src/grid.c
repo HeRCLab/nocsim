@@ -28,42 +28,30 @@
  *
  * @return linked list of all nodes in the grid
  */
-ll_node* nocsim_grid_parse_file(FILE* stream) {
+nocsim_state* nocsim_grid_parse_file(FILE* stream) {
 	char* token;
 	char* rest;
-	ll_node* head;
-#ifdef EBUG
-	ll_node* cursor;
-#endif
-	nocsim_meta* meta;
+	nocsim_state* state;
+	nocsim_node* cursor;
+	nodelist* l;
+	unsigned int i;
 
-	alloc(sizeof(ll_node), head);
+	alloc(sizeof(nocsim_state), state);
+	alloc(NOCSIM_GRID_LINELEN * sizeof(char), token);
+	alloc(NOCSIM_GRID_LINELEN * sizeof(char), rest);
+	alloc(sizeof(nodelist), l);
 
-	head->data = NULL;
-	head->next = NULL;
+	state->RNG_seed = (unsigned int) time(NULL);
+	state->num_PE = 0;
+	state->num_router = 0;
+	state->num_node = 0;
+	state->flit_no = 0;
+	state->tick = 0;
+	state->default_P_inject = 0;
+	state->title = "unspecified";
 
-	if ((token = malloc(NOCSIM_GRID_LINELEN * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
-
-	if ((rest = malloc(NOCSIM_GRID_LINELEN * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
-
-	if ((meta = malloc(sizeof(nocsim_meta))) == NULL) {
-		err(1, NULL);
-	}
-
-	meta->RNG_seed = (unsigned int) time(NULL);
-	meta->num_PE = 0;
-	meta->num_router = 0;
-	meta->num_node = 0;
-	meta->flit_no = 0;
-	meta->tick = 0;
-	meta->default_P_inject = 0;
-	meta->title = "unspecified";
-
-	head->data = (void*) meta;
+	vec_init(l);
+	state->nodes = l;
 
 	*token = 0; *rest = 0;
 
@@ -71,19 +59,19 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 		dbprintf("token='%s' rest='%s'\n", token, rest);
 
 		if (!strncmp(token, "router", NOCSIM_GRID_LINELEN)) {
-			nocsim_grid_parse_router(rest, head);
+			nocsim_grid_parse_router(rest, state);
 
 		} else if (!strncmp(token, "PE", NOCSIM_GRID_LINELEN)) {
-			nocsim_grid_parse_PE(rest, head);
+			nocsim_grid_parse_PE(rest, state);
 
 		} else if (!strncmp(token, "link", NOCSIM_GRID_LINELEN)) {
-			nocsim_grid_parse_link(rest, head);
+			nocsim_grid_parse_link(rest, state);
 
 		} else if (!strncmp(token, "behavior", NOCSIM_GRID_LINELEN)) {
-			nocsim_grid_parse_behavior(rest, head);
+			nocsim_grid_parse_behavior(rest, state);
 
 		} else if (!strncmp(token, "config", NOCSIM_GRID_LINELEN)) {
-			nocsim_grid_parse_config(rest, meta);
+			nocsim_grid_parse_config(rest, state);
 
 		} else {
 			err(1, "syntax error in grid definition, unknown token '%s'", token);
@@ -100,18 +88,18 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
 
 #ifdef EBUG
 	dbprintf("dumping in-memory representation of grid definition... \n");
-	foreach_element(cursor, head) {
+	vec_foreach(state->nodes, cursor, i) {
 		dbprintf("\t");
-		dbprint_node(ll2node(cursor));
+		dbprint_node(cursor);
 		drprintf("\n");
 	}
 
 	dbprintf("graphviz dump of in-memory representation\n");
-	nocsim_dump_graphviz(stderr, head);
+	nocsim_dump_graphviz(stderr, state);
 #endif
 
 
-	return head;
+	return state;
 }
 
 /**
@@ -122,22 +110,16 @@ ll_node* nocsim_grid_parse_file(FILE* stream) {
  * @param def
  * @param head
  */
-void nocsim_grid_parse_router(char* def, ll_node* head) {
+void nocsim_grid_parse_router(char* def, nocsim_state* state) {
 	char* id;
 	unsigned int row;
 	unsigned int col;
 	nocsim_node* router;
-	ll_node* tail;
 
-	if ((id = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
+	alloc(sizeof(nocsim_node), router);
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), id);
 
 	id[NOCSIM_GRID_LINELEN] = 0; /* guarantee that the id is null terminated */
-
-	if ((tail = malloc(sizeof(ll_node))) == NULL) {
-		err(1, NULL);
-	}
 
 	if (sscanf(def, "%s %u %u\n", id, &row, &col) <= 0) {
 		err(1, "syntax error in grid definition, did not understand router declaration '%s'", def);
@@ -145,20 +127,14 @@ void nocsim_grid_parse_router(char* def, ll_node* head) {
 
 	dbprintf("parsed router declaration id='%s' row=%u col=%u\n", id, row, col);
 
-	router = nocsim_allocate_node(node_router, row, col, id);
+	nocsim_init_node(router, node_router, row, col, id);
 
-	router->node_number = ll2meta(head)->num_node;
-	ll2meta(head)->num_node++;
-	router->type_number = ll2meta(head)->num_router;
-	ll2meta(head)->num_router++;
-
-	tail->data = (void*) router;
-	tail->next = NULL;
-
-	/* advance head to the tail of the list of grid elements and append
-	 * this router to it */
-	while (head->next != NULL) {head = head->next;}
-	head->next = tail;
+	router->node_number = state->num_node;
+	router->type_number = state->num_router;
+	state->num_node++;
+	state->num_router++;
+	
+	vec_push(state->nodes, router);
 }
 
 /**
@@ -167,24 +143,18 @@ void nocsim_grid_parse_router(char* def, ll_node* head) {
  * @param def
  * @param head
  */
-void nocsim_grid_parse_PE(char* def, ll_node* head) {
+void nocsim_grid_parse_PE(char* def, nocsim_state* state) {
 	char* id;
 	unsigned int row;
 	unsigned int col;
 	float P_inject;
 	int num_assigned;
 	nocsim_node* PE;
-	ll_node* tail;
 
-	if ((id = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
+	alloc(sizeof(nocsim_node), PE);
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), id);
 
 	id[NOCSIM_GRID_LINELEN] = 0; /* guarantee that the id is null terminated */
-
-	if ((tail = malloc(sizeof(ll_node))) == NULL) {
-		err(1, NULL);
-	}
 
 	num_assigned = sscanf(def, "%s %u %u %f\n", id, &row, &col, &P_inject);
 	if (num_assigned < 3) {
@@ -192,31 +162,26 @@ void nocsim_grid_parse_PE(char* def, ll_node* head) {
 
 	} else if (num_assigned < 4) {
 		// use default P_inject
-		P_inject = ll2meta(head)->default_P_inject;
+		P_inject = state->default_P_inject;
 		dbprintf("PE definition does not specify P_inject, using default\n");
 	}
 
 	dbprintf("parsed PE declaration id='%s' row=%u col=%u P_inject=%f\n",
 			id, row, col, P_inject);
 
-	PE = nocsim_allocate_node(node_PE, row, col, id);
+	nocsim_init_node(PE, node_PE, row, col, id);
 
-	alloc(sizeof(list), PE->fifo_head);
+	alloc(sizeof(ll_node), PE->fifo_head);
 	PE->fifo_head->next = NULL;
 	PE->fifo_head->data = NULL;
 	PE->P_inject = P_inject;
-	PE->node_number = ll2meta(head)->num_node;
-	ll2meta(head)->num_node++;
-	PE->type_number = ll2meta(head)->num_PE;
-	ll2meta(head)->num_PE++;
+	PE->node_number = state->num_node;
+	state->num_node++;
+	PE->type_number = state->num_PE;
+	state->num_PE++;
 
-	tail->data = (void*) PE;
-	tail->next = NULL;
+	vec_push(state->nodes, PE);
 
-	/* advance head to the tail of the list of grid elements and append
-	 * this router to it */
-	while (head->next != NULL) {head = head->next;}
-	head->next = tail;
 }
 
 /**
@@ -226,25 +191,18 @@ void nocsim_grid_parse_PE(char* def, ll_node* head) {
  * @param def
  * @param head
  */
-void nocsim_grid_parse_link(char* def, ll_node* head) {
+void nocsim_grid_parse_link(char* def, nocsim_state* state) {
 	char* from_id;
 	char* to_id;
 	nocsim_node* from;
 	nocsim_node* to;
-	ll_node* cursor;
 	nocsim_link* link;
+	unsigned int i;
+	nocsim_node* cursor;
 
-	if ((link = malloc(sizeof(nocsim_link))) == NULL) {
-		err(1, NULL);
-	}
-
-	if ((from_id = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
-
-	if ((to_id = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
+	alloc(sizeof(nocsim_link), link);
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), from_id);
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), to_id);
 
 	if (sscanf(def, "%s %s\n", from_id, to_id) <= 0) {
 		err(1, "syntax error in grid definition, did not understand link declaration '%s'", def);
@@ -252,12 +210,16 @@ void nocsim_grid_parse_link(char* def, ll_node* head) {
 	dbprintf("parsed link declaration from='%s' to='%s'\n", from_id, to_id);
 
 	from = NULL; to=NULL;
-	foreach_element(cursor, head) {
-		if (!strncmp(to_id, ll2node(cursor)->id, NOCSIM_GRID_LINELEN)) {
-			to = ll2node(cursor);
+	vec_foreach(state->nodes, cursor, i) {
+		if (cursor->id == NULL) {
+			err(1, "node@0x%p missing ID", (void*) cursor);
 		}
-		if (!strncmp(from_id, ll2node(cursor)->id, NOCSIM_GRID_LINELEN)) {
-			from = ll2node(cursor);
+
+		if (!strncmp(to_id, cursor->id, NOCSIM_GRID_LINELEN)) {
+			to = cursor;
+		}
+		if (!strncmp(from_id, cursor->id, NOCSIM_GRID_LINELEN)) {
+			from = cursor;
 		}
 	}
 
@@ -322,9 +284,10 @@ void nocsim_grid_parse_link(char* def, ll_node* head) {
 			err(1, NULL);
 
 		}
-
-
 	}
+
+	free(to_id);
+	free(from_id);
 
 }
 
@@ -338,19 +301,15 @@ void nocsim_grid_parse_link(char* def, ll_node* head) {
  * @param def
  * @param head
  */
-void nocsim_grid_parse_behavior(char* def, ll_node* head) {
+void nocsim_grid_parse_behavior(char* def, nocsim_state* state) {
 	char* id;
 	char* behavior_name;
-	ll_node* cursor;
-	ll_node* target;
-
-	if ((id = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
-
-	if ((behavior_name = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
+	nocsim_node* cursor;
+	nocsim_node* target;
+	unsigned int i;
+	
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), id);
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), behavior_name);
 
 	if (sscanf(def, "%s %s\n", id, behavior_name) <= 0) {
 		err(1, "syntax error in grid definition, did not understand behavior declaration '%s'", def);
@@ -359,13 +318,13 @@ void nocsim_grid_parse_behavior(char* def, ll_node* head) {
 			id, behavior_name);
 
 	target = NULL;
-	foreach_element(cursor, head) {
-		if (!strncmp(id, ll2node(cursor)->id, NOCSIM_GRID_LINELEN)) {
+	vec_foreach(state->nodes, cursor, i) {
+		if (!strncmp(id, cursor->id, NOCSIM_GRID_LINELEN)) {
 			if (target != NULL) {
 				err(1, "duplicated ID %s\n", id);
 			}
 
-			if (ll2node(cursor)->type != node_router) {
+			if (cursor->type != node_router) {
 				err(1, "may not declare behavior for non-router node %s\n", id);
 			}
 
@@ -378,15 +337,17 @@ void nocsim_grid_parse_behavior(char* def, ll_node* head) {
 	}
 
 	if (!strncmp(behavior_name, "DOR", NOCSIM_GRID_LINELEN)) {
-		ll2node(target)->behavior = nocsim_behavior_DOR;
+		target->behavior = nocsim_behavior_DOR;
 
 	} else if (!strncmp(behavior_name, "ADOR", NOCSIM_GRID_LINELEN)) {
-		ll2node(target)->behavior = nocsim_behavior_ADOR;
+		target->behavior = nocsim_behavior_ADOR;
 
 	} else {
 		err(1, "unknown behavior %s\n", behavior_name);
 	}
 
+	free(id);
+	free(behavior_name);
 
 }
 
@@ -403,23 +364,18 @@ void nocsim_grid_parse_behavior(char* def, ll_node* head) {
  * @param def
  * @param head
  */
-void nocsim_grid_parse_config(char* def, nocsim_meta * meta) {
+void nocsim_grid_parse_config(char* def, nocsim_state* state) {
 	char* key;
 	char* val;
-	const char* errstr;
+	char* errstr;
 	unsigned int seed;
 	unsigned int max_ticks;
 	float default_P_inject;
 
 	errstr = NULL;
 
-	if ((key = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
-
-	if ((val = malloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char))) == NULL) {
-		err(1, NULL);
-	}
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), key);
+	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), val);
 
 
 	if (sscanf(def, "%s %s\n", key, val) <= 0) {
@@ -429,37 +385,48 @@ void nocsim_grid_parse_config(char* def, nocsim_meta * meta) {
 			key, val);
 
 	if (!strncmp(key, "RNG_seed", NOCSIM_GRID_LINELEN)) {
+#ifdef __OpenBSD__
 		seed = (unsigned int) strtonum(val, 0, UINT_MAX, &errstr);
 		if (errstr != NULL) {
 			err(1, "could not parse RNG seed '%s'", val);
 		}
-		meta->RNG_seed = seed;
-		dbprintf("meta->RNG_seed=%u\n", seed);
+#else
+		seed = (unsigned int) strtoul(val, &errstr, 10);
+#endif
+		state->RNG_seed = seed;
+		dbprintf("state->RNG_seed=%u\n", seed);
+		free(val);
 
 	} else if (!strncmp(key, "max_ticks", NOCSIM_GRID_LINELEN)) {
+#ifdef __OpenBSD__
 		max_ticks = (unsigned int) strtonum(val, 0, UINT_MAX, &errstr);
 		if (errstr != NULL) {
 			err(1, "could not parse max_ticks '%s'", val);
 		}
-		meta->max_ticks = max_ticks;
-		dbprintf("meta->max_ticks=%u\n", max_ticks);
+#else
+		max_ticks = (unsigned int) strtoul(val, &errstr, 10);
+#endif
+		state->max_ticks = max_ticks;
+		dbprintf("state->max_ticks=%u\n", max_ticks);
+		free(val);
 
 	} else if (!strncmp(key, "default_P_inject", NOCSIM_GRID_LINELEN)) {
 		default_P_inject = strtof(val, NULL);
 		if (errno == ERANGE) {
 			err(1, "could not parse default_P_inject '%s'", val);
 		}
-		meta->default_P_inject = default_P_inject;
-		dbprintf("meta->default_P_inject=%f\n", default_P_inject);
+		state->default_P_inject = default_P_inject;
+		dbprintf("state->default_P_inject=%f\n", default_P_inject);
+		free(val);
 
 	} else if (!strncmp(key, "title", NOCSIM_GRID_LINELEN)) {
-		meta->title = val;
-		dbprintf("meta->title=%s\n", val);
+		state->title = val;
+		dbprintf("state->title=%s\n", val);
 
 	} else {
 		err(1, "invalid config definition '%s' unknown key '%s'",
 				def, key);
 	}
-
+	free(key);
 
 }

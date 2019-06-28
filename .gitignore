@@ -57,3 +57,9 @@ src/nocsim
 *.swp
 *.swo
 *.core
+
+# ikos analysis
+output.db
+src/output.db
+src/nocsim.db
+*.bc

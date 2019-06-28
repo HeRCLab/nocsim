@@ -1,44 +1,45 @@
 #include "nocsim.h"
 
-void nocsim_step(ll_node* head) {
-	ll_node* cursor;
+void nocsim_step(nocsim_state* state) {
+	nocsim_node* cursor;
 	ll_node* temp;
+	unsigned int i;
 
-	dbprintf("beginning tick number %lu\n", ll2meta(head)->tick);
-	printf("tick %lu\n", ll2meta(head)->tick);
+	dbprintf("beginning tick number %lu\n", state->tick);
+	printf("tick %lu\n", state->tick);
 
 	/* PEs generate packets */
-	foreach_element(cursor, head) {
-		if (ll2node(cursor)->type == node_PE) {
-			if (with_P(ll2node(cursor)->P_inject)) {
-				nocsim_inject(head, ll2node(cursor));
+	vec_foreach(state->nodes, cursor, i) {
+		if (cursor->type == node_PE) {
+			if (with_P(cursor->P_inject)) {
+				nocsim_inject(state, cursor);
 			}
 		}
 	}
 
 	/* PEs send packets into links */
-	foreach_element(cursor, head) {
-		if (ll2node(cursor)->type != node_PE) { continue; }
+	vec_foreach(state->nodes, cursor, i) {
+		if (cursor->type != node_PE) { continue; }
 
-		if (ll2node(cursor)->fifo_head->next != NULL) {
+		if (cursor->fifo_head->next != NULL) {
 
-			ll2node(cursor)->outgoing[P]->flit = \
-				(nocsim_flit*) ll2node(cursor)->fifo_head->next->data;
+			cursor->outgoing[P]->flit = \
+				(nocsim_flit*) cursor->fifo_head->next->data;
 
 			printf("pop %lu from %s to %s->%s\n",
-				ll2node(cursor)->outgoing[P]->flit->flit_no,
-				ll2node(cursor)->id,
-				ll2node(cursor)->id,
-				ll2node(cursor)->outgoing[P]->to->id);
+				cursor->outgoing[P]->flit->flit_no,
+				cursor->id,
+				cursor->id,
+				cursor->outgoing[P]->to->id);
 
 			/* pop out of the FIFO */
-			temp = ll2node(cursor)->fifo_head->next;
+			temp = cursor->fifo_head->next;
 			if (temp->next != NULL) {
-				ll2node(cursor)->fifo_head->next = temp->next;
+				cursor->fifo_head->next = temp->next;
 			} else {
-				ll2node(cursor)->fifo_head->next = NULL;
+				cursor->fifo_head->next = NULL;
 			}
-			ll2node(cursor)->fifo_size--;
+			cursor->fifo_size--;
 			temp->next = NULL;
 			temp->data = NULL;
 			free(temp);
@@ -46,40 +47,40 @@ void nocsim_step(ll_node* head) {
 	}
 
 	/* calculate next state */
-	foreach_element(cursor, head) {
-		if (ll2node(cursor)->type != node_router) {
+	vec_foreach(state->nodes, cursor, i) {
+		if (cursor->type != node_router) {
 			continue;
-		} else if (ll2node(cursor)->behavior == NULL) {
+		} else if (cursor->behavior == NULL) {
 			err(1, "%s %s has no defined behavior\n",
-				NOCSIM_NODE_TYPE_TO_STR(ll2node(cursor)->type),
-				ll2node(cursor)->id);
+				NOCSIM_NODE_TYPE_TO_STR(cursor->type),
+				cursor->id);
 		} else {
-			ll2node(cursor)->behavior(ll2node(cursor));
+			cursor->behavior(cursor);
 		}
 	}
 
 	/* flip states */
-	foreach_element(cursor, head) {
+	vec_foreach(state->nodes, cursor, i) {
 		for (nocsim_direction dir = N ; dir <= P ; dir++) {
-			if (ll2node(cursor)->incoming[dir] != NULL) {
-				ll2node(cursor)->incoming[dir]->flit = \
-					ll2node(cursor)->incoming[dir]->flit_next;
-				ll2node(cursor)->incoming[dir]->flit_next = NULL;
+			if (cursor->incoming[dir] != NULL) {
+				cursor->incoming[dir]->flit = \
+					cursor->incoming[dir]->flit_next;
+				cursor->incoming[dir]->flit_next = NULL;
 			}
 		}
 	}
 
 	/* check if packet arrived */
-	foreach_element(cursor, head) {
+	vec_foreach(state->nodes, cursor, i) {
 		for (nocsim_direction dir = N ; dir <= P ; dir++) {
-			if (ll2node(cursor)->incoming[dir] != NULL) {
+			if (cursor->incoming[dir] != NULL) {
 				nocsim_handle_arrival(cursor, dir);
 			}
 
 		}
 	}
 
-	ll2meta(head)->tick++;
+	state->tick++;
 }
 
 /**
@@ -88,51 +89,51 @@ void nocsim_step(ll_node* head) {
  * @param cursor
  * @param dir
  */
-void nocsim_handle_arrival(ll_node* cursor, nocsim_direction dir) {
+void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
 	ll_node* temp;
 
 	// do nothing if there isn't anything coming from this direction
-	if (ll2node(cursor)->incoming[dir]->flit == NULL) {
+	if (cursor->incoming[dir]->flit == NULL) {
 		return;
-	} else if (ll2node(cursor)->incoming[dir]->flit->to == ll2node(cursor)) {
+	} else if (cursor->incoming[dir]->flit->to == cursor) {
 		printf("arrived %lu at %s\n",
-			ll2node(cursor)->incoming[dir]->flit->flit_no,
-			ll2node(cursor)->id);
+			cursor->incoming[dir]->flit->flit_no,
+			cursor->id);
 
 		/* delete the flit */
-		ll2node(cursor)->incoming[dir]->flit = NULL;
-		free((ll2node(cursor)->incoming[dir]->flit));
+		free((cursor->incoming[dir]->flit));
+		cursor->incoming[dir]->flit = NULL;
 
 	} else if (dir == P) {
 		/* insert into top of FIFO, as this should always be going back
 		 * into the PE that injected it */
 
 		
-		ll2node(cursor)->fifo_size++;
+		cursor->fifo_size++;
 
 		/* save the next element, even if it's null */
-		temp = ll2node(cursor)->fifo_head->next;
+		temp = cursor->fifo_head->next;
 
 		/* allocate list element */
-		alloc(sizeof(list), ll2node(cursor)->fifo_head->next);
+		alloc(sizeof(list), cursor->fifo_head->next);
 
 		/* insert the data */
-		ll2node(cursor)->fifo_head->next->data = (void*) ll2node(cursor)->incoming[P]->flit;
+		cursor->fifo_head->next->data = (void*) cursor->incoming[P]->flit;
 
 
 		/* append the rest of the list */
-		ll2node(cursor)->fifo_head->next->next = temp;
+		cursor->fifo_head->next->next = temp;
 
 		printf("backrouted %lu at %s\n",
-			ll2node(cursor)->incoming[dir]->flit->flit_no,
-			ll2node(cursor)->id);
+			cursor->incoming[dir]->flit->flit_no,
+			cursor->id);
 
 		printf("push %lu into %s\n",
-				ll2node(cursor)->incoming[dir]->flit->flit_no,
-				ll2node(cursor)->id);
+				cursor->incoming[dir]->flit->flit_no,
+				cursor->id);
 
 		/* remove the flit from the incoming list */
-		ll2node(cursor)->incoming[P]->flit = NULL;
+		cursor->incoming[P]->flit = NULL;
 	}
 }
 
@@ -142,29 +143,31 @@ void nocsim_handle_arrival(ll_node* cursor, nocsim_direction dir) {
  * @param head
  * @param from
  */
-void nocsim_inject(ll_node* head, nocsim_node* from) {
+void nocsim_inject(nocsim_state* state, nocsim_node* from) {
 	unsigned int target_PE_num;
 	unsigned int counter;
-	list cursor;
+	nocsim_node* cursor;
 	list flit_elem;
 	nocsim_node* to;
 	nocsim_flit* flit;
+	ll_node* fifo_cursor;
+	unsigned int i;
 
 	to = NULL;
 
 	/* Find a target PE that isn't us */
 	do {
 		target_PE_num = randrange(0,
-			ll2meta(head)->num_PE);
+			state->num_PE);
 	} while (target_PE_num == from->type_number);
 
 	/* find the target */
 	counter = 0;
-	foreach_element(cursor, head) {
-		if (ll2node(cursor)->type != node_PE) {continue;}
+	vec_foreach(state->nodes, cursor, i) {
+		if (cursor->type != node_PE) {continue;}
 
 		if (counter == target_PE_num) {
-			to = ll2node(cursor);
+			to = cursor;
 			break;
 		}
 		counter ++;
@@ -178,17 +181,17 @@ void nocsim_inject(ll_node* head, nocsim_node* from) {
 
 	flit->from = from;
 	flit->to = to;
-	flit->spawned_at = ll2meta(head)->tick;
-	flit->flit_no = ll2meta(head)->flit_no;
-	ll2meta(head)->flit_no ++;
-	alloc(sizeof(list), flit_elem);
+	flit->spawned_at = state->tick;
+	flit->flit_no = state->flit_no;
+	state->flit_no ++;
+	alloc(sizeof(ll_node), flit_elem);
 	flit_elem->data = flit;
 	flit_elem->next = NULL;
 
 	/* insert into FIFO */
-	cursor = from->fifo_head;
-	while (cursor->next != NULL) {cursor = cursor->next;}
-	cursor->next = flit_elem;
+	fifo_cursor = from->fifo_head;
+	while (fifo_cursor->next != NULL) {fifo_cursor = fifo_cursor->next;}
+	fifo_cursor->next = flit_elem;
 	from->fifo_size++;
 
 	printf("inject %lu from %s %u %u to %s %u %u\n",

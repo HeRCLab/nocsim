@@ -1,9 +1,8 @@
 #include "nocsim.h"
 
 int main(int argc, char** argv) {
-	ll_node* head;
-	const char* errstr;
-	unsigned int tick;
+	nocsim_state* state;
+	char* errstr;
 	unsigned int seed;
 	unsigned char flag_seed = 0;
 	unsigned char flag_graphviz = 0;
@@ -36,12 +35,18 @@ int main(int argc, char** argv) {
 				return EXIT_SUCCESS;
 			case 's':
 				/* RNG seed */
+#ifdef __OpenBSD__
 				seed = (unsigned int) strtonum(optarg,
 						0, UINT_MAX, &errstr);
+				// TODO: figure out how to make this work for
+				// strtoul also
 				if (errstr != NULL) {
 					err(1, "could not parse RNG seed '%s'",
 							optarg);
 				}
+#else
+				seed = (unsigned int) strtoul(optarg, &errstr, 10);
+#endif
 				flag_seed = 1;
 				break;
 
@@ -58,25 +63,25 @@ int main(int argc, char** argv) {
 		err(1, "extraneous option: %s", argv[optind]);
 	}
 
-	head = nocsim_grid_parse_file(stdin);
+	state = nocsim_grid_parse_file(stdin);
 
 	if (flag_graphviz == 1) {
-		nocsim_dump_graphviz(stdout, head);
+		nocsim_dump_graphviz(stdout, state);
 		exit(0);
 	}
 
-	printf("config RNG_seed %u\n", ll2meta(head)->RNG_seed);
-	printf("config max_ticks %u\n", ll2meta(head)->max_ticks);
-	printf("config default_P_inject %f\n", ll2meta(head)->default_P_inject);
-	printf("config title %s\n", ll2meta(head)->title);
-	printf("meta num_PE %u\n", ll2meta(head)->num_PE);
-	printf("meta num_router %u\n", ll2meta(head)->num_router);
-	printf("meta num_node %u\n", ll2meta(head)->num_node);
+	printf("config RNG_seed %u\n", state->RNG_seed);
+	printf("config max_ticks %u\n", state->max_ticks);
+	printf("config default_P_inject %f\n", state->default_P_inject);
+	printf("config title %s\n", state->title);
+	printf("meta num_PE %u\n", state->num_PE);
+	printf("meta num_router %u\n", state->num_router);
+	printf("meta num_node %u\n", state->num_node);
 
 	if (flag_seed == 1) {
-		ll2meta(head)->RNG_seed = seed;
+		state->RNG_seed = seed;
 	} else {
-		seed = ll2meta(head)->RNG_seed;
+		seed = state->RNG_seed;
 	}
 
 	printf("meta RNG_seed %u\n", seed);
@@ -91,10 +96,9 @@ int main(int argc, char** argv) {
 	printf("meta randsig2 %u\n", rand());
 	printf("meta randsig3 %u\n", rand());
 
-	tick = 0;
 	gettimeofday(&start_time, NULL);
-	for (unsigned int i = 0 ; i < ll2meta(head)->max_ticks ; i++) {
-		nocsim_step(head);
+	for (unsigned int i = 0 ; i < state->max_ticks ; i++) {
+		nocsim_step(state);
 	}
 	gettimeofday(&end_time, NULL);
 
@@ -105,4 +109,6 @@ int main(int argc, char** argv) {
 	printf("meta elapsed_ms %llu\n", elapsed_ms);
 
 	printf("meta status done\n");
+
+	exit(0);
 }

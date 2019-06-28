@@ -7,6 +7,7 @@
 #endif
 
 #include "nocsim_types.h"
+#include "vec.h"
 
 #include <err.h>
 #include <errno.h>
@@ -49,8 +50,6 @@
 /* convert a linked list node containing a node to just the node */
 #define ll2node(node) ((nocsim_node*) (node->data))
 
-#define ll2meta(node) ((nocsim_meta*) node->data)
-
 #define foreach_element(cursor, head) for (cursor = head->next; cursor != NULL; cursor = cursor->next)
 
 #define alloc(size, target) do { \
@@ -60,17 +59,17 @@
 
 int main(int argc, char** argv);
 
-ll_node* nocsim_grid_parse_file(FILE* stream);
-void nocsim_grid_parse_router(char* def, ll_node* head);
-void nocsim_grid_parse_PE(char* def, ll_node* head);
-void nocsim_grid_parse_link(char* def, ll_node* head);
-void nocsim_grid_parse_behavior(char* def, ll_node* head);
-void nocsim_grid_parse_config(char* def, nocsim_meta* meta);
+nocsim_state* nocsim_grid_parse_file(FILE* stream);
+void nocsim_grid_parse_router(char* def, nocsim_state* state);
+void nocsim_grid_parse_PE(char* def, nocsim_state* state);
+void nocsim_grid_parse_link(char* def, nocsim_state* state);
+void nocsim_grid_parse_behavior(char* def, nocsim_state* state);
+void nocsim_grid_parse_config(char* def, nocsim_state* state);
 
-nocsim_node* nocsim_allocate_node(nocsim_node_type type, unsigned int row, unsigned int col, char* id);
+void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, unsigned int col, char* id);
 char* nocsim_fmt_node(nocsim_node* node);
 void nocsim_print_node(FILE* stream, nocsim_node* node);
-void nocsim_dump_graphviz(FILE* stream, ll_node* head);
+void nocsim_dump_graphviz(FILE* stream, nocsim_state* state);
 void nocsim_append_ll(ll_node* head, void* data);
 unsigned char with_P(float P);
 unsigned int randrange(unsigned int lower, unsigned int upper);
@@ -79,8 +78,8 @@ void nocsim_behavior_DOR(nocsim_node* node);
 void nocsim_behavior_ADOR(nocsim_node* node);
 void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit);
 
-void nocsim_step(ll_node* head);
-void nocsim_inject(ll_node* head, nocsim_node* from);
-void nocsim_handle_arrival(ll_node* cursor, nocsim_direction dir);
+void nocsim_step(nocsim_state* state);
+void nocsim_inject(nocsim_state* state, nocsim_node* from);
+void nocsim_handle_arrival(nocsim_node* state, nocsim_direction dir);
 
 #endif

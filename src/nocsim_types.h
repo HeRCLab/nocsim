@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+#include "vec.h"
+
 typedef enum nocsim_node_type_t {node_PE, node_router} nocsim_node_type;
 
 #define NOCSIM_NODE_TYPE_TO_STR(typ) \
@@ -63,6 +65,8 @@ typedef struct nocsim_node_t {
 
 } nocsim_node;
 
+typedef vec_t(nocsim_node*) nodelist;
+
 typedef struct nocsim_flit_t{
 	nocsim_node* from;
 	nocsim_node* to;
@@ -77,7 +81,7 @@ typedef struct nocsim_link_t {
 	nocsim_flit* flit_next;
 } nocsim_link;
 
-typedef struct nocsim_meta_t {
+typedef struct nocsim_state_t {
 	unsigned int RNG_seed;
 	unsigned int num_PE;
 	unsigned int num_router;
@@ -87,6 +91,7 @@ typedef struct nocsim_meta_t {
 	float default_P_inject;
 	unsigned int max_ticks;
 	char* title;
-} nocsim_meta;
+	nodelist* nodes;
+} nocsim_state;
 
 #endif
