@@ -14,7 +14,7 @@ LIBS+=$$(pkg-config --libs libbsd 2>/dev/null)
 all: src/nocsim
 
 lint: src/nocsim.db
-	ikos-report src/nocsim.db
+	ikos-report --status-filter error src/nocsim.db
 
 src/nocsim.db:
 	make -C ./ clean && yes | ikos-scan make -C ./
