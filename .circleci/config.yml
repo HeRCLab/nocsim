@@ -36,5 +36,5 @@ jobs:
       - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
       - checkout
-      - run: sudo apt install valgrind
+      - run: apt install valgrind
       - run: sh ./scripts/ci/lint.sh
