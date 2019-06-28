@@ -37,6 +37,15 @@ statistics about a simulation run of nocsim.
 The nocsim source code is located in the [src/](./src/) directory, and may be
 compiled via `make`. Note that `libbsd` is required to compile nocsim.
 
+### Testing `nocsim`
+
+To run all automated checks, simply run the script `./scripts/ci.sh`. This
+will require the following programs to be installed:
+
+* [NASA-SW-VnV/ikos](https://github.com/NASA-SW-VnV/ikos)
+* [terryyin/lizard](https://github.com/terryyin/lizard)
+* [valgrind](http://valgrind.org/)
+
 ## Metrics of Interest
 
 The `evalstats.py` script will gather a variety of metrics. These are described
