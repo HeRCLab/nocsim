@@ -3,6 +3,45 @@
 /* This file contains methods relating to the "grid" of routers, PEs, and links
  * */
 
+#include <stdio.h>
+#include <tcl.h>
+
+/*
+int DoubleIt( ClientData Data, Tcl_Interp *pInterp, int argc, Tcl_Obj *CONST argv[] ) {
+	Tcl_Obj *pResult;
+	int x;
+	if (Tcl_GetIntFromObj(pInterp, argv[1], &x) != TCL_OK) { return TCL_ERROR; }
+
+	pResult = Tcl_GetObjResult(pInterp);
+	Tcl_SetIntObj(pResult, 2*x);
+	return TCL_OK;
+}
+
+main (int argc, char *argv[]) {
+
+        Tcl_Interp *myinterp;
+        char *action = "set a [expr 5 * 8 + $b]; puts $a ; puts \"doubled to [doubleit $a]\"";
+        int status;
+
+        printf ("Your Program will run ... \n");
+
+        myinterp = Tcl_CreateInterp();
+
+	Tcl_CreateObjCommand(myinterp, "doubleit", DoubleIt, (ClientData)NULL, (Tcl_CmdDeleteProc*)NULL);
+
+	Tcl_SetVar(myinterp, "b", "5", 0);
+
+        status = Tcl_Eval(myinterp,action);
+
+        printf ("Your Program has completed\n");
+
+	printf("value of a is now: %s\n", Tcl_GetVar(myinterp, "a", 0));
+
+
+}
+*/
+
+
 /**
  * @brief Parse an entire file containing a grid definition
  *

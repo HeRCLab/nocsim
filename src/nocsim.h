@@ -2,7 +2,8 @@
 #define NOCSIM_H
 
 #ifndef __OpenBSD__
-#define _POSIX_C_SOURCE 2
+#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 #endif
 
 #include "nocsim_types.h"
@@ -17,6 +18,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <tcl.h>
 
 #define NOCSIM_VERSION_PATCH 1
 #define NOCSIM_VERSION_MINOR 0
@@ -51,6 +53,8 @@
 		err(1, "could not allocate memory"); \
 	} } while(0)
 
+#define UNUSED(x) (void)(x)
+
 int main(int argc, char** argv);
 
 nocsim_state* nocsim_grid_parse_file(FILE* stream);
@@ -74,5 +78,7 @@ void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit);
 void nocsim_step(nocsim_state* state);
 void nocsim_inject(nocsim_state* state, nocsim_node* from);
 void nocsim_handle_arrival(nocsim_node* state, nocsim_direction dir);
+
+void nocsim_interp(FILE* stream);
 
 #endif

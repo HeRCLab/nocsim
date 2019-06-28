@@ -63,28 +63,28 @@ int main(int argc, char** argv) {
 		err(1, "extraneous option: %s", argv[optind]);
 	}
 
-	state = nocsim_grid_parse_file(stdin);
+	/* state = nocsim_grid_parse_file(stdin); */
 
-	if (flag_graphviz == 1) {
-		nocsim_dump_graphviz(stdout, state);
-		exit(0);
-	}
-
-	printf("config RNG_seed %u\n", state->RNG_seed);
-	printf("config max_ticks %u\n", state->max_ticks);
-	printf("config default_P_inject %f\n", state->default_P_inject);
-	printf("config title %s\n", state->title);
-	printf("meta num_PE %u\n", state->num_PE);
-	printf("meta num_router %u\n", state->num_router);
-	printf("meta num_node %u\n", state->num_node);
-
-	if (flag_seed == 1) {
-		state->RNG_seed = seed;
-	} else {
-		seed = state->RNG_seed;
-	}
-
-	printf("meta RNG_seed %u\n", seed);
+	/* if (flag_graphviz == 1) { */
+	/*         nocsim_dump_graphviz(stdout, state); */
+	/*         exit(0); */
+	/* } */
+        /*  */
+	/* printf("config RNG_seed %u\n", state->RNG_seed); */
+	/* printf("config max_ticks %u\n", state->max_ticks); */
+	/* printf("config default_P_inject %f\n", state->default_P_inject); */
+	/* printf("config title %s\n", state->title); */
+	/* printf("meta num_PE %u\n", state->num_PE); */
+	/* printf("meta num_router %u\n", state->num_router); */
+	/* printf("meta num_node %u\n", state->num_node); */
+        /*  */
+	/* if (flag_seed == 1) { */
+	/*         state->RNG_seed = seed; */
+	/* } else { */
+	/*         seed = state->RNG_seed; */
+	/* } */
+        /*  */
+	/* printf("meta RNG_seed %u\n", seed); */
 
 #ifdef __OpenBSD__
 	srand_deterministic(seed);
@@ -97,9 +97,10 @@ int main(int argc, char** argv) {
 	printf("meta randsig3 %u\n", rand());
 
 	gettimeofday(&start_time, NULL);
-	for (unsigned int i = 0 ; i < state->max_ticks ; i++) {
-		nocsim_step(state);
-	}
+	/* for (unsigned int i = 0 ; i < state->max_ticks ; i++) { */
+	/*         nocsim_step(state); */
+	/* } */
+	nocsim_interp(stdin);
 	gettimeofday(&end_time, NULL);
 
 	elapsed_ms = \
