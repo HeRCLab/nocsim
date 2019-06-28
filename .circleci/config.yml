@@ -21,3 +21,18 @@ jobs:
     steps:
       - checkout
       - run: sh ./scripts/ci/lint.sh
+
+  sample:
+    docker:
+      - image: charlesdaniels/ikos_ubuntu:v2.1
+    steps:
+      - checkout
+      - run: sh ./scripts/ci/lint.sh
+
+  valgrind:
+    docker:
+      - image: charlesdaniels/ikos_ubuntu:v2.1
+    steps:
+      - checkout
+      - run: sudo apt install valgrind
+      - run: sh ./scripts/ci/lint.sh
