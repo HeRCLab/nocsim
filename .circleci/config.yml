@@ -6,6 +6,8 @@ workflows:
     jobs:
       - build
       - lint
+      - sample
+      - valgrind
 
 jobs:
   build:
