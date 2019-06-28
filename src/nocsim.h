@@ -3,7 +3,6 @@
 
 #ifndef __OpenBSD__
 #define _POSIX_C_SOURCE 2
-#include <bsd/stdlib.h>
 #endif
 
 #include "nocsim_types.h"
@@ -47,11 +46,6 @@
 #define dbprint_node(node)
 #endif
 
-/* convert a linked list node containing a node to just the node */
-#define ll2node(node) ((nocsim_node*) (node->data))
-
-#define foreach_element(cursor, head) for (cursor = head->next; cursor != NULL; cursor = cursor->next)
-
 #define alloc(size, target) do { \
 	if ((target = malloc(size)) == NULL) { \
 		err(1, "could not allocate memory"); \
@@ -70,7 +64,6 @@ void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, u
 char* nocsim_fmt_node(nocsim_node* node);
 void nocsim_print_node(FILE* stream, nocsim_node* node);
 void nocsim_dump_graphviz(FILE* stream, nocsim_state* state);
-void nocsim_append_ll(ll_node* head, void* data);
 unsigned char with_P(float P);
 unsigned int randrange(unsigned int lower, unsigned int upper);
 

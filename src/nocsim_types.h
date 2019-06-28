@@ -31,15 +31,11 @@ typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4} nocsim_direction;
 /* Maximum FIFO size for PE outgoing FIFOs */
 #define NOCSIM_FIFO_SIZE 128
 
-typedef struct ll_node_t {
-	struct ll_node_t* next;
-	void* data;
-} ll_node;
-
-typedef ll_node* list;
-
 struct nocsim_node_t;
 struct nocsim_link_t;
+struct nocsim_flit_t;
+
+typedef vec_t(struct nocsim_flit_t*) flitlist;
 
 /* function pointer which we will call to perform routing for each node */
 typedef void (*nocsim_behavior)(struct nocsim_node_t* node);
@@ -51,13 +47,11 @@ typedef struct nocsim_node_t {
 	struct nocsim_link_t* incoming[NOCSIM_NUM_LINKS];
 	struct nocsim_link_t* outgoing[NOCSIM_NUM_LINKS];
 	char* id;
-	ll_node* extra;
 	unsigned int node_number;
 	unsigned int type_number;
 
 	/**** only used for PE type ******************************************/
-	size_t fifo_size;
-	ll_node* fifo_head;
+	flitlist* pending;
 	float P_inject;
 
 	/**** only used for router type **************************************/

@@ -31,15 +31,6 @@ void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, u
 	n->outgoing[E] = NULL;
 	n->outgoing[P] = NULL;
 
-	if ((n->extra = malloc(sizeof(ll_node))) == NULL) {
-		err(1, "could not allocate extra for node id=%s", id);
-	}
-
-	n->extra->data = NULL;
-	n->extra->next = NULL;
-
-	n->fifo_size = 0;
-	n->fifo_head = NULL;
 	n->P_inject = 0;
 	n->behavior = NULL;
 
@@ -110,20 +101,6 @@ void nocsim_dump_graphviz(FILE* stream, nocsim_state* state) {
 	}
 
 	fprintf(stream, "}\n");
-}
-
-void nocsim_append_ll(ll_node* head, void* data) {
-	ll_node* node;
-
-	if ((node = malloc(sizeof(ll_node))) == NULL) {
-		err(1, NULL);
-	}
-
-	node->data = data;
-
-	while (head->next != NULL) {head = head->next;}
-
-	head->next = node;
 }
 
 /**

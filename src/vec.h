@@ -40,7 +40,8 @@
 		(v)->data[--(v)->length]
 
 #define vec_dequeue(v) \
-		({typeof(v->data[0]) tmp_ = v->[0]; \
+		__extension__ \
+		({__typeof__(v->data[0]) tmp_ = v->data[0]; \
 		 vec_splice(v, 0, 1); \
 		 tmp_;})
 
@@ -57,7 +58,7 @@
 
 #define vec_insert(v, idx, val)\
 		( vec_insert_(vec_unpack_(v), idx) ? -1 :\
-		  ((v)->data[idx] = (val), 0), (v)->length++, 0 )
+		  ((v)->data[idx] = (val), 0), (v)->length++)
 
 
 #define vec_sort(v, fn)\

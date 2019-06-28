@@ -1,6 +1,6 @@
 config title sample
 config RNG_seed 1
-config default_P_inject 0.01
+config default_P_inject 0.1
 config max_ticks 10000
 router 100 0 0
 PE 200 0 0

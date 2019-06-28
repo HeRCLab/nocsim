@@ -2,7 +2,6 @@
 
 void nocsim_step(nocsim_state* state) {
 	nocsim_node* cursor;
-	ll_node* temp;
 	unsigned int i;
 
 	dbprintf("beginning tick number %lu\n", state->tick);
@@ -21,28 +20,16 @@ void nocsim_step(nocsim_state* state) {
 	vec_foreach(state->nodes, cursor, i) {
 		if (cursor->type != node_PE) { continue; }
 
-		if (cursor->fifo_head->next != NULL) {
+		if (cursor->pending->length > 0) {
 
 			cursor->outgoing[P]->flit = \
-				(nocsim_flit*) cursor->fifo_head->next->data;
+				vec_dequeue(cursor->pending);
 
 			printf("pop %lu from %s to %s->%s\n",
 				cursor->outgoing[P]->flit->flit_no,
 				cursor->id,
 				cursor->id,
 				cursor->outgoing[P]->to->id);
-
-			/* pop out of the FIFO */
-			temp = cursor->fifo_head->next;
-			if (temp->next != NULL) {
-				cursor->fifo_head->next = temp->next;
-			} else {
-				cursor->fifo_head->next = NULL;
-			}
-			cursor->fifo_size--;
-			temp->next = NULL;
-			temp->data = NULL;
-			free(temp);
 		}
 	}
 
@@ -90,8 +77,6 @@ void nocsim_step(nocsim_state* state) {
  * @param dir
  */
 void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
-	ll_node* temp;
-
 	// do nothing if there isn't anything coming from this direction
 	if (cursor->incoming[dir]->flit == NULL) {
 		return;
@@ -108,21 +93,7 @@ void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
 		/* insert into top of FIFO, as this should always be going back
 		 * into the PE that injected it */
 
-		
-		cursor->fifo_size++;
-
-		/* save the next element, even if it's null */
-		temp = cursor->fifo_head->next;
-
-		/* allocate list element */
-		alloc(sizeof(list), cursor->fifo_head->next);
-
-		/* insert the data */
-		cursor->fifo_head->next->data = (void*) cursor->incoming[P]->flit;
-
-
-		/* append the rest of the list */
-		cursor->fifo_head->next->next = temp;
+		vec_insert(cursor->pending, 0, cursor->incoming[P]->flit);
 
 		printf("backrouted %lu at %s\n",
 			cursor->incoming[dir]->flit->flit_no,
@@ -147,10 +118,8 @@ void nocsim_inject(nocsim_state* state, nocsim_node* from) {
 	unsigned int target_PE_num;
 	unsigned int counter;
 	nocsim_node* cursor;
-	list flit_elem;
 	nocsim_node* to;
 	nocsim_flit* flit;
-	ll_node* fifo_cursor;
 	unsigned int i;
 
 	to = NULL;
@@ -179,20 +148,18 @@ void nocsim_inject(nocsim_state* state, nocsim_node* from) {
 
 	alloc(sizeof(nocsim_flit), flit);
 
+	if (from == NULL) {
+		dbprintf("called on null from! (flit=%p)\n", (void*) flit);
+	}
+
 	flit->from = from;
 	flit->to = to;
 	flit->spawned_at = state->tick;
 	flit->flit_no = state->flit_no;
 	state->flit_no ++;
-	alloc(sizeof(ll_node), flit_elem);
-	flit_elem->data = flit;
-	flit_elem->next = NULL;
 
 	/* insert into FIFO */
-	fifo_cursor = from->fifo_head;
-	while (fifo_cursor->next != NULL) {fifo_cursor = fifo_cursor->next;}
-	fifo_cursor->next = flit_elem;
-	from->fifo_size++;
+	vec_push(from->pending, flit);
 
 	printf("inject %lu from %s %u %u to %s %u %u\n",
 			flit->flit_no,
@@ -200,6 +167,4 @@ void nocsim_inject(nocsim_state* state, nocsim_node* from) {
 			to->id, to->row, to->col);
 	printf("push %lu into %s\n", flit->flit_no, from->id);
 
-
 }
-

@@ -150,6 +150,7 @@ void nocsim_grid_parse_PE(char* def, nocsim_state* state) {
 	float P_inject;
 	int num_assigned;
 	nocsim_node* PE;
+	flitlist* pending;
 
 	alloc(sizeof(nocsim_node), PE);
 	alloc((1 + NOCSIM_GRID_LINELEN) * sizeof(char), id);
@@ -171,9 +172,9 @@ void nocsim_grid_parse_PE(char* def, nocsim_state* state) {
 
 	nocsim_init_node(PE, node_PE, row, col, id);
 
-	alloc(sizeof(ll_node), PE->fifo_head);
-	PE->fifo_head->next = NULL;
-	PE->fifo_head->data = NULL;
+	alloc(sizeof(flitlist), pending);
+	vec_init(pending);
+	PE->pending = pending;
 	PE->P_inject = P_inject;
 	PE->node_number = state->num_node;
 	state->num_node++;
