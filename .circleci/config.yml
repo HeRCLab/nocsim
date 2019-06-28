@@ -10,7 +10,7 @@ jobs:
   compile:
     parallelism: 1
     docker:
-      - image: gcc:8.2
+      - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
       - checkout
       - run: ./scripts/ci.sh
