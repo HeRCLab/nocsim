@@ -75,15 +75,54 @@ higher. This updated version of TclProDebug is recommended for use with
 Note that additional magic variables are available during callback execution
 and are documented in the *Callbacks* section later in this document. The magic
 variables described here should be treated as read-only while the simulation is
-running, including during callback execution.
+running, including during callback execution -- modifying the value of these
+variables during such times will result in undefined behavior.
+
+**NOTE** for technical reasons, the read-only or read+write status may or may
+not actually be enforced by the TCL interpreter. Even if they are not, you
+should respect them or risk causing undefined behavior.
 
 | variable name | r/w | description |
-
+|-|-|-|
+| `RNG_seed` | r | value used to seed the random number generator |
+| `num_PE` | r | number of instantiated PEs |
+| `num_router` | r | number of instantiated routers |
+| `num_node` | r | number of instantiated nodes |
+| `flit_no` | r | number of injected flits so far + 1 |
+| `tick` | r | current tick number, starting at 0 |
+| `title` | r+w | simulation title, defaults to "unspecified" |
+| `dir_N` | r | internal enum value of the `N` direction |
+| `dir_S` | r | internal enum value of the `S` direction |
+| `dir_E` | r | internal enum value of the `E` direction |
+| `dir_W` | r | internal enum value of the `W` direction |
+| `dir_PE` | r | internal enum value of the `PE` direction |
+| `type_router` | r | internal enum value of the `router` node type |
+| `type_PE` | r | internal enum value of the `PE` node type |
 
 ## Methods
 
-**TODO**
+### `router ID ROW COL BEHAVIOR`
 
-## Callbacks
+Creates a new router instance with the given row and column values. `ID` may be
+any non-empty identifier string, but should be unique (a stringified version of
+`$num_node + 1` may be a good option). `BEHAVIOR` should be the name of a
+behavior callback which will be called once per tick to define how this node
+behaves.
+
+### `PE ID ROW COL BEHAVIOR`
+
+Exactly as with `router`, except that the instantiated node will be a PE. Note
+that the behavior callbacks for PEs and routers may not be interchangeable,
+depending on how they are implemented.
+
+### `link FROM_ID TO_ID`
+
+Creates a new link, connecting the specified node IDs.
+
+### `step`
+
+Advances the simulation by one tick.
+
+## Behavior Callbacks
 
 **TODO**
