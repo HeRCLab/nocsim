@@ -13,24 +13,10 @@ Discover USC, April 2019.
 ## About `nocsim`
 
 `nocsim` is written in C, and allows for the simulation of arbitrary bufferless
-network on chip topographies and routing algorithms.
-
-`nocsim` consumes on standard input a "grid definition", which defines a set of
-routers and PEs, as well as directional links between them. Each router has a
-"behavior", which specifies how it routes the set of packets being sent into it
-on each simulation tick. Each PE has an injection rate *P* which is the chance
-that it "decides" to inject a flit (packet) into its attached router on each
-simulation cycle.
-
-The grid definition also includes metadata, such as a simulation title, RNG
-seed (used to ensure deterministic output), and so on.
-
-A collection of scripts are provided to reproduce the results presented in the
-above noted poster in the [scripts/](./scripts/) directory. Among these are
-[gengrid.py](./scripts/gengrid.py), which will programatically generate grid
-definitions for a variety of common topographies and routing strategies, as well
-as [evalstats.py](./scripts/evalstats.py) which is used to evaluate various
-statistics about a simulation run of nocsim.
+network on chip topographies and routing algorithms. The collection of nodes in
+the network, their connections, as well as their injection and routing
+behaviors are fully configured via TCL. The nocsim TCL scripting manual can
+be found [here](./doc/TCL.md).
 
 ## How to build `nocsim`
 
