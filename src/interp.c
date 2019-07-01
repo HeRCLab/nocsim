@@ -15,29 +15,91 @@
 #define req_args(n, msg) if (argc != n) { \
 	Tcl_WrongNumArgs(interp, 0, argv, msg); return TCL_ERROR; }
 
-/*** router ID ROW COL *******************************************************/
+/*** router ID ROW COL behavior **********************************************/
 interp_command(nocsim_create_router) {
-	UNUSED(data);
 
+	nocsim_state* state = (nocsim_state*) data;
 	char* id = NULL;
+	char* behavior;
 	int row = -1;
 	int col = -1;
 
-	req_args(4, "ID ROW COL");
-
-	/* if (argc != 4) { */
-	/*         Tcl_WrongNumArgs(interp, 0, argv, "ID ROW COL"); */
-	/*         return TCL_ERROR; */
-	/* } */
+	req_args(5, "ID ROW COL BEHAVIOR");
 
 	id = Tcl_GetStringFromObj(argv[1], NULL);
 	get_int(interp, argv[2], &row);
 	get_int(interp, argv[3], &col);
+	behavior = Tcl_GetStringFromObj(argv[4], NULL);
 
-	dbprintf("creating router id '%s' row, col = %i, %i\n", id, row, col);
+	nocsim_grid_create_router(state, id, row, col, behavior);
 
 	return TCL_OK;
+}
 
+/*** PE ID ROW COL behavior **************************************************/
+interp_command(nocsim_create_PE) {
+	nocsim_state* state = (nocsim_state*) data;
+	char* id = NULL;
+	char* behavior;
+	int row = -1;
+	int col = -1;
+
+	req_args(5, "ID ROW COL BEHAVIOR");
+
+	id = Tcl_GetStringFromObj(argv[1], NULL);
+	get_int(interp, argv[2], &row);
+	get_int(interp, argv[3], &col);
+	behavior = Tcl_GetStringFromObj(argv[4], NULL);
+
+	nocsim_grid_create_PE(state, id, row, col, behavior);
+
+	return TCL_OK;
+}
+
+/*** link ID ID **************************************************************/
+interp_command(nocsim_create_link) {
+	nocsim_state* state = (nocsim_state*) data;
+	char* src = NULL;
+	char* dst = NULL;
+
+	req_args(3, "SRCID DSTID");
+
+	src = Tcl_GetStringFromObj(argv[1], NULL);
+	dst = Tcl_GetStringFromObj(argv[2], NULL);
+
+	nocsim_grid_create_link(state, src, dst);
+
+	return TCL_OK;
+}
+
+/*** config KEY VAL **********************************************************/
+interp_command(nocsim_config) {
+	nocsim_state* state = (nocsim_state*) data;
+	char* key = NULL;
+	char* val = NULL;
+
+	req_args(3, "KEY VAL");
+
+	key = Tcl_GetStringFromObj(argv[1], NULL);
+	val = Tcl_GetStringFromObj(argv[2], NULL);
+
+	nocsim_grid_config(state, key, val);
+
+	return TCL_OK;
+}
+
+/*** graphviz ****************************************************************/
+interp_command(nocsim_graphviz) {
+	UNUSED(interp);
+	UNUSED(argc);
+	UNUSED(argv);
+
+	nocsim_state* state = (nocsim_state*) data;
+
+	/* TODO: should return result to TCL */
+	nocsim_dump_graphviz(stderr, state);
+
+	return TCL_OK;
 }
 
 /*** interpreter implementation **********************************************/
@@ -73,9 +135,29 @@ void nocsim_interp(FILE* stream) {
 		exit(1);
 	}
 
-	Tcl_CreateObjCommand(interp, "nocsim_create_router",
-			nocsim_create_router, (ClientData) NULL,
+	Tcl_Eval(interp, "set argv0 \"nocsim\"");
+
+	Tcl_CreateObjCommand(interp, "router",
+			nocsim_create_router, (ClientData) state,
 			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "PE",
+			nocsim_create_PE, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "link",
+			nocsim_create_link, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "config",
+			nocsim_config, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "graphviz",
+			nocsim_graphviz, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+
 
 /*** main interpreter REPL ***************************************************/
 	Tcl_EvalFile(interp, "/dev/stdin");

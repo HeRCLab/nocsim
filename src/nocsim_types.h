@@ -50,12 +50,13 @@ typedef struct nocsim_node_t {
 	unsigned int node_number;
 	unsigned int type_number;
 
+	/* used to define either routing behavior or injection behavior
+	 * according to node type */
+	char* behavior;
+
 	/**** only used for PE type ******************************************/
 	flitlist* pending;
 	float P_inject;
-
-	/**** only used for router type **************************************/
-	nocsim_behavior behavior;
 
 } nocsim_node;
 

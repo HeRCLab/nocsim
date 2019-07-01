@@ -57,12 +57,10 @@
 
 int main(int argc, char** argv);
 
-nocsim_state* nocsim_grid_parse_file(FILE* stream);
-void nocsim_grid_parse_router(char* def, nocsim_state* state);
-void nocsim_grid_parse_PE(char* def, nocsim_state* state);
-void nocsim_grid_parse_link(char* def, nocsim_state* state);
-void nocsim_grid_parse_behavior(char* def, nocsim_state* state);
-void nocsim_grid_parse_config(char* def, nocsim_state* state);
+void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
+void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
+void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id);
+void nocsim_grid_config(nocsim_state* state, char* key, char* val);
 
 void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, unsigned int col, char* id);
 char* nocsim_fmt_node(nocsim_node* node);

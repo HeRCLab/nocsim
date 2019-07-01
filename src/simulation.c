@@ -42,7 +42,7 @@ void nocsim_step(nocsim_state* state) {
 				NOCSIM_NODE_TYPE_TO_STR(cursor->type),
 				cursor->id);
 		} else {
-			cursor->behavior(cursor);
+			/* cursor->behavior(cursor); */
 		}
 	}
 
