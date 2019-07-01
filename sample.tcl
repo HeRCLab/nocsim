@@ -1,8 +1,7 @@
-set tcl_library "/usr/share/tcltk/tcl8.6"
-source /usr/share/tcltk/tcl8.6/init.tcl
+# set tcl_library "/usr/share/tcltk/tcl8.6"
+# source /usr/share/tcltk/tcl8.6/init.tcl
 source /home/cad/Downloads/TclProDebug/lib/tcldebugger/initdebug.tcl
 debugger_init
-debugger_break
 debugger_eval {
 	debugger_break
 	router foo 0 0 todo
@@ -14,5 +13,7 @@ debugger_eval {
 	link baz quux
 	link quux foo
 	graphviz
+	step
+	step
+	step
 }
-debugger_break

@@ -125,3 +125,27 @@ unsigned char with_P(float P) {
 unsigned int randrange(unsigned int lower, unsigned int upper) {
 	return (((1.0f * rand()) / (1.0f * RAND_MAX)) * upper) + lower;
 }
+
+/* display an error traceback */
+void print_tcl_error(Tcl_Interp* interp) {
+	fprintf(stderr, "TCL error: %s\n", Tcl_GetStringResult(interp));
+	fprintf(stderr, "$errorInfo is:\n%s\n", Tcl_GetVar(interp, "errorInfo", 0));
+	Tcl_Eval(interp, "info errorstack");
+	fprintf(stderr, "info errorstack is:\n%s\n", Tcl_GetStringResult(interp));
+}
+
+char* get_tcl_library_path(void) {
+	FILE* fp;
+	char* result;
+	size_t n;
+	alloc(sizeof(char) * 512, result);
+	fp = popen("echo 'puts $tcl_library' | tclsh", "r");
+	while(getline(&result, &n, fp) != -1) {}
+	fclose(fp);
+
+	/* trim trailing \n */
+	if (result[strnlen(result, 512)-1] == '\n') {
+		result[strnlen(result, 512)-1] = '\0';
+	}
+	return result;
+}

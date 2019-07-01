@@ -55,12 +55,31 @@
 
 #define UNUSED(x) (void)(x)
 
+/* heap-allocated new string by concatenating two existing strings. Will
+ * break on non-null-terminated strings */
+#define ezcat(str1, str2) \
+	__extension__ ({ \
+	char* buf = (char*) malloc(sizeof(strlen(str1) + strlen(str2) + 100)); \
+	sprintf(buf, "%s%s", str1, str2); \
+	buf;})
+
+/* stack-allocated */
+#define ezcats(str1, str2) \
+	__extension__ ({ \
+	char buf[sizeof(strlen(str1) + strlen(str2) + 100)]; \
+	sprintf(buf, "%s%s", str1, str2); \
+	buf;})
+
+/* int to stack-allocated string */
+#define i2sstr(n) __extension__ ({ \
+	char buf[512]; \
+	snprintf(buf, sizeof(buf), "%i", n); buf;})
+
 int main(int argc, char** argv);
 
 void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
 void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
 void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id);
-void nocsim_grid_config(nocsim_state* state, char* key, char* val);
 
 void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, unsigned int col, char* id);
 char* nocsim_fmt_node(nocsim_node* node);
@@ -68,6 +87,8 @@ void nocsim_print_node(FILE* stream, nocsim_node* node);
 void nocsim_dump_graphviz(FILE* stream, nocsim_state* state);
 unsigned char with_P(float P);
 unsigned int randrange(unsigned int lower, unsigned int upper);
+void print_tcl_error(Tcl_Interp* interp);
+char* get_tcl_library_path(void);
 
 void nocsim_behavior_DOR(nocsim_node* node);
 void nocsim_behavior_ADOR(nocsim_node* node);
@@ -77,6 +98,6 @@ void nocsim_step(nocsim_state* state);
 void nocsim_inject(nocsim_state* state, nocsim_node* from);
 void nocsim_handle_arrival(nocsim_node* state, nocsim_direction dir);
 
-void nocsim_interp(FILE* stream);
+void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv);
 
 #endif

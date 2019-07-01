@@ -97,10 +97,11 @@ int main(int argc, char** argv) {
 	printf("meta randsig3 %u\n", rand());
 
 	gettimeofday(&start_time, NULL);
-	/* for (unsigned int i = 0 ; i < state->max_ticks ; i++) { */
-	/*         nocsim_step(state); */
-	/* } */
-	nocsim_interp(stdin);
+	if (flag_graphviz == 1) {
+		nocsim_interp("/dev/stdin", "graphviz", argc, argv);
+	} else {
+		nocsim_interp("/dev/stdin", NULL, argc, argv);
+	}
 	gettimeofday(&end_time, NULL);
 
 	elapsed_ms = \

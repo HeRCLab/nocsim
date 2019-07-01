@@ -34,6 +34,8 @@ void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsi
 	nocsim_node* PE;
 	flitlist* pending;
 
+	alloc(sizeof(nocsim_node), PE);
+
 	nocsim_init_node(PE, node_PE, row, col, id);
 
 	alloc(sizeof(flitlist), pending);
@@ -135,42 +137,3 @@ void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
 	}
 }
 
-void nocsim_grid_config(nocsim_state* state, char* key, char* val) {
-	unsigned int seed;
-	unsigned int max_ticks;
-	char* errstr;
-
-	if (!strncmp(key, "RNG_seed", NOCSIM_GRID_LINELEN)) {
-#ifdef __OpenBSD__
-		seed = (unsigned int) strtonum(val, 0, UINT_MAX, &errstr);
-		if (errstr != NULL) {
-			err(1, "could not parse RNG seed '%s'", val);
-		}
-#else
-		seed = (unsigned int) strtoul(val, &errstr, 10);
-#endif
-		state->RNG_seed = seed;
-		dbprintf("state->RNG_seed=%u\n", seed);
-		free(val);
-
-	} else if (!strncmp(key, "max_ticks", NOCSIM_GRID_LINELEN)) {
-#ifdef __OpenBSD__
-		max_ticks = (unsigned int) strtonum(val, 0, UINT_MAX, &errstr);
-		if (errstr != NULL) {
-			err(1, "could not parse max_ticks '%s'", val);
-		}
-#else
-		max_ticks = (unsigned int) strtoul(val, &errstr, 10);
-#endif
-		state->max_ticks = max_ticks;
-		dbprintf("state->max_ticks=%u\n", max_ticks);
-		free(val);
-
-	} else if (!strncmp(key, "title", NOCSIM_GRID_LINELEN)) {
-		state->title = val;
-		dbprintf("state->title=%s\n", val);
-
-	} else {
-		err(1, "invalid config definition: unknown key '%s'", key);
-	}
-}

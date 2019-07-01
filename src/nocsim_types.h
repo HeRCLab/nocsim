@@ -77,6 +77,12 @@ typedef struct nocsim_link_t {
 } nocsim_link;
 
 typedef struct nocsim_state_t {
+
+	/* in cases where we don't want to simulate anything, this is asserted
+	 * -- this is an implementation detail of how flags such as -g are
+	 *  implemented */
+	unsigned char enable_simulation;
+
 	unsigned int RNG_seed;
 	unsigned int num_PE;
 	unsigned int num_router;

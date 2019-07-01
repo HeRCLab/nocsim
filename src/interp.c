@@ -72,18 +72,17 @@ interp_command(nocsim_create_link) {
 	return TCL_OK;
 }
 
-/*** config KEY VAL **********************************************************/
-interp_command(nocsim_config) {
+/*** step ********************************************************************/
+interp_command(nocsim_step_command) {
+	UNUSED(interp);
+	UNUSED(argc);
+	UNUSED(argv);
+
 	nocsim_state* state = (nocsim_state*) data;
-	char* key = NULL;
-	char* val = NULL;
 
-	req_args(3, "KEY VAL");
-
-	key = Tcl_GetStringFromObj(argv[1], NULL);
-	val = Tcl_GetStringFromObj(argv[2], NULL);
-
-	nocsim_grid_config(state, key, val);
+	if (state->enable_simulation == 1) {
+		nocsim_step(state);
+	}
 
 	return TCL_OK;
 }
@@ -96,6 +95,7 @@ interp_command(nocsim_graphviz) {
 
 	nocsim_state* state = (nocsim_state*) data;
 
+
 	/* TODO: should return result to TCL */
 	nocsim_dump_graphviz(stderr, state);
 
@@ -104,13 +104,11 @@ interp_command(nocsim_graphviz) {
 
 /*** interpreter implementation **********************************************/
 
-void nocsim_interp(FILE* stream) {
+void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
 	nocsim_state* state;
 	Tcl_Interp *interp;
-	char* line;
-	size_t length = 0;
 	nodelist* l;
-	int rc;
+	char* tcl_library_path;
 
 /*** initialize nocsim state *************************************************/
 	alloc(sizeof(nocsim_state), state);
@@ -123,19 +121,46 @@ void nocsim_interp(FILE* stream) {
 	state->flit_no = 0;
 	state->tick = 0;
 	state->default_P_inject = 0;
-	state->title = "unspecified";
+	state->title = NULL; /* allocated as a linked var later */
+
+	if (runme == NULL) {
+		state->enable_simulation = 1;
+	} else {
+		state->enable_simulation = 0;
+	}
 
 	vec_init(l);
 	state->nodes = l;
 
 /*** initialize TCL interpreter **********************************************/
+
+	/* this needs to happen before we initialize the interpreter, because
+	 * TCL does exciting things with threading that will break if we call
+	 * popen ourselves */
+	tcl_library_path = get_tcl_library_path();
+
 	interp = Tcl_CreateInterp();
 	if (interp == NULL) {
 		fprintf(stderr, "failed to create interpreter!\n");
 		exit(1);
 	}
 
-	Tcl_Eval(interp, "set argv0 \"nocsim\"");
+	if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
+		err(1, "failed to initialize stubs\n");
+	}
+
+	Tcl_SetVar(interp, "argv0", argv[0], 0);
+	Tcl_SetVar(interp, "argc", i2sstr(argc), 0);
+	Tcl_Eval(interp, "set argv {}");
+	for (int i = 1 ; i < argc ; i++) {
+		Tcl_SetVar(interp, "argv", argv[i], TCL_LIST_ELEMENT | TCL_APPEND_VALUE);
+	}
+	Tcl_SetVar(interp, "tcl_library", tcl_library_path, 0);
+	Tcl_Eval(interp, __extension__ ({
+		char buf[512];
+		snprintf(buf, sizeof(buf), "source %s/init.tcl", tcl_library_path);
+		buf;}));
+
 
 	Tcl_CreateObjCommand(interp, "router",
 			nocsim_create_router, (ClientData) state,
@@ -149,24 +174,60 @@ void nocsim_interp(FILE* stream) {
 			nocsim_create_link, (ClientData) state,
 			(Tcl_CmdDeleteProc*) NULL);
 
-	Tcl_CreateObjCommand(interp, "config",
-			nocsim_config, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
 	Tcl_CreateObjCommand(interp, "graphviz",
 			nocsim_graphviz, (ClientData) state,
 			(Tcl_CmdDeleteProc*) NULL);
 
 
+	Tcl_CreateObjCommand(interp, "step",
+			nocsim_step_command, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+
+/*** establish linked variables **********************************************/
+
+#define link(typ, sym, ptr, flags) do { \
+	typ* temp = (typ*) Tcl_Alloc(sizeof(typ)); \
+	temp = (typ*) ptr; \
+	Tcl_LinkVar(interp, sym, (char*) temp, flags); \
+	} while (0);
+
+	link(int, "RNG_seed", &(state->RNG_seed), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(int, "num_PE", &(state->num_PE), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(int, "num_router", &(state->num_router), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(int, "num_node", &(state->num_node), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(long, "flit_no", &(state->flit_no), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "tick", &(state->tick), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+#undef link
+
+	state->title = (char*) Tcl_Alloc(sizeof(char) * 512);
+	snprintf(state->title, 512, "unspecified");
+	Tcl_LinkVar(interp, "title", (char*) &(state->title), TCL_LINK_STRING);
+
+/*** setup helper variables **************************************************/
+	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(0)), "0", 0);
+	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(1)), "1", 0);
+	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(2)), "2", 0);
+	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(3)), "3", 0);
+	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(4)), "4", 0);
+
+	Tcl_SetVar(interp, ezcat("type_", NOCSIM_NODE_TYPE_TO_STR(0)), "0", 0);
+	Tcl_SetVar(interp, ezcat("type_", NOCSIM_NODE_TYPE_TO_STR(1)), "1", 0);
 
 /*** main interpreter REPL ***************************************************/
-	Tcl_EvalFile(interp, "/dev/stdin");
-	/* while (getline(&line, &length, stream) != -1) { */
-	/*         rc = Tcl_Eval(interp, line); */
-	/*         if (rc != TCL_OK) { */
-	/*                 printf("TCL error: %s\n", Tcl_GetStringResult(interp)); */
-	/*         } */
-	/* } */
+	if (Tcl_EvalFile(interp, scriptfile) != TCL_OK) {
+		print_tcl_error(interp);
+		err(1, "unable to proceed, exiting with failure state");
+	}
+
+	if (runme != NULL) {
+		if (Tcl_Eval(interp, runme) != TCL_OK) {
+			print_tcl_error(interp);
+			err(1, "unable to proceed, exiting with failure state");
+		}
+
+	}
+	
 
 /*** clean up ****************************************************************/
 } /* void nocsim_interp(FILE* stream) */
