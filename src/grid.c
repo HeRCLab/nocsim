@@ -59,24 +59,11 @@ void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
 	nocsim_node* from;
 	nocsim_node* to;
 	nocsim_link* link;
-	unsigned int i;
-	nocsim_node* cursor;
 
 	alloc(sizeof(nocsim_link), link);
 
-	from = NULL; to=NULL;
-	vec_foreach(state->nodes, cursor, i) {
-		if (cursor->id == NULL) {
-			err(1, "node@0x%p missing ID", (void*) cursor);
-		}
-
-		if (!strncmp(to_id, cursor->id, NOCSIM_GRID_LINELEN)) {
-			to = cursor;
-		}
-		if (!strncmp(from_id, cursor->id, NOCSIM_GRID_LINELEN)) {
-			from = cursor;
-		}
-	}
+	from = nocsim_node_by_id(state, from_id);
+	to = nocsim_node_by_id(state, to_id);
 
 	dbprintf("from node=");
 	dbprint_node(from);

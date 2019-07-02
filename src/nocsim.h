@@ -59,7 +59,7 @@
  * break on non-null-terminated strings */
 #define ezcat(str1, str2) \
 	__extension__ ({ \
-	char* buf = (char*) malloc(sizeof(strlen(str1) + strlen(str2) + 100)); \
+	char* buf = (char*) malloc(sizeof(char) * (strlen(str1) + strlen(str2) + 100)); \
 	sprintf(buf, "%s%s", str1, str2); \
 	buf;})
 

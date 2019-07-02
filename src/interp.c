@@ -539,7 +539,7 @@ void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
 		char buf[512];
 		snprintf(buf, sizeof(buf), "source %s/init.tcl", tcl_library_path);
 		buf;}));
-
+	free(tcl_library_path);
 
 	Tcl_CreateObjCommand(interp, "router",
 			nocsim_create_router, (ClientData) state,
@@ -642,6 +642,8 @@ void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
 		}
 
 	}
+
+	Tcl_DeleteInterp(interp);
 
 
 /*** clean up ****************************************************************/

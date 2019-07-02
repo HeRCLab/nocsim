@@ -1,10 +1,10 @@
 #include "nocsim.h"
 
 int main(int argc, char** argv) {
-	nocsim_state* state;
-	char* errstr;
-	unsigned int seed;
-	unsigned char flag_seed = 0;
+	/* nocsim_state* state; */
+	/* char* errstr; */
+	/* unsigned int seed; */
+	/* unsigned char flag_seed = 0; */
 	unsigned char flag_graphviz = 0;
 	struct timeval start_time;
 	struct timeval end_time;
@@ -33,23 +33,23 @@ int main(int argc, char** argv) {
 						NOCSIM_VERSION_PATCH
 				);
 				return EXIT_SUCCESS;
-			case 's':
-				/* RNG seed */
-#ifdef __OpenBSD__
-				seed = (unsigned int) strtonum(optarg,
-						0, UINT_MAX, &errstr);
-				// TODO: figure out how to make this work for
-				// strtoul also
-				if (errstr != NULL) {
-					err(1, "could not parse RNG seed '%s'",
-							optarg);
-				}
-#else
-				seed = (unsigned int) strtoul(optarg, &errstr, 10);
-#endif
-				flag_seed = 1;
-				break;
-
+/*                         case 's': */
+/*                                 [> RNG seed <] */
+/* #ifdef __OpenBSD__ */
+/*                                 seed = (unsigned int) strtonum(optarg, */
+/*                                                 0, UINT_MAX, &errstr); */
+/*                                 // TODO: figure out how to make this work for */
+/*                                 // strtoul also */
+/*                                 if (errstr != NULL) { */
+/*                                         err(1, "could not parse RNG seed '%s'", */
+/*                                                         optarg); */
+/*                                 } */
+/* #else */
+/*                                 seed = (unsigned int) strtoul(optarg, &errstr, 10); */
+/* #endif */
+/*                                 flag_seed = 1; */
+/*                                 break; */
+/*  */
 			case 'g':
 				flag_graphviz = 1;
 				break;
@@ -87,9 +87,9 @@ int main(int argc, char** argv) {
 	/* printf("meta RNG_seed %u\n", seed); */
 
 #ifdef __OpenBSD__
-	srand_deterministic(seed);
+	/* srand_deterministic(seed); */
 #else
-	srand(seed);
+	/* srand(seed); */
 #endif
 
 	printf("meta randsig1 %u\n", rand());
