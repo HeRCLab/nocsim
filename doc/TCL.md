@@ -186,11 +186,22 @@ The following attributes are available:
 | `to_col` | int | column of destination node |
 | `spawned_at` | int | tick number at which the flit instantiated |
 | `injected_at` | int | tick number at which the flit was injected |
-| `age` | int | number of ticks since the flit was injected |
+
+### `avail DIR` (routing behaviors only)
+
+Considers the outgoing link `DIR` for the current node (where `DIR` is one of
+the `dir_*` magic variables). Returns one of the following values:
+
+| return value | meaning |
+|-|-|
+| 0 | link available for use |
+| 1 | link already used this tick |
+| 2 | no such link |
 
 ### `inject TO` (PE behaviors only)
 
-Inject a new flit destined for the node ID `TO`,
+Inject a new flit destined for the node ID `TO`, The originating node is always
+the current node, which may be tested via the `current` procedure.
 
 ## Behavior Callbacks
 

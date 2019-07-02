@@ -2,6 +2,7 @@
 
 void next_state(nocsim_state* state, Tcl_Interp* interp) {
 	unsigned int i;
+	nocsim_node* cursor;
 
 	vec_foreach(state->nodes, state->current, i) {
 		if (Tcl_Eval(interp, state->current->behavior) != TCL_OK) {
@@ -9,6 +10,24 @@ void next_state(nocsim_state* state, Tcl_Interp* interp) {
 			err(1, "unable to proceed, exiting with failure state");
 		}
 	}
+
+	/* PEs send packets into links */
+	vec_foreach(state->nodes, cursor, i) {
+		if (cursor->type != node_PE) { continue; }
+
+		if (cursor->pending->length > 0) {
+
+			cursor->outgoing[P]->flit = \
+				vec_dequeue(cursor->pending);
+
+			printf("pop %lu from %s to %s->%s\n",
+				cursor->outgoing[P]->flit->flit_no,
+				cursor->id,
+				cursor->id,
+				cursor->outgoing[P]->to->id);
+		}
+	}
+
 }
 
 void flip_state(nocsim_state* state) {
@@ -86,43 +105,8 @@ void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
 	}
 }
 
-/**
- * @brief Unconditionally inject a flit
- *
- * @param head
- * @param from
- */
-void nocsim_inject(nocsim_state* state, nocsim_node* from) {
-	unsigned int target_PE_num;
-	unsigned int counter;
-	nocsim_node* cursor;
-	nocsim_node* to;
+void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to) {
 	nocsim_flit* flit;
-	unsigned int i;
-
-	to = NULL;
-
-	/* Find a target PE that isn't us */
-	do {
-		target_PE_num = randrange(0,
-			state->num_PE);
-	} while (target_PE_num == from->type_number);
-
-	/* find the target */
-	counter = 0;
-	vec_foreach(state->nodes, cursor, i) {
-		if (cursor->type != node_PE) {continue;}
-
-		if (counter == target_PE_num) {
-			to = cursor;
-			break;
-		}
-		counter ++;
-	}
-
-	if (to == NULL) {
-		err(1, "could not find PE# %u", target_PE_num);
-	}
 
 	alloc(sizeof(nocsim_flit), flit);
 

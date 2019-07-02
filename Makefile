@@ -22,8 +22,8 @@ lint: src/nocsim.db
 src/nocsim.db:
 	make -C ./ clean && yes | ikos-scan make -C ./
 
-src/nocsim: src/nocsim.o src/grid.o src/util.o src/behaviors.o src/simulation.o src/vec.o src/interp.o
-	cd src && $(CC) $(CFLAGS) nocsim.o grid.o util.o behaviors.o simulation.o vec.o interp.o $(LIBS) -o ../$@
+src/nocsim: src/nocsim.o src/grid.o src/util.o src/simulation.o src/vec.o src/interp.o
+	cd src && $(CC) $(CFLAGS) nocsim.o grid.o util.o simulation.o vec.o interp.o $(LIBS) -o ../$@
 
 src/nocsim.o: src/nocsim.c src/nocsim.h src/nocsim_types.h
 	cd src && $(CC) $(CFLAGS) $(LIBS) -c nocsim.c
@@ -33,9 +33,6 @@ src/grid.o: src/grid.c src/nocsim.h src/nocsim_types.h
 
 src/util.o: src/util.c src/nocsim.h src/nocsim_types.h
 	cd src && $(CC) $(CFLAGS) -c util.c
-
-src/behaviors.o: src/behaviors.c src/nocsim.h src/nocsim_types.h
-	cd src && $(CC) $(CFLAGS) -c behaviors.c
 
 src/simulation.o: src/simulation.c src/nocsim.h src/nocsim_types.h
 	cd src && $(CC) $(CFLAGS) -c simulation.c

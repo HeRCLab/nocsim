@@ -90,7 +90,6 @@ interp_command(nocsim_current) {
 
 /*** step / step N ***********************************************************/
 interp_command(nocsim_step_command) {
-	UNUSED(interp);
 	int n = 1;
 
 	nocsim_state* state = (nocsim_state*) data;
@@ -118,7 +117,7 @@ interp_command(nocsim_nodeinfo) {
 	nocsim_state* state = (nocsim_state*) data;
 	int length;
 
-	req_args(3, "ID ATTR");
+	req_args(3, "nodeinfo ID ATTR");
 
 	id = Tcl_GetStringFromObj(argv[1], NULL);
 	attr = Tcl_GetStringFromObj(argv[2], &length);
@@ -278,6 +277,207 @@ interp_command(nocsim_graphviz) {
 	return TCL_OK;
 }
 
+/*** inject TO ***************************************************************/
+interp_command(nocsim_inject_command) {
+	nocsim_state* state = (nocsim_state*) data;
+	char* to_id;
+	nocsim_node* node;
+
+	req_args(2, "inject TO");
+
+	if (state->current == NULL) {
+		Tcl_SetResult(interp, "inject may only be called during a behavior callback", NULL);
+		return TCL_ERROR;
+	}
+
+	to_id = Tcl_GetStringFromObj(argv[1], NULL);
+
+	node = nocsim_node_by_id(state, to_id);
+	if (node == NULL) {
+		Tcl_SetResult(interp, "no node found with requested id", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->type != node_PE) {
+		Tcl_SetResult(interp, "originating node must be a PE", NULL);
+		return TCL_ERROR;
+	}
+
+	if (node->type != node_PE) {
+		Tcl_SetResult(interp, "destination node must be a PE", NULL);
+		return TCL_ERROR;
+	}
+
+	if (node == state->current) {
+		Tcl_SetResult(interp, "source and destination may not be the same", NULL);
+		return TCL_ERROR;
+	}
+
+	nocsim_inject(state, state->current, node);
+
+	return TCL_OK;
+
+}
+
+/*** route FROM TO ***********************************************************/
+interp_command(nocsim_route_command) {
+	nocsim_state* state = (nocsim_state*) data;
+	nocsim_direction from;
+	nocsim_direction to;
+
+	req_args(3, "route FROM TO");
+
+	get_int(interp, argv[1], (int*) &from);
+	get_int(interp, argv[2], (int*) &to);
+
+	if (from < 0 || from > P) {
+		Tcl_SetResult(interp, "value provided for from is out of bounds", NULL);
+		return TCL_ERROR;
+	}
+
+	if (to < 0 || to > P) {
+		Tcl_SetResult(interp, "value provided for to is out of bounds", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current == NULL) {
+		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->type != node_router) { 
+		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->incoming[from] == NULL) {
+		Tcl_SetResult(interp, "no incoming link from specified direction", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->outgoing[to] == NULL) {
+		Tcl_SetResult(interp, "no outgoing link to specified direction", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->outgoing[to]->flit_next != NULL) {
+		Tcl_SetResult(interp, "cannot route multiple flits through the same outgoing link", NULL);
+		return TCL_ERROR;
+	}
+
+	state->current->outgoing[to]->flit_next = \
+		state->current->incoming[from]->flit;
+
+	state->current->incoming[from]->flit = NULL;
+
+	return TCL_OK;
+}
+
+/*** peek DIR ATTR ***********************************************************/
+interp_command(nocsim_peek_command) {
+	nocsim_state* state = (nocsim_state*) data;
+	nocsim_direction dir;
+	char* attr;
+	int length;
+
+	req_args(3, "peek DIR ATTR");
+
+	get_int(interp, argv[1], (int*) &dir);
+	attr = Tcl_GetStringFromObj(argv[2], &length);
+
+	if (dir < 0 || dir > P) {
+		Tcl_SetResult(interp, "value provided for dir is out of bounds", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current == NULL) {
+		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->type != node_router) { 
+		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
+		return TCL_ERROR;
+	}
+
+	if (!strncmp(attr, "from", length)) {
+		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->from->id));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "to", length)) {
+		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->to->id));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "from_row", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->from->row));
+		return TCL_OK;
+		
+	} else if (!strncmp(attr, "from_col", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->from->col));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "to_row", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->to->row));
+		return TCL_OK;
+		
+	} else if (!strncmp(attr, "to_col", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->to->col));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "spawned_at", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->spawned_at));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "injected_at", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->injected_at));
+		return TCL_OK;
+
+	} else {
+		Tcl_SetObjResult(interp, str2obj("unrecognized attribute"));
+		return TCL_OK;
+	}
+}
+
+/*** avail DIR ***************************************************************/
+interp_command(nocsim_avail_command) {
+	nocsim_state* state = (nocsim_state*) data;
+	nocsim_direction dir;
+
+	req_args(3, "avail DIR");
+
+	get_int(interp, argv[1], (int*) &dir);
+
+	if (dir < 0 || dir > P) {
+		Tcl_SetResult(interp, "value provided for dir is out of bounds", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current == NULL) {
+		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->type != node_router) { 
+		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->outgoing[dir] == NULL) {
+		/* no such link */
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(2));
+
+	} else if (state->current->outgoing[dir]->flit == NULL) {
+		/* available */
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+
+	} else {
+		/* already used */
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+	}
+
+	return TCL_OK;
+}
+
 /*** interpreter implementation **********************************************/
 
 void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
@@ -379,6 +579,22 @@ void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
 
 	Tcl_CreateObjCommand(interp, "randnode",
 			nocsim_randnode, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "inject",
+			nocsim_inject_command, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "route",
+			nocsim_route_command, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "peek",
+			nocsim_peek_command, (ClientData) state,
+			(Tcl_CmdDeleteProc*) NULL);
+
+	Tcl_CreateObjCommand(interp, "avail",
+			nocsim_peek_command, (ClientData) state,
 			(Tcl_CmdDeleteProc*) NULL);
 
 
