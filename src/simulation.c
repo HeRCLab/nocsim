@@ -4,7 +4,6 @@ void next_state(nocsim_state* state, Tcl_Interp* interp) {
 	unsigned int i;
 
 	vec_foreach(state->nodes, state->current, i) {
-		Tcl_SetVar(interp, "current", state->current->id, 0);
 		if (Tcl_Eval(interp, state->current->behavior) != TCL_OK) {
 			print_tcl_error(interp);
 			err(1, "unable to proceed, exiting with failure state");

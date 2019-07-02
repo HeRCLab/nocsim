@@ -215,18 +215,20 @@ namespace of the interpreter instance. This means they are not directly
 accessibly from within procedure calls, including behavior callbacks. It is
 suggested that they might be accessed using the
 [`upvar`](https://wiki.tcl-lang.org/page/upvar) command. For example, to alias
-`current` from the top-level namespace into a behavior callback, issue `upvar 1
-current current`.o
+`tick` from the top-level namespace into a behavior callback, issue `upvar 1
+tick tick`.
 
 ### Example Behavior Callback
 
 ```tcl
 proc simpletest {} {
-        upvar 1 current current
-        puts "===== simpletest ===="
-        puts "current is: $current"
-        puts "type is: [nodeinfo $current type]"
-        puts "row is: [nodeinfo $current row]"
-        puts "col is: [nodeinfo $current col]"
+	upvar 1 tick tick
+	set current [current]
+	puts "===== simpletest ===="
+	puts "current is: $current"
+	puts "type is: [nodeinfo $current type]"
+	puts "row is: [nodeinfo $current row]"
+	puts "col is: [nodeinfo $current col]"
+	puts "tick is: $tick"
 }
 ```

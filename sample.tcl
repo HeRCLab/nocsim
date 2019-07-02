@@ -2,13 +2,16 @@
 # source /usr/share/tcltk/tcl8.6/init.tcl
 
 proc simpletest {} {
-	upvar 1 current current
+	upvar 1 tick tick
+	set current [current]
 	puts "===== simpletest ===="
 	puts "current is: $current"
 	puts "type is: [nodeinfo $current type]"
 	puts "row is: [nodeinfo $current row]"
 	puts "col is: [nodeinfo $current col]"
+	puts "tick is: $tick"
 }
+
 
 source /home/cad/Downloads/TclProDebug/lib/tcldebugger/initdebug.tcl
 debugger_init
