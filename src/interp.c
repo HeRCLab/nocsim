@@ -101,7 +101,7 @@ interp_command(nocsim_step_command) {
 
 	if (state->enable_simulation == 1) {
 		for (int i = 0 ; i < n ; i++ ) {
-			nocsim_step(state);
+			nocsim_step(state, interp);
 		}
 	}
 
@@ -271,7 +271,6 @@ interp_command(nocsim_graphviz) {
 	UNUSED(argv);
 
 	nocsim_state* state = (nocsim_state*) data;
-
 
 	/* TODO: should return result to TCL */
 	nocsim_dump_graphviz(stderr, state);

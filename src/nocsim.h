@@ -99,7 +99,7 @@ void nocsim_behavior_DOR(nocsim_node* node);
 void nocsim_behavior_ADOR(nocsim_node* node);
 void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit);
 
-void nocsim_step(nocsim_state* state);
+void nocsim_step(nocsim_state* state, Tcl_Interp* interp);
 void nocsim_inject(nocsim_state* state, nocsim_node* from);
 void nocsim_handle_arrival(nocsim_node* state, nocsim_direction dir);
 

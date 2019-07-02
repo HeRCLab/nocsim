@@ -1,52 +1,21 @@
 #include "nocsim.h"
 
-void nocsim_step(nocsim_state* state) {
-	nocsim_node* cursor;
+void next_state(nocsim_state* state, Tcl_Interp* interp) {
 	unsigned int i;
 
-	dbprintf("beginning tick number %lu\n", state->tick);
-	printf("tick %lu\n", state->tick);
-
-	/* PEs generate packets */
-	vec_foreach(state->nodes, cursor, i) {
-		if (cursor->type == node_PE) {
-			if (with_P(cursor->P_inject)) {
-				nocsim_inject(state, cursor);
-			}
+	vec_foreach(state->nodes, state->current, i) {
+		Tcl_SetVar(interp, "current", state->current->id, 0);
+		if (Tcl_Eval(interp, state->current->behavior) != TCL_OK) {
+			print_tcl_error(interp);
+			err(1, "unable to proceed, exiting with failure state");
 		}
 	}
+}
 
-	/* PEs send packets into links */
-	vec_foreach(state->nodes, cursor, i) {
-		if (cursor->type != node_PE) { continue; }
+void flip_state(nocsim_state* state) {
+	unsigned int i;
+	nocsim_node* cursor;
 
-		if (cursor->pending->length > 0) {
-
-			cursor->outgoing[P]->flit = \
-				vec_dequeue(cursor->pending);
-
-			printf("pop %lu from %s to %s->%s\n",
-				cursor->outgoing[P]->flit->flit_no,
-				cursor->id,
-				cursor->id,
-				cursor->outgoing[P]->to->id);
-		}
-	}
-
-	/* calculate next state */
-	vec_foreach(state->nodes, cursor, i) {
-		if (cursor->type != node_router) {
-			continue;
-		} else if (cursor->behavior == NULL) {
-			err(1, "%s %s has no defined behavior\n",
-				NOCSIM_NODE_TYPE_TO_STR(cursor->type),
-				cursor->id);
-		} else {
-			/* cursor->behavior(cursor); */
-		}
-	}
-
-	/* flip states */
 	vec_foreach(state->nodes, cursor, i) {
 		for (nocsim_direction dir = N ; dir <= P ; dir++) {
 			if (cursor->incoming[dir] != NULL) {
@@ -66,6 +35,16 @@ void nocsim_step(nocsim_state* state) {
 
 		}
 	}
+
+}
+
+void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
+
+	dbprintf("beginning tick number %lu\n", state->tick);
+	printf("tick %lu\n", state->tick);
+
+	next_state(state, interp);
+	flip_state(state);
 
 	state->tick++;
 }
