@@ -75,6 +75,10 @@
 	char buf[512]; \
 	snprintf(buf, sizeof(buf), "%i", n); buf;})
 
+/* cast a string to a TCL string object (by value, s should be freed by called)
+ * */
+#define str2obj(s) Tcl_NewStringObj(s, strlen(s))
+
 int main(int argc, char** argv);
 
 void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
@@ -89,6 +93,7 @@ unsigned char with_P(float P);
 unsigned int randrange(unsigned int lower, unsigned int upper);
 void print_tcl_error(Tcl_Interp* interp);
 char* get_tcl_library_path(void);
+nocsim_node* nocsim_node_by_id(nocsim_state* state, char* id);
 
 void nocsim_behavior_DOR(nocsim_node* node);
 void nocsim_behavior_ADOR(nocsim_node* node);

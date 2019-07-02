@@ -27,6 +27,9 @@ void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, 
 	state->num_router++;
 	router->behavior = behavior;
 
+	if (row > state->max_row) { state->max_row = row; }
+	if (col > state->max_col) { state->max_col = col; }
+
 	vec_push(state->nodes, router);
 }
 
@@ -46,6 +49,8 @@ void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsi
 	PE->type_number = state->num_PE;
 	state->num_PE++;
 	PE->behavior = behavior;
+	if (row > state->max_row) { state->max_row = row; }
+	if (col > state->max_col) { state->max_col = col; }
 
 	vec_push(state->nodes, PE);
 }
@@ -136,4 +141,3 @@ void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
 		}
 	}
 }
-

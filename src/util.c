@@ -149,3 +149,22 @@ char* get_tcl_library_path(void) {
 	}
 	return result;
 }
+
+nocsim_node* nocsim_node_by_id(nocsim_state* state, char* id) {
+	nocsim_node* cursor;
+	unsigned int i;
+
+	vec_foreach(state->nodes, cursor, i) {
+		if (cursor->id == NULL) {
+			err(1, "node@0x%p missing ID", (void*) cursor);
+		}
+
+		if (!strncmp(id, cursor->id, NOCSIM_GRID_LINELEN)) {
+			return cursor;
+		}
+	}
+
+	return NULL;
+
+}
+

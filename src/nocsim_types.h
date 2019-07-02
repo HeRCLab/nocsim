@@ -66,6 +66,7 @@ typedef struct nocsim_flit_t{
 	nocsim_node* from;
 	nocsim_node* to;
 	unsigned long spawned_at;
+	unsigned long injected_at;
 	unsigned long flit_no;
 } nocsim_flit;
 
@@ -93,6 +94,12 @@ typedef struct nocsim_state_t {
 	unsigned int max_ticks;
 	char* title;
 	nodelist* nodes;
+	unsigned int max_row;
+	unsigned int max_col;
+	
+	/* used during behavior callbacks */
+	nocsim_node* current;
+
 } nocsim_state;
 
 #endif

@@ -99,7 +99,7 @@ should respect them or risk causing undefined behavior.
 | `type_router` | r | internal enum value of the `router` node type |
 | `type_PE` | r | internal enum value of the `PE` node type |
 
-## Methods
+## Procedures
 
 ### `router ID ROW COL BEHAVIOR`
 
@@ -119,10 +119,93 @@ depending on how they are implemented.
 
 Creates a new link, connecting the specified node IDs.
 
-### `step`
+### `current`
 
-Advances the simulation by one tick.
+Returns the node ID for which the behavior callback is currently executing.
+
+### `step` / `step N`
+
+Advances the simulation by `N` ticks, or by 1 tick if `N` is not provided.
+
+### `nodeinfo ID ATTR`
+
+Retrieve Information about the node `ID`. The following attributes are
+available:
+
+| `ATTR` | Type | Description |
+|-|-|-|
+| `type` | int | either `type_router` or `type_PE` indicating the node type |
+| `row` | int | row number of the node |
+| `col` | int | column number of the node |
+| `behavior` | string | behavior callback for this node |
+
+### `findnode` / `findnode ROW COL` / `findnode ROWL ROWU COLL COLU`
+
+Depending on the number of parameters provided:
+
+* return a list of all node IDs
+* return a list of node IDs that have the row and column `ROW`, `COL`,
+* return a list of node IDs which have a row number bounded by `ROWL` and
+  `ROWU` (inclusive) and a column number bounded by `COLL` and `COLU`
+  (inclusive).
+
+### `behavior ID BEHAVIOR`
+
+Modify the assigned behavior for the node with the specified ID.
+
+### `randnode` / `randnode ROW COL` / `randnode ID`
+
+Depending on the number of parameters provided:
+
+* return a random node ID
+* return a random node ID which does not have the row and column values `ROW`,
+  `COL`
+* return a random node ID which is not `ID`.
+
+In each case, `randnode` will only ever return nodes of type PE.
+
+### `route FROM TO` (routing behaviors only)
+
+Routes the flit incoming from the direction `FROM` to the direction `TO`. `TO`
+and `FROM` should both be integers corresponding to directions, the magic
+variables `dir_*` are provided to make this process easier.
+
+### `peek DIR ATTR` (routing behaviors only)
+
+Retrieves the attribute `ATTR` from the incoming flit in the direction `DIR`.
+
+The following attributes are available:
+
+| `ATTR` | Type | Description |
+|-|-|-|
+| `from` | string | `id` of originating node |
+| `to` | string | `id` of destination node |
+| `from_row` | int | row of originating node |
+| `from_col` | int | column of originating node |
+| `to_row` | int | row of destination node |
+| `to_col` | int | column of destination node |
+| `spawned_at` | int | tick number at which the flit instantiated |
+| `injected_at` | int | tick number at which the flit was injected |
+| `age` | int | number of ticks since the flit was injected |
+
+### `inject TO` (PE behaviors only)
+
+Inject a new flit destined for the node ID `TO`,
 
 ## Behavior Callbacks
 
-**TODO**
+The behavior of each node in simulate network is defined by a *behavior
+callback* (sometimes shortened to simply *behavior*). This is a TCL function
+which implements the abhor that is desired for the particular node.
+
+There are two types of behaviors -- PE behaviors and router behaviors. While in
+principle, it would be possible to write a single behavior that detects the
+type of node it is operating on and acts accordingly, it is suggested to define
+separate behaviors for each. Attempting to inject flits from a routing
+behavior, or perform routing operations from a PE behavior will result in
+undefined behavior.
+
+A behavior is implemented as a TCL procedure, which may be defined either in
+your simulation script, or included from a separate TCL library. The procedure
+should take no arguments; all necessary information about the simulation state
+is provided via magic variables and procedures.
