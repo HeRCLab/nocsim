@@ -94,6 +94,7 @@ unsigned int randrange(unsigned int lower, unsigned int upper);
 void print_tcl_error(Tcl_Interp* interp);
 char* get_tcl_library_path(void);
 nocsim_node* nocsim_node_by_id(nocsim_state* state, char* id);
+nocsim_link* nocsim_link_by_nodes(nocsim_state*, char* from, char* to);
 
 void nocsim_behavior_DOR(nocsim_node* node);
 void nocsim_behavior_ADOR(nocsim_node* node);

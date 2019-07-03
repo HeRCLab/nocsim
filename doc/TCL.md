@@ -91,13 +91,6 @@ should respect them or risk causing undefined behavior.
 | `flit_no` | r | number of injected flits so far + 1 |
 | `tick` | r | current tick number, starting at 0 |
 | `title` | r+w | simulation title, defaults to "unspecified" |
-| `dir_N` | r | internal enum value of the `N` direction |
-| `dir_S` | r | internal enum value of the `S` direction |
-| `dir_E` | r | internal enum value of the `E` direction |
-| `dir_W` | r | internal enum value of the `W` direction |
-| `dir_PE` | r | internal enum value of the `PE` direction |
-| `type_router` | r | internal enum value of the `router` node type |
-| `type_PE` | r | internal enum value of the `PE` node type |
 
 ## Procedures
 
@@ -138,6 +131,27 @@ available:
 | `row` | int | row number of the node |
 | `col` | int | column number of the node |
 | `behavior` | string | behavior callback for this node |
+| `injected` | int | number of flits injected thus far |
+| `routed` | int | number of flits routed thus far |
+
+### `linkinfo FROM TO ATTR`
+
+Retrieve information about the link connecting the nodes with ID `FROM` and
+`TO`.
+
+`ATTR` specifies the information to retrieve.
+
+| `ATTR` | Type | Description |
+|-|-|-|
+| `in_flight` | list of int | list of flit numbers currently in the link |
+| `current_load` | int | number of flits currently in the link |
+| `load` | int  | number of flits routed through this link so far |
+
+**NOTE** `current_load` should be used with care, as it may yield inaccurate
+results if accessed during a behavior callback.
+
+**TIP** remember that links are strictly directional, i.e. the link `foo bar`
+is not the same as the link `bar baz`.
 
 ### `findnode` / `findnode ROW COL` / `findnode ROWL ROWU COLL COLU`
 
@@ -163,6 +177,52 @@ Depending on the number of parameters provided:
 * return a random node ID which is not `ID`.
 
 In each case, `randnode` will only ever return nodes of type PE.
+
+### `dir2int DIR`
+
+Converts a string direction (`DIR`) to an internal integer representation used
+by `nocsim`. Valid direction strings include:
+
+* `n`
+* `north`
+* `up`
+* `s`
+* `south`
+* `down`
+* `e`
+* `east`
+* `right`
+* `w`
+* `west`
+* `left`
+* `p`
+* `pe`
+
+**NOTE** direction strings are case insensitive.
+
+**BEST PRACTICE** it is suggested to always use the abbreviated style
+(`n`/`s`/`e`/`w`/`pe`). Other styles are made available for user friendliness in
+interactive interpreters.
+
+### `int2dir DIR`
+
+Converts an integer direction (`DIR`) in `nocsim`'s internal representation to
+to a string representation. The generated string representation will always be
+in the abbreviated `n`/`s`/`e`/`w`/`pe` style.
+
+### `type2int TYPE`
+
+Converts a string node type to `nocsim`'s internal integer representation.
+Valid node types are:
+
+* `router`
+* `pe`
+
+**NOTE** node type strings are case insensitive
+
+### `int2type TYPE`
+
+Converts an integer type in `nocsim`'s internal representation to a string.
 
 ### `route FROM TO` (routing behaviors only)
 
@@ -229,6 +289,15 @@ suggested that they might be accessed using the
 `tick` from the top-level namespace into a behavior callback, issue `upvar 1
 tick tick`.
 
+**WARNING** although behavior callbacks are executed in serial, care is taken
+with respect to the design of the simulation engine to ensure that the
+simulation results are as if every behavior for every node on a given tick
+happened "at once". It is ostensibly possible to construct behavior callbacks
+which have dependencies on execution order or intermediary simulation state
+(such as via `linkinfo`). Such designs are explicitly not supported, and the
+execution order of behavior callbacks is an internal implementation detail of
+`nocsim` and should not be relied upon.
+
 ### Example Behavior Callback
 
 ```tcl
@@ -243,3 +312,10 @@ proc simpletest {} {
 	puts "tick is: $tick"
 }
 ```
+
+## Performance Counters
+
+For convenience and performance, many useful statistics are collected and
+exposed via performance counters. These are maintained internally by the
+simulation engine. Consult the documentation for the `nodeinfo` and `linkinfo`
+procedures, as well as for magic variables.

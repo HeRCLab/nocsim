@@ -85,6 +85,7 @@ void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
 	link->from = from;
 	link->flit = NULL;
 	link->flit_next = NULL;
+	link->load = 0;
 
 	if ((from->type == node_PE) && (to->type == node_PE)) {
 		err(1, "cannot create illegal link from PE '%s' to PE '%s'",

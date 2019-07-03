@@ -36,6 +36,9 @@ void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, u
 
 	n->node_number = 0;
 	n->type_number = 0;
+
+	n->injected = 0;
+	n->routed = 0;
 }
 
 char* nocsim_fmt_node(nocsim_node* node) {
@@ -168,3 +171,21 @@ nocsim_node* nocsim_node_by_id(nocsim_state* state, char* id) {
 
 }
 
+nocsim_link* nocsim_link_by_nodes(nocsim_state* state, char* from, char* to) {
+	nocsim_node* from_node;
+	nocsim_node* to_node;
+	nocsim_direction d;
+
+	from_node = nocsim_node_by_id(state, from);
+	to_node = nocsim_node_by_id(state, to);
+
+	if (from == NULL || to == NULL) { return NULL; }
+
+	for (d = 0; d < P; d++) {
+		if (from_node->outgoing[d] == NULL) { continue; }
+		if (from_node->outgoing[d]->to == to_node) { return from_node->outgoing[d]; }
+	}
+
+	return NULL;
+
+}

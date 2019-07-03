@@ -132,21 +132,83 @@ interp_command(nocsim_nodeinfo) {
 	if (!strncmp(attr, "type", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(node->type));
 		return TCL_OK;
+
 	} else if (!strncmp(attr, "row", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(node->row));
 		return TCL_OK;
+
 	} else if (!strncmp(attr, "col", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(node->col));
 		return TCL_OK;
+
 	} else if (!strncmp(attr, "behavior", length)) {
 		Tcl_SetResult(interp, node->behavior, NULL);
 		return TCL_OK;
+
+	} else if (!strncmp(attr, "injected", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->routed));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "routed", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->injected));
+		return TCL_OK;
+
 	} else {
 		Tcl_SetResult(interp, "unknown attribute", NULL);
 		return TCL_ERROR;
 	}
 
 }
+
+/*** linkinfo FROM TO ATTR ***************************************************/
+interp_command(nocsim_linkinfo) {
+	char* from_str;
+	char* to_str;
+	char* attr;
+	nocsim_state* state = (nocsim_state*) data;
+	nocsim_link* l;
+	int length;
+
+	req_args(3, "nodeinfo ID ATTR");
+	from_str = Tcl_GetStringFromObj(argv[1], NULL);
+	to_str = Tcl_GetStringFromObj(argv[2], NULL);
+	attr = Tcl_GetStringFromObj(argv[3], &length);
+
+	l = nocsim_link_by_nodes(state, from_str, to_str);
+
+	if (l == NULL) {
+		Tcl_SetResult(interp, "no such link", NULL);
+		return TCL_ERROR;
+	}
+
+	if (!strncmp(attr, "current_load", length)) {
+
+		/* XXX in the future, when links be come queues, this
+		 * logic will need to be updated */
+		if (l->flit == NULL) {
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+		} else {
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+		}
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "in_flight", length)) {
+		Tcl_Obj* listPtr = Tcl_NewListObj(0, NULL);
+		if (l->flit != NULL) {
+			Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewIntObj(l->flit->flit_no));
+		}
+		Tcl_SetObjResult(interp, listPtr);
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "load", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(l->load));
+		return TCL_OK;
+	} else {
+		Tcl_SetResult(interp, "invalid attribute", NULL);
+		return TCL_ERROR;
+	}
+}
+
 
 /*** findnode / findnode ROW COL / findnode ROWL ROWU COLL COLU **************/
 interp_command(nocsim_findnode) {
@@ -313,6 +375,7 @@ interp_command(nocsim_inject_command) {
 		return TCL_ERROR;
 	}
 
+	state->current->injected ++;
 	nocsim_inject(state, state->current, node);
 
 	return TCL_OK;
@@ -364,6 +427,9 @@ interp_command(nocsim_route_command) {
 		Tcl_SetResult(interp, "cannot route multiple flits through the same outgoing link", NULL);
 		return TCL_ERROR;
 	}
+
+	state->current->routed ++;
+	state->current->outgoing[to]->load ++;
 
 	state->current->outgoing[to]->flit_next = \
 		state->current->incoming[from]->flit;
@@ -443,7 +509,7 @@ interp_command(nocsim_avail_command) {
 	nocsim_state* state = (nocsim_state*) data;
 	nocsim_direction dir;
 
-	req_args(3, "avail DIR");
+	req_args(2, "avail DIR");
 
 	get_int(interp, argv[1], (int*) &dir);
 
@@ -477,6 +543,92 @@ interp_command(nocsim_avail_command) {
 
 	return TCL_OK;
 }
+
+/*** dir2int DIR *************************************************************/
+interp_command(nocsim_dir2int) {
+	UNUSED(data);
+	nocsim_direction result = DIR_UNDEF;
+	char* dir;
+
+	req_args(2, "dir2int DIR");
+
+	dir = Tcl_GetStringFromObj(argv[1], NULL);
+
+	result = NOCSIM_STR_TO_DIRECTION(dir);
+
+	if (result <= P) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj((int) result));
+		return TCL_OK;
+	} else {
+		Tcl_SetObjResult(interp, str2obj("invalid direction"));
+		return TCL_ERROR;
+	}
+}
+
+/*** int2dir DIR *************************************************************/
+interp_command(nocsim_int2dir) {
+	UNUSED(data);
+	char* result = NULL;
+	nocsim_direction dir;
+
+	req_args(2, "int2dir DIR");
+
+	get_int(interp, argv[1], (int*) &dir);
+
+	result = NOCSIM_DIRECTION_TO_STR(dir);
+
+	if (dir <= P) {
+		Tcl_SetObjResult(interp, str2obj(result));
+		return TCL_OK;
+	} else {
+		Tcl_SetObjResult(interp, str2obj("invalid direction"));
+		return TCL_ERROR;
+	}
+}
+
+
+/*** type2int DIR *************************************************************/
+interp_command(nocsim_type2int) {
+	UNUSED(data);
+	nocsim_node_type result = type_undefined;
+	char* type;
+
+	req_args(2, "type2int DIR");
+
+	type = Tcl_GetStringFromObj(argv[1], NULL);
+
+	result = NOCSIM_STR_TO_NODE_TYPE(type);
+
+	if (result != type_undefined) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj((int) result));
+		return TCL_OK;
+	} else {
+		Tcl_SetObjResult(interp, str2obj("invalid type"));
+		return TCL_ERROR;
+	}
+}
+
+/*** int2type DIR *************************************************************/
+interp_command(nocsim_int2type) {
+	UNUSED(data);
+	char* result = NULL;
+	nocsim_node_type type;
+
+	req_args(2, "int2type DIR");
+
+	get_int(interp, argv[1], (int*) &type);
+
+	result = NOCSIM_NODE_TYPE_TO_STR(type);
+
+	if (type == node_router || type == node_PE) {
+		Tcl_SetObjResult(interp, str2obj(result));
+		return TCL_OK;
+	} else {
+		Tcl_SetObjResult(interp, str2obj("invalid type"));
+		return TCL_ERROR;
+	}
+}
+
 
 /*** interpreter implementation **********************************************/
 
@@ -541,62 +693,32 @@ void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
 		buf;}));
 	free(tcl_library_path);
 
-	Tcl_CreateObjCommand(interp, "router",
-			nocsim_create_router, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
+#define defcmd(func, name) \
+	Tcl_CreateObjCommand(interp, name, \
+			func, (ClientData) state, \
+			(Tcl_CmdDeleteProc*) NULL); \
 
-	Tcl_CreateObjCommand(interp, "PE",
-			nocsim_create_PE, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
+	defcmd(nocsim_create_router, "router");
+	defcmd(nocsim_create_PE, "PE");
+	defcmd(nocsim_create_link, "link");
+	defcmd(nocsim_current, "current");
+	defcmd(nocsim_graphviz, "graphviz");
+	defcmd(nocsim_step_command, "step");
+	defcmd(nocsim_nodeinfo, "nodeinfo");
+	defcmd(nocsim_findnode, "findnode");
+	defcmd(nocsim_set_behavior, "behavior");
+	defcmd(nocsim_randnode, "randnode");
+	defcmd(nocsim_inject_command, "inject");
+	defcmd(nocsim_route_command, "route");
+	defcmd(nocsim_peek_command, "peek");
+	defcmd(nocsim_peek_command, "avail");
+	defcmd(nocsim_dir2int, "dir2int");
+	defcmd(nocsim_int2dir, "int2dir");
+	defcmd(nocsim_type2int, "type2int");
+	defcmd(nocsim_int2type, "int2type");
+	defcmd(nocsim_linkinfo, "linkinfo");
 
-	Tcl_CreateObjCommand(interp, "link",
-			nocsim_create_link, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "current",
-			nocsim_current, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "graphviz",
-			nocsim_graphviz, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "step",
-			nocsim_step_command, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "nodeinfo",
-			nocsim_nodeinfo, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "findnode",
-			nocsim_findnode, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "behavior",
-			nocsim_set_behavior, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "randnode",
-			nocsim_randnode, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "inject",
-			nocsim_inject_command, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "route",
-			nocsim_route_command, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "peek",
-			nocsim_peek_command, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
-	Tcl_CreateObjCommand(interp, "avail",
-			nocsim_peek_command, (ClientData) state,
-			(Tcl_CmdDeleteProc*) NULL);
-
+#undef defcmd
 
 
 /*** establish linked variables **********************************************/
@@ -618,16 +740,6 @@ void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
 	state->title = (char*) Tcl_Alloc(sizeof(char) * 512);
 	snprintf(state->title, 512, "unspecified");
 	Tcl_LinkVar(interp, "title", (char*) &(state->title), TCL_LINK_STRING);
-
-/*** setup helper variables **************************************************/
-	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(0)), "0", 0);
-	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(1)), "1", 0);
-	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(2)), "2", 0);
-	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(3)), "3", 0);
-	Tcl_SetVar(interp, ezcat("dir_", NOCSIM_DIRECTION_TO_STR(4)), "4", 0);
-
-	Tcl_SetVar(interp, ezcat("type_", NOCSIM_NODE_TYPE_TO_STR(0)), "0", 0);
-	Tcl_SetVar(interp, ezcat("type_", NOCSIM_NODE_TYPE_TO_STR(1)), "1", 0);
 
 /*** main interpreter REPL ***************************************************/
 	if (Tcl_EvalFile(interp, scriptfile) != TCL_OK) {
