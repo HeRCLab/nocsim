@@ -3,7 +3,6 @@
 
 proc simpletest {} {
 	upvar 1 tick tick
-	upvar 1 type_PE type_PE
 	set current [current]
 	puts "===== simpletest ===="
 	puts "current is: $current"
@@ -11,9 +10,6 @@ proc simpletest {} {
 	puts "row is: [nodeinfo $current row]"
 	puts "col is: [nodeinfo $current col]"
 	puts "tick is: $tick"
-	if { [nodeinfo $current type] == $type_PE } {
-		inject [randnode [current]]
-	}
 }
 
 

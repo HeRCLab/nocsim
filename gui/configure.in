@@ -1,0 +1,53 @@
+#
+# Typical configure script source for an Agar application using the
+# BSDBuild build system.
+#
+# To generate the configure script from this file, install BSDBuild
+# on your system (download it from http://hypertriton.com/bsdbuild),
+# and execute:
+#
+#     $ cat configure.in |mkconfigure > configure
+#
+
+# Name and version of the application.
+PACKAGE("nocsim-gui")
+VERSION("0.0.1")
+
+# Register our configure options.
+REGISTER("--enable-warnings",	 "Enable compiler warnings [default: no]")
+REGISTER("--with-agar[=PREFIX]", "Agar installation path [default: auto]")
+REGISTER("--enable-debugger", "Enable Agar debugger - requires libagar to be built with support for debugging [default: no]")
+# REGISTER("--with-tcl[=TCLPREFIX]", "Path to TCL installation [default: /usr/include/tcl8.6]")
+
+# Require a C compiler.
+REQUIRE(cc)
+
+# Require at least Agar 1.6.0.
+REQUIRE(agar, 1.6.0, ${prefix_agar})
+
+# Require other Agar-based libraries.
+#REQUIRE(agar-vg, 1.5.0, ${prefix_agar})
+#REQUIRE(agar-dev, 1.5.0, ${prefix_agar})
+#REQUIRE(agar-math, 1.5.0, ${prefix_agar})
+
+# Import standard routines provided by Agar (without "AG"_ prefix).
+#C_DEFINE(_USE_AGAR_STD)
+#C_DEFINE(_USE_AGAR_CORE)
+#C_DEFINE(_USE_AGAR_QUEUE)
+#C_DEFINE(_USE_AGAR_GUI)
+#C_DEFINE(_USE_AGAR_TYPES)
+#C_DEFINE(_USE_AGAR_MATH)
+
+# Set some warning switches you like you use.
+if [ "${enable_warnings}" = "yes" ]; then
+        MDEFINE(CFLAGS, "$CFLAGS -Wall -Werror")
+        MDEFINE(CFLAGS, "$CFLAGS -Wno-unused")
+fi
+
+if [ "${enable_debugger}" = "yes" ] ; then
+	MDEFINE(CFLAGS, "$CFLAGS -DENABLE_DEBUGGER")
+	MDEFINE(CFLAGS, "${CFLAGS} -g")
+fi
+
+MDEFINE(CFLAGS, "${CFLAGS} -I/usr/include/tcl8.6")
+MDEFINE(LIBS, "${LIBS} -ltcl")

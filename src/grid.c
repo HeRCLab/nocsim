@@ -17,7 +17,7 @@
 void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior) {
 	nocsim_node* router;
 
-	alloc(sizeof(nocsim_node), router);
+	alloc(sizeof(nocsim_node)*2, router);
 
 	nocsim_init_node(router, node_router, row, col, id);
 

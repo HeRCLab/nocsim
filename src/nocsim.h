@@ -2,8 +2,12 @@
 #define NOCSIM_H
 
 #ifndef __OpenBSD__
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
+#endif
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #endif
 
 #include "nocsim_types.h"
@@ -104,6 +108,6 @@ void nocsim_step(nocsim_state* state, Tcl_Interp* interp);
 void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to);
 void nocsim_handle_arrival(nocsim_node* state, nocsim_direction dir);
 
-Tcl_Interp* nocsim_create_interp(char* runme, int argc, char** argv);
+nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv);
 
 #endif

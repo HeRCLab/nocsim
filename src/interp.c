@@ -31,6 +31,17 @@ interp_command(nocsim_create_router) {
 	get_int(interp, argv[3], &col);
 	behavior = Tcl_GetStringFromObj(argv[4], NULL);
 
+	/* nocsim_grid_create_router does not use strcpy() on strings that is
+	 * is passed as arguments. We increment the reference count of this
+	 * string to ensure that TCL does not attempt to garbage-collect it
+	 * after it has already been attached to a router object. In theory,
+	 * the router should store a handle to the TCL object that contains
+	 * these strings, however as nodes cannot be deleted later, we just
+	 * leave it be and trust the kernel to free() for us when the program
+	 * exits */
+	Tcl_IncrRefCount(argv[1]);
+	Tcl_IncrRefCount(argv[4]);
+
 	nocsim_grid_create_router(state, id, row, col, behavior);
 
 	return TCL_OK;
@@ -50,6 +61,9 @@ interp_command(nocsim_create_PE) {
 	get_int(interp, argv[2], &row);
 	get_int(interp, argv[3], &col);
 	behavior = Tcl_GetStringFromObj(argv[4], NULL);
+
+	Tcl_IncrRefCount(argv[1]);
+	Tcl_IncrRefCount(argv[4]);
 
 	nocsim_grid_create_PE(state, id, row, col, behavior);
 
@@ -632,7 +646,7 @@ interp_command(nocsim_int2type) {
 
 /*** interpreter implementation **********************************************/
 
-Tcl_Interp* nocsim_create_interp(char* runme, int argc, char** argv) {
+nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	nocsim_state* state;
 	Tcl_Interp *interp;
 	nodelist* l;
@@ -675,6 +689,7 @@ Tcl_Interp* nocsim_create_interp(char* runme, int argc, char** argv) {
 		fprintf(stderr, "failed to create interpreter!\n");
 		exit(1);
 	}
+	state->interp = interp;
 
 	if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
 		err(1, "failed to initialize stubs\n");
@@ -741,7 +756,7 @@ Tcl_Interp* nocsim_create_interp(char* runme, int argc, char** argv) {
 	snprintf(state->title, 512, "unspecified");
 	Tcl_LinkVar(interp, "title", (char*) &(state->title), TCL_LINK_STRING);
 
-	return interp;
+	return state;
 
 
 /*** clean up ****************************************************************/

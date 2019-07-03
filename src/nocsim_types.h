@@ -2,6 +2,7 @@
 #define NOCSIM_TYPES_H
 
 #include <stdlib.h>
+#include <tcl.h>
 
 #include "vec.h"
 
@@ -119,6 +120,8 @@ typedef struct nocsim_state_t {
 
 	/* used during behavior callbacks */
 	nocsim_node* current;
+
+	Tcl_Interp* interp;
 
 } nocsim_state;
 
