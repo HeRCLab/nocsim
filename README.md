@@ -101,5 +101,7 @@ other tooling could be improved in the future.
 * A mathematical model could be designed, against which to compare the results
   of `nocsim`.
 
-* A graphical front-end could be written, allowing for detailed observation
-  of the simulation state as it evolves.
+## `nocsim-gui`
+
+A graphical user interface is available for nocsim. See the
+[README](./gui/README/md)`. 

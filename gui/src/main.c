@@ -152,6 +152,40 @@ void ExportGraph(AG_Event* event) {
 
 }
 
+void HandleVertexSelection(AG_Event* event) {
+	AG_GraphVertex* vtx = AG_PTR(1);
+	AG_Driver* dri = get_dri();
+
+	AG_Box* box = AG_GetPointer(dri, "infobox_p");
+	AG_Object* parent = AG_ObjectParent(AGOBJECT(box));
+	AG_ObjectDelete(box);
+	box = AG_BoxNew(parent, AG_BOX_VERT, 0);
+	AG_SetPointer(dri, "infobox_p", box);
+
+	if (vtx->userPtr != NULL) {
+		AG_SetStyle(box, "font-family", "Courier");
+		AG_LabelJustify(
+			AG_LabelNewS(box, 0, "NODE DATA"),
+			AG_TEXT_CENTER);
+		AG_LabelNew(box, 0, "ID:         %s", ((nocsim_node*) vtx->userPtr)->id);
+		AG_LabelNew(box, 0, "type:       %s",
+			NOCSIM_NODE_TYPE_TO_STR(((nocsim_node*) vtx->userPtr)->type));
+		AG_SeparatorNew(box, AG_SEPARATOR_HORIZ);
+		AG_LabelJustify(
+			AG_LabelNewS(box, 0, "PERFORMANCE COUNTERS"),
+			AG_TEXT_CENTER);
+		AG_LabelNew(box, 0, "injected:   %li", ((nocsim_node*) vtx->userPtr)->injected);
+		AG_LabelNew(box, 0, "routed:     %li", ((nocsim_node*) vtx->userPtr)->routed);
+	} else {
+		AG_LabelNewS(box, 0, "node data inaccessible");
+	}
+
+	AG_WidgetHide(box);
+	AG_WidgetShow(box);
+
+}
+
+
 /* Export the graph view to a file */
 void ExportGraphDialog(AG_Event* event) {
 
@@ -192,6 +226,7 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	AG_GraphVertex* vtx = NULL;
 	AG_Graph* g;
 	AG_Window* win;
+	AG_Box* infobox;
 
 	/* delete the existing network view so we have a clean state to work
 	 * with */
@@ -200,6 +235,10 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	g = AG_GraphNew(box, AG_GRAPH_EXPAND);
 	AG_GraphSizeHint(g, 800, 600);
 	AG_SetPointer(dri, "graph_p", g);
+
+	/* this function will populate the info box */
+	infobox = AG_GetPointer(dri, "infobox_p");
+	AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL);
 
 	/* force the newly created widget to draw */
 	AG_WidgetHide(g);
@@ -228,6 +267,7 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 			vtx2 = AG_GraphVertexFind(g, inner);
 			if (vtx1 == NULL || vtx2 == NULL) { continue; }
 
+			/* TODO: directed graph support */
 			AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
 
 		}
@@ -267,7 +307,8 @@ int main(int argc, char *argv[]) {
 	AG_Textbox *tb;
 	nocsim_state* state;
 	AG_Box* box;
-	AG_Pane* pane;
+	AG_Pane* outer_pane;
+	AG_Pane* inner_pane;
 
 	state = nocsim_create_interp(NULL, argc, argv);
 
@@ -276,21 +317,19 @@ int main(int argc, char *argv[]) {
 			AG_InitGraphics(0) == -1)
 		return (1);
 	win = AG_WindowNew(0);
-
-	/* set the window title */
 	AG_WindowSetCaptionS (win, "nocsim-gui");
-
-	AG_WindowSetGeometry(win, -1, -1, 800, 1000);
+	AG_WindowSetGeometry(win, -1, -1, 1200, 1000);
 
 	/* setup the state handler and edge creation vertex variables */
 	dri = (AG_Driver*) AG_ObjectRoot(win);
 
 	menu = AG_MenuNew(win, 0);
 
-	pane = AG_PaneNewVert(win, AG_PANE_EXPAND);
+	outer_pane = AG_PaneNewVert(win, AG_PANE_EXPAND);
+	inner_pane = AG_PaneNewHoriz(outer_pane->div[0], AG_PANE_DIV1FILL | AG_PANE_EXPAND);
 
 	/* instantiate the graph */
-	g = AG_GraphNew(pane->div[0], AG_GRAPH_EXPAND);
+	g = AG_GraphNew(inner_pane->div[1], AG_GRAPH_EXPAND);
 	AG_GraphSizeHint(g, 800, 600);
 	AG_SetPointer(dri, "graph_p", g);
 
@@ -318,23 +357,32 @@ int main(int argc, char *argv[]) {
 #endif
 	}
 
-	cons = AG_ConsoleNew(pane->div[1], AG_CONSOLE_EXPAND);
-	/* AG_SetStyle(cons, "font-family", "Courier"); */
-	box = AG_BoxNewHoriz(pane->div[1], AG_BOX_HFILL);
-	/* AG_SetStyle(box, "font-size", "100%"); */
+	/* setup the console */
+	cons = AG_ConsoleNew(outer_pane->div[1], AG_CONSOLE_EXPAND);
+	AG_SetStyle(cons, "font-family", "Courier");
+
+	/* setup text entry box */
+	box = AG_BoxNewHoriz(outer_pane->div[1], AG_BOX_HFILL);
 	{
 		tb = AG_TextboxNew(box,
 		    AG_TEXTBOX_EXCL | AG_TEXTBOX_HFILL | AG_TEXTBOX_VFILL,
 		    "Input: ");
-		AG_SetEvent(tb, "textbox-return", EnterLine, "%p,%p,%p,%p", cons, tb, state, pane->div[0]);
+		AG_SetEvent(tb, "textbox-return", EnterLine, "%p,%p,%p,%p", cons, tb, state, inner_pane->div[1]);
 		AG_WidgetFocus(tb);
 
-		btn = AG_ButtonNewFn(box, 0, "Enter", EnterLine, "%p,%p,%p,%p", cons, tb, state, pane->div[0]);
+		btn = AG_ButtonNewFn(box, 0, "Enter", EnterLine, "%p,%p,%p,%p", cons, tb, state,inner_pane->div[1]);
 		AG_WidgetSetFocusable(btn, 0);
 	}
 
 	/* display the window */
 	AG_WindowShow(win);
+
+	/* info view area */
+	box = AG_BoxNew(inner_pane->div[0], AG_BOX_VERT, 0);
+	AG_SetPointer(dri, "infobox_p", box);
+
+	/* this function will populate the info box */
+	AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL);
 
 	AG_EventLoop();
 	return (0);
