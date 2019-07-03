@@ -632,7 +632,7 @@ interp_command(nocsim_int2type) {
 
 /*** interpreter implementation **********************************************/
 
-void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
+Tcl_Interp* nocsim_create_interp(char* runme, int argc, char** argv) {
 	nocsim_state* state;
 	Tcl_Interp *interp;
 	nodelist* l;
@@ -741,21 +741,7 @@ void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv) {
 	snprintf(state->title, 512, "unspecified");
 	Tcl_LinkVar(interp, "title", (char*) &(state->title), TCL_LINK_STRING);
 
-/*** main interpreter REPL ***************************************************/
-	if (Tcl_EvalFile(interp, scriptfile) != TCL_OK) {
-		print_tcl_error(interp);
-		err(1, "unable to proceed, exiting with failure state");
-	}
-
-	if (runme != NULL) {
-		if (Tcl_Eval(interp, runme) != TCL_OK) {
-			print_tcl_error(interp);
-			err(1, "unable to proceed, exiting with failure state");
-		}
-
-	}
-
-	Tcl_DeleteInterp(interp);
+	return interp;
 
 
 /*** clean up ****************************************************************/

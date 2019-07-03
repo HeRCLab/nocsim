@@ -104,6 +104,6 @@ void nocsim_step(nocsim_state* state, Tcl_Interp* interp);
 void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to);
 void nocsim_handle_arrival(nocsim_node* state, nocsim_direction dir);
 
-void nocsim_interp(char* scriptfile, char* runme, int argc, char** argv);
+Tcl_Interp* nocsim_create_interp(char* runme, int argc, char** argv);
 
 #endif

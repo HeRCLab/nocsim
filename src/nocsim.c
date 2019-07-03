@@ -5,10 +5,11 @@ int main(int argc, char** argv) {
 	/* char* errstr; */
 	/* unsigned int seed; */
 	/* unsigned char flag_seed = 0; */
-	unsigned char flag_graphviz = 0;
+	/* unsigned char flag_graphviz = 0; */
 	struct timeval start_time;
 	struct timeval end_time;
 	unsigned long long elapsed_ms;
+	Tcl_Interp* interp;
 
 	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
@@ -22,17 +23,17 @@ int main(int argc, char** argv) {
 	dbprintf("detected platform POSIX\n");
 #endif
 
-	int opt;
-
-	while ((opt = getopt(argc, argv, "Vs:g")) != -1) {
-		switch(opt) {
-			case 'V':
-				printf("nocsim %i.%i.%i\n",
-						NOCSIM_VERSION_MAJOR,
-						NOCSIM_VERSION_MINOR,
-						NOCSIM_VERSION_PATCH
-				);
-				return EXIT_SUCCESS;
+	/* int opt; */
+        /*  */
+	/* while ((opt = getopt(argc, argv, "Vs:g")) != -1) { */
+	/*         switch(opt) { */
+	/*                 case 'V': */
+	/*                         printf("nocsim %i.%i.%i\n", */
+	/*                                         NOCSIM_VERSION_MAJOR, */
+	/*                                         NOCSIM_VERSION_MINOR, */
+	/*                                         NOCSIM_VERSION_PATCH */
+	/*                         ); */
+	/*                         return EXIT_SUCCESS; */
 /*                         case 's': */
 /*                                 [> RNG seed <] */
 /* #ifdef __OpenBSD__ */
@@ -50,18 +51,18 @@ int main(int argc, char** argv) {
 /*                                 flag_seed = 1; */
 /*                                 break; */
 /*  */
-			case 'g':
-				flag_graphviz = 1;
-				break;
-
-			case '?':
-				err(1, "unknown option: %c", optopt);
-		}
-	}
-
-	for (; optind < argc ; optind++) {
-		err(1, "extraneous option: %s", argv[optind]);
-	}
+	/*                 case 'g': */
+	/*                         [> flag_graphviz = 1; <] */
+	/*                         break; */
+        /*  */
+	/*                 case '?': */
+	/*                         err(1, "unknown option: %c", optopt); */
+	/*         } */
+	/* } */
+        /*  */
+	/* for (; optind < argc ; optind++) { */
+	/*         err(1, "extraneous option: %s", argv[optind]); */
+	/* } */
 
 	/* state = nocsim_grid_parse_file(stdin); */
 
@@ -96,13 +97,17 @@ int main(int argc, char** argv) {
 	printf("meta randsig2 %u\n", rand());
 	printf("meta randsig3 %u\n", rand());
 
+	interp = nocsim_create_interp(NULL, argc, argv);
+
 	gettimeofday(&start_time, NULL);
-	if (flag_graphviz == 1) {
-		nocsim_interp("/dev/stdin", "graphviz", argc, argv);
-	} else {
-		nocsim_interp("/dev/stdin", NULL, argc, argv);
+	if (Tcl_EvalFile(interp, "/dev/stdin") != TCL_OK) {
+		print_tcl_error(interp);
+		err(1, "unable to proceed, exiting with failure state");
 	}
+
 	gettimeofday(&end_time, NULL);
+
+	Tcl_DeleteInterp(interp);
 
 	elapsed_ms = \
 		((end_time.tv_sec - start_time.tv_sec) * 1000) +
