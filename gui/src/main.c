@@ -155,27 +155,51 @@ void ExportGraph(AG_Event* event) {
 void HandleVertexSelection(AG_Event* event) {
 	AG_GraphVertex* vtx = AG_PTR(1);
 	AG_Driver* dri = get_dri();
+	AG_Box* inner;
+	nocsim_node* node;
 
 	AG_Box* box = AG_GetPointer(dri, "infobox_p");
 	AG_Object* parent = AG_ObjectParent(AGOBJECT(box));
 	AG_ObjectDelete(box);
-	box = AG_BoxNew(parent, AG_BOX_VERT, 0);
+	/* box = AG_BoxNew(parent, AG_BOX_HORIZ, AG_BOX_EXPAND); */
+	box = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", box);
 
+	node = ((nocsim_node*) vtx->userPtr);
+
 	if (vtx->userPtr != NULL) {
-		AG_SetStyle(box, "font-family", "Courier");
-		AG_LabelJustify(
-			AG_LabelNewS(box, 0, "NODE DATA"),
-			AG_TEXT_CENTER);
-		AG_LabelNew(box, 0, "ID:         %s", ((nocsim_node*) vtx->userPtr)->id);
-		AG_LabelNew(box, 0, "type:       %s",
-			NOCSIM_NODE_TYPE_TO_STR(((nocsim_node*) vtx->userPtr)->type));
-		AG_SeparatorNew(box, AG_SEPARATOR_HORIZ);
-		AG_LabelJustify(
-			AG_LabelNewS(box, 0, "PERFORMANCE COUNTERS"),
-			AG_TEXT_CENTER);
-		AG_LabelNew(box, 0, "injected:   %li", ((nocsim_node*) vtx->userPtr)->injected);
-		AG_LabelNew(box, 0, "routed:     %li", ((nocsim_node*) vtx->userPtr)->routed);
+
+		inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
+		AG_BoxSetLabelS(inner, "node data");
+
+#define prval(label, fmt, ...) \
+		AG_TextboxPrintf( \
+			AG_TextboxNewS(inner, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label), \
+			fmt, __VA_ARGS__);
+
+		prval("ID", "%s", node->id);
+		prval("type", "%s", NOCSIM_NODE_TYPE_TO_STR(node->type));
+
+		prval("node number"   , "%i" , node->node_number);
+		prval("type number"   , "%i" , node->type_number);
+		prval("row"           , "%i" , node->row);
+		prval("col"           , "%i" , node->col);
+		prval("behavior"      , "%s" , node->behavior);
+		if (node->type == node_PE) {
+			prval("flits pending" , "%s" , node->pending->length);
+		} else {
+			prval("flits pending" , "%s" , "N/A");
+		}
+
+		inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
+		AG_BoxSetLabelS(inner, "performance counters");
+
+		prval("injected", "%li", node->injected);
+		prval("routed", "%li", node->routed);
+
+#undef prval
+
+
 	} else {
 		AG_LabelNewS(box, 0, "node data inaccessible");
 	}
