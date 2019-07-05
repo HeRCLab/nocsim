@@ -224,6 +224,12 @@ Valid node types are:
 
 Converts an integer type in `nocsim`'s internal representation to a string.
 
+### `registerinstrument INSTRUMENT PROCEDURE`
+
+Register the TCL procedure `PROCEDURE` to be called by the specified
+instrument. Each instrument may only have one registered procedure at a time.
+See the *Instrumentation* section below for more information.
+
 ### `route FROM TO` (routing behaviors only)
 
 Routes the flit incoming from the direction `FROM` to the direction `TO`. `TO`
@@ -298,6 +304,13 @@ which have dependencies on execution order or intermediary simulation state
 execution order of behavior callbacks is an internal implementation detail of
 `nocsim` and should not be relied upon.
 
+**TIP** it is very important to ensure that all incoming flits are handled when
+defining a routing behavior, otherwise those flits may be lost while the engine
+flips the next state into the current state at the end of the tick.  If you are
+concerned that you might be missing some incoming flits, try using the `inject`
+and `arrive` instruments to track which flits are still in-flight (have not
+arrived yet).
+
 ### Example Behavior Callback
 
 ```tcl
@@ -319,3 +332,104 @@ For convenience and performance, many useful statistics are collected and
 exposed via performance counters. These are maintained internally by the
 simulation engine. Consult the documentation for the `nodeinfo` and `linkinfo`
 procedures, as well as for magic variables.
+
+## Instrumentation
+
+More detailed performance information can be obtained via instrumentation. An
+*instrument* is a TCL procedure which is automatically called at a specific
+point in the simulation engine's execution. Additional information is passed
+into instruments via parameters.
+
+**TIP** some instruments are called within the simulation engine's hot loop,
+and can significantly degrade performance. Prefer the use of performance
+counters wherever possible.
+
+**TIP** need to store data collected by an instrument? Try using
+`upvar` to attach it to the interpreter's top-level scope.
+
+**BEST PRACTICE** don't make assumptions about the number of parameters that
+will be passed to an instrument -- more information might be added in future
+releases of `nocsim`.
+
+Instruments are *registered* so that the simulation engine is aware of them via
+the `registerinstrument` procedure.
+
+The following instruments are available:
+
+### `inject`
+
+Executes any time a flit is injected.
+
+Parameters:
+
+* origin node ID
+* destination node ID
+* flit number
+
+### `route`
+
+Executes any time a flit is routed.
+
+Parameters:
+
+* origin node ID
+* destination node ID
+* flit number
+* tick number on which the flit was spawned
+* tick number on which the flit was injected
+* number of hops so far
+* node ID of node from which the flit was routed
+* node ID of the node to which the flit was routed
+
+### `arrive`
+
+Executes any time a flit arrives at it's destination.
+
+Parameters:
+
+* origin node ID
+* destination node ID
+* flit number
+* number of hops so far
+* tick number on which the flit was spawned
+* tick number on which the flit was injected
+
+### `backroute`
+
+Executes any time a flit is backrouted.
+
+Parameters:
+
+* origin node ID
+* destination node ID
+* flit number
+* number of hops so far
+* tick number on which the flit was spawned
+* tick number on which the flit was injected
+
+### `tick`
+
+Executes at the beginning of each new tick. No special parameters are passed to
+this instrument. This instrument is mostly useful for performing cleanup or
+initialization between ticks.
+
+## Terminology
+
+* **origin node** -- in the context of a flit, the node at which was flit was
+  spawned.
+* **destination node**  -- in the context of a flit, the node to which a flit
+  is being transmitted.
+* **spawn** -- a flit is *spawned* when it's origin node creates it via the
+  `inject` command.
+* **inject** -- a flit is *injected* when it is transmitted from it's origin
+  node (a PE) to a router without being back routing
+* **backroute** -- `nocsim` simulates backpressure by counting any event where
+  a flit is transmitted back to it's origin node (a PE) from an immediately
+  adjacent router (i.e. if the router lacks the buffer or outgoing link
+  capacity to handle the flit this tick). When backrouting occurs, the
+  backrouted flit is installed at the head, rather than the tail of the
+  outgoing flit queue from it's origin node (i.e. it continues to be "first in
+  line"). Backrouting still counts as a "hop".
+* **hop** -- any tick where a specific flit travels between two adjacent nodes.
+
+

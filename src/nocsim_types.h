@@ -41,6 +41,32 @@ typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5} nocsim_di
 	else                                { d = DIR_UNDEF; } \
 	d;})
 
+typedef enum nocsim_instrument_t {
+	INSTRUMENT_UNDEFINED = 0,
+	INSTRUMENT_INJECT,
+	INSTRUMENT_ROUTE,
+	INSTRUMENT_ARRIVE,
+	INSTRUMENT_BACKROUTE,
+	INSTRUMENT_TICK,
+	ENUMSIZE_INSTRUMENT
+} nocsim_instrument;
+
+#define NOCSIM_INSTRUMENT_TO_STR(ins) \
+	(ins == INSTRUMENT_INJECT) ? "inject" : \
+	(ins == INSTRUMENT_ROUTE) ? "route" : \
+	(ins == INSTRUMENT_ARRIVE) ? "arrive" : \
+	(ins == INSTRUMENT_BACKROUTE) ? "backroute" : \
+	(ins == INSTRUMENT_TICK) ? "tick" : "INSTRUMENT UNDEFINED"
+
+#define NOCSIM_STR_TO_INSTRUMENT(s) \
+	(!strncasecmp(s, "inject", 32)) ? INSTRUMENT_INJECT : \
+	(!strncasecmp(s, "route", 32)) ? INSTRUMENT_ROUTE : \
+	(!strncasecmp(s, "arrive", 32)) ? INSTRUMENT_ARRIVE : \
+	(!strncasecmp(s, "backroute", 32)) ? INSTRUMENT_BACKROUTE : \
+	(!strncasecmp(s, "tick", 32)) ? INSTRUMENT_TICK : \
+	INSTRUMENT_UNDEFINED
+
+
 /* Max number of links, which is 5 since there are 4 directions + PE. It
  * is important that this is eual to the number of types in nocsim_direction_t
  * */
@@ -87,6 +113,7 @@ typedef struct nocsim_flit_t{
 	nocsim_node* to;
 	unsigned long spawned_at;
 	unsigned long injected_at;
+	unsigned long hops;
 	unsigned long flit_no;
 } nocsim_flit;
 
@@ -122,6 +149,8 @@ typedef struct nocsim_state_t {
 	nocsim_node* current;
 
 	Tcl_Interp* interp;
+
+	char* instruments[(int) ENUMSIZE_INSTRUMENT];
 
 } nocsim_state;
 

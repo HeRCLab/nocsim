@@ -39,8 +39,8 @@ interp_command(nocsim_create_router) {
 	 * these strings, however as nodes cannot be deleted later, we just
 	 * leave it be and trust the kernel to free() for us when the program
 	 * exits */
-	Tcl_IncrRefCount(argv[1]);
-	Tcl_IncrRefCount(argv[4]);
+	Tcl_IncrRefCount(argv[1]);  /* id */
+	Tcl_IncrRefCount(argv[4]);  /* behavior */
 
 	if (nocsim_node_by_id(state, id) != NULL) {
 		Tcl_SetResult(interp, "a node with that ID exists already", NULL);
@@ -654,6 +654,31 @@ interp_command(nocsim_int2type) {
 	}
 }
 
+/*** registerinstrument INSTRUMENT PROCEDURE *********************************/
+interp_command(nocsim_registerinstrument) {
+	nocsim_state* state = (nocsim_state*) data;
+	char* instrument_str;
+	nocsim_instrument instrument;
+	char* procedure;
+
+	req_args(3, "registerinstrument INSTRUMENT PROCEDURE");
+	
+	instrument_str = Tcl_GetStringFromObj(argv[1], NULL);
+	procedure = Tcl_GetStringFromObj(argv[2], NULL);
+
+	instrument = NOCSIM_STR_TO_INSTRUMENT(instrument_str);
+
+	if (instrument == INSTRUMENT_UNDEFINED) {
+		Tcl_SetObjResult(interp, str2obj("unknown instrument"));
+		return TCL_ERROR;
+	}
+
+	Tcl_IncrRefCount(argv[1]);  /* procedure */
+	state->instruments[instrument] = procedure;
+
+	return TCL_OK;
+}
+
 
 /*** interpreter implementation **********************************************/
 
@@ -678,6 +703,10 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	state->current = NULL;
 	state->max_row = 0;
 	state->max_col = 0;
+
+	for (int i = 0 ; i < (int) ENUMSIZE_INSTRUMENT ; i++) {
+		state->instruments[i] = NULL;
+	}
 
 	if (runme == NULL) {
 		state->enable_simulation = 1;
@@ -743,6 +772,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_type2int, "type2int");
 	defcmd(nocsim_int2type, "int2type");
 	defcmd(nocsim_linkinfo, "linkinfo");
+	defcmd(nocsim_registerinstrument, "registerinstrument");
 
 #undef defcmd
 
