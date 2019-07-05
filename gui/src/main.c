@@ -1,6 +1,3 @@
-/* Simple demonstration application -- implements a small graph editor using
- * LibAgar's graph widget. */
-
 /*
  * Copyright (c) 2019, Charles Daniels All rights reserved.
  *
@@ -281,6 +278,7 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 
 			AG_GraphVertex* vtx1;
 			AG_GraphVertex* vtx2;
+			AG_GraphEdge* e;
 
 			/* check if there is a link between these nodes */
 			if (nocsim_link_by_nodes(state, cursor->id, inner->id) == NULL) {
@@ -291,8 +289,13 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 			vtx2 = AG_GraphVertexFind(g, inner);
 			if (vtx1 == NULL || vtx2 == NULL) { continue; }
 
-			/* TODO: directed graph support */
-			AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
+
+			/* the link goes both ways */
+			if (nocsim_link_by_nodes(state, inner->id, cursor->id) != NULL) {
+				AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
+			} else {
+				AG_DirectedGraphEdgeNew(g, vtx1, vtx2, NULL);
+			}
 
 		}
 	}
