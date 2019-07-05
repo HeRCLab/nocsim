@@ -63,3 +63,7 @@ output.db
 src/output.db
 src/nocsim.db
 *.bc
+
+out/
+.gdb_history
+grids/

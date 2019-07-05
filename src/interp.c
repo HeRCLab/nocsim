@@ -42,6 +42,12 @@ interp_command(nocsim_create_router) {
 	Tcl_IncrRefCount(argv[1]);
 	Tcl_IncrRefCount(argv[4]);
 
+	if (nocsim_node_by_id(state, id) != NULL) {
+		Tcl_SetResult(interp, "a node with that ID exists already", NULL);
+		return TCL_ERROR;
+	}
+
+
 	nocsim_grid_create_router(state, id, row, col, behavior);
 
 	return TCL_OK;
@@ -64,6 +70,11 @@ interp_command(nocsim_create_PE) {
 
 	Tcl_IncrRefCount(argv[1]);
 	Tcl_IncrRefCount(argv[4]);
+
+	if (nocsim_node_by_id(state, id) != NULL) {
+		Tcl_SetResult(interp, "a node with that ID exists already", NULL);
+		return TCL_ERROR;
+	}
 
 	nocsim_grid_create_PE(state, id, row, col, behavior);
 
