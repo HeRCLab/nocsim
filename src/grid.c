@@ -6,14 +6,7 @@
 #include <stdio.h>
 #include <tcl.h>
 
-/**
- * @brief Create a new router instance
- *
- * @param state
- * @param id
- * @param row
- * @param col
- */
+/* note that the caller must verify that the ID is unique */
 void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior) {
 	nocsim_node* router;
 
@@ -33,6 +26,7 @@ void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, 
 	vec_push(state->nodes, router);
 }
 
+/* note that the caller must verify that the ID is unique */
 void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior) {
 	nocsim_node* PE;
 	flitlist* pending;
