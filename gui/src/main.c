@@ -317,7 +317,8 @@ void simulation_update(nocsim_state* state, AG_Driver* dri) {
 	box = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "siminfo_p", box);
 
-	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_HFILL);
+
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
 	AG_BoxSetLabelS(inner, "general");
 
 #define prval(label, fmt, ...) \
@@ -333,7 +334,7 @@ void simulation_update(nocsim_state* state, AG_Driver* dri) {
 	prval("max_row", "%u", state->max_row);
 	prval("max_col", "%u", state->max_col);
 
-	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_HFILL);
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
 	AG_BoxSetLabelS(inner, "instruments");
 
 	for (int i = 1 ; i < ENUMSIZE_INSTRUMENT ; i++) {
@@ -361,10 +362,23 @@ void EnterLine(AG_Event* event) {
 	AG_Box* box = AG_PTR(4);
 	char* s;
 
+	AG_Color red;
+	AG_ColorRGB_8(&red, 255, 16, 16);
+
+	AG_Color green;
+	AG_ColorRGB_8(&green, 16, 255, 16);
+
 	s = AG_TextboxDupString(tb);
 
-	Tcl_Eval(state->interp, s);
-	AG_ConsoleMsgS(cons, Tcl_GetStringResult(state->interp));
+
+	if (Tcl_Eval(state->interp, s) == TCL_OK) {
+		AG_ConsoleMsg(cons, "(OK   ) %% %s\t\t", s);
+	} else {
+		AG_ConsoleMsgColor(
+			AG_ConsoleMsg(cons, "(ERROR) %% %s\t\t", s), &red);
+		AG_ConsoleMsgColor(
+		AG_ConsoleMsgS(cons, Tcl_GetStringResult(state->interp)), &red);
+	}
 	AG_TextboxSetString(tb, "");
 	/* AG_Free(s); */
 
