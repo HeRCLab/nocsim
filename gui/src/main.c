@@ -36,6 +36,11 @@
 
 #include "nocsim.h"
 
+/* work around incorrect SV sizing with AG_Editable */
+#define SV_WORKAROUND(parent) \
+	AG_WidgetHideAll(\
+			AG_LabelNewS(parent, 0,\
+		"(SV_WORKAROUND)                                           "))
 
 /* handy macro to check if a string ends with a certain 4 letter character
  * sequence. This is used for checking file extensions. */
@@ -194,6 +199,8 @@ void HandleVertexSelection(AG_Event* event) {
 		prval("injected", "%li", node->injected);
 		prval("routed", "%li", node->routed);
 
+		SV_WORKAROUND(inner);
+
 #undef prval
 
 
@@ -302,6 +309,50 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 
 }
 
+void simulation_update(nocsim_state* state, AG_Driver* dri) {
+	AG_Box* box = AG_GetPointer(dri, "siminfo_p");
+	AG_Box* inner;
+	AG_Object* parent = AG_ObjectParent(AGOBJECT(box));
+	AG_ObjectDelete(box);
+	box = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
+	AG_SetPointer(dri, "siminfo_p", box);
+
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_HFILL);
+	AG_BoxSetLabelS(inner, "general");
+
+#define prval(label, fmt, ...) \
+		AG_TextboxPrintf( \
+			AG_TextboxNewS(inner, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label), \
+			fmt, __VA_ARGS__)
+
+	prval("tick", "%lu", state->tick);
+	prval("num_PE", "%u", state->num_PE);
+	prval("num_router", "%u", state->num_router);
+	prval("num_node", "%u", state->num_node);
+	prval("flit_no", "%lu", state->flit_no);
+	prval("max_row", "%u", state->max_row);
+	prval("max_col", "%u", state->max_col);
+
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_HFILL);
+	AG_BoxSetLabelS(inner, "instruments");
+
+	for (int i = 1 ; i < ENUMSIZE_INSTRUMENT ; i++) {
+		if (state->instruments[i] == NULL) {
+			prval(NOCSIM_INSTRUMENT_TO_STR(i), "%s", "(none)");
+		} else {
+			prval(NOCSIM_INSTRUMENT_TO_STR(i), "%s", state->instruments[i]);
+		}
+	}
+
+
+	SV_WORKAROUND(box);
+#undef prval
+
+	AG_WidgetHide(box);
+	AG_WidgetShow(box);
+
+}
+
 
 void EnterLine(AG_Event* event) {
 	AG_Console* cons = AG_PTR(1);
@@ -318,6 +369,7 @@ void EnterLine(AG_Event* event) {
 	/* AG_Free(s); */
 
 	graph_update(state, get_dri(), box);
+	simulation_update(state, get_dri());
 
 }
 
@@ -336,6 +388,7 @@ int main(int argc, char *argv[]) {
 	AG_Box* box;
 	AG_Pane* outer_pane;
 	AG_Pane* inner_pane;
+	AG_Pane* infopane;
 
 	state = nocsim_create_interp(NULL, argc, argv);
 
@@ -404,13 +457,28 @@ int main(int argc, char *argv[]) {
 	/* display the window */
 	AG_WindowShow(win);
 
+	/* split up node info view and simulation info view */
+	infopane = AG_PaneNewVert(inner_pane->div[0], AG_PANE_EXPAND);
+	AG_PaneMoveDividerPct(infopane, 50);
+
 	/* info view area */
-	box = AG_BoxNew(inner_pane->div[0], AG_BOX_VERT, 0);
+	box = AG_BoxNew(
+			AG_ScrollviewNew(infopane->div[0], AG_SCROLLVIEW_EXPAND),
+			AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", box);
 
 	/* this function will populate the info box */
 	AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL);
 
+	/* simulation info view */
+	box = AG_BoxNew(
+			AG_ScrollviewNew(infopane->div[1], AG_SCROLLVIEW_EXPAND),
+			AG_BOX_VERT, AG_BOX_EXPAND);
+	AG_SetPointer(dri, "siminfo_p", box);
+	simulation_update(state, dri);
+
+
 	AG_EventLoop();
 	return (0);
 }
+#undef SV_WORKAROUND
