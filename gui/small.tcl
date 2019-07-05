@@ -1,3 +1,14 @@
+proc simpletest {} {
+	puts "simpletest behavior from node [current]"
+}
+
+proc tickinstrument {} {
+	upvar 1 tick tick
+	puts "tick instrument! tick is $tick"
+}
+
+registerinstrument tick tickinstrument
+
 router foo 0 0 simpletest
 router bar 0 1 simpletest
 router baz 1 0 simpletest

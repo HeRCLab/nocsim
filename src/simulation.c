@@ -61,6 +61,14 @@ void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
 	dbprintf("beginning tick number %lu\n", state->tick);
 	printf("tick %lu\n", state->tick);
 
+	if (state->instruments[INSTRUMENT_TICK] != NULL) {
+		if (Tcl_Eval(interp, state->instruments[INSTRUMENT_TICK]) != TCL_OK) {
+			print_tcl_error(interp);
+			err(1, "unable to proceed, exiting with failure state");
+		}
+	}
+
+
 	next_state(state, interp);
 	flip_state(state);
 
