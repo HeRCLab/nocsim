@@ -433,7 +433,7 @@ interp_command(nocsim_route_command) {
 		return TCL_ERROR;
 	}
 
-	if (state->current->type != node_router) { 
+	if (state->current->type != node_router) {
 		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
 		return TCL_ERROR;
 	}
@@ -486,7 +486,7 @@ interp_command(nocsim_peek_command) {
 		return TCL_ERROR;
 	}
 
-	if (state->current->type != node_router) { 
+	if (state->current->type != node_router) {
 		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
 		return TCL_ERROR;
 	}
@@ -502,7 +502,7 @@ interp_command(nocsim_peek_command) {
 	} else if (!strncmp(attr, "from_row", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->from->row));
 		return TCL_OK;
-		
+
 	} else if (!strncmp(attr, "from_col", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->from->col));
 		return TCL_OK;
@@ -510,7 +510,7 @@ interp_command(nocsim_peek_command) {
 	} else if (!strncmp(attr, "to_row", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->to->row));
 		return TCL_OK;
-		
+
 	} else if (!strncmp(attr, "to_col", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->to->col));
 		return TCL_OK;
@@ -548,7 +548,7 @@ interp_command(nocsim_avail_command) {
 		return TCL_ERROR;
 	}
 
-	if (state->current->type != node_router) { 
+	if (state->current->type != node_router) {
 		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
 		return TCL_ERROR;
 	}
@@ -662,7 +662,7 @@ interp_command(nocsim_registerinstrument) {
 	char* procedure;
 
 	req_args(3, "registerinstrument INSTRUMENT PROCEDURE");
-	
+
 	instrument_str = Tcl_GetStringFromObj(argv[1], NULL);
 	procedure = Tcl_GetStringFromObj(argv[2], NULL);
 
@@ -673,8 +673,27 @@ interp_command(nocsim_registerinstrument) {
 		return TCL_ERROR;
 	}
 
-	Tcl_IncrRefCount(argv[1]);  /* procedure */
+	Tcl_IncrRefCount(argv[2]);  /* procedure */
 	state->instruments[instrument] = procedure;
+
+	return TCL_OK;
+}
+
+/*** conswrite STR ***********************************************************/
+interp_command(nocsim_conswrite) {
+
+	nocsim_state* state = (nocsim_state*) data;
+	char* str;
+
+	req_args(2, "conswrite STR");
+
+	str = Tcl_GetStringFromObj(argv[1], NULL);
+
+#ifdef NOCSIM_GUI
+	AG_ConsoleMsgS(state->cons, str);
+#else
+	printf("%s", str);
+#endif
 
 	return TCL_OK;
 }
@@ -773,6 +792,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_int2type, "int2type");
 	defcmd(nocsim_linkinfo, "linkinfo");
 	defcmd(nocsim_registerinstrument, "registerinstrument");
+	defcmd(nocsim_conswrite, "conswrite");
 
 #undef defcmd
 

@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <tcl.h>
 
+#ifdef NOCSIM_GUI
+#include <agar/core.h>
+#include <agar/gui.h>
+#endif
+
 #include "vec.h"
 
 typedef enum nocsim_node_type_t {node_PE, node_router, type_undefined} nocsim_node_type;
@@ -151,6 +156,10 @@ typedef struct nocsim_state_t {
 	Tcl_Interp* interp;
 
 	char* instruments[(int) ENUMSIZE_INSTRUMENT];
+
+#ifdef NOCSIM_GUI
+	AG_Console* cons;
+#endif
 
 } nocsim_state;
 

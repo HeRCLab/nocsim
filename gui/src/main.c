@@ -366,6 +366,10 @@ void EnterLine(AG_Event* event) {
 	nocsim_state* state = AG_PTR(3);
 	AG_Box* box = AG_PTR(4);
 	char* s;
+	AG_ConsoleLine* line;
+	char buf[1024];
+
+	/* void AG_ConsoleMsgEdit (AG_ConsoleLine *line, const char *s) */
 
 	AG_Color red;
 	AG_ColorRGB_8(&red, 255, 16, 16);
@@ -375,14 +379,18 @@ void EnterLine(AG_Event* event) {
 
 	s = AG_TextboxDupString(tb);
 
+	snprintf(buf, sizeof(buf), "%% %s", s);
+	line = AG_ConsoleMsgS(cons, buf);
 
 	if (Tcl_Eval(state->interp, s) == TCL_OK) {
-		AG_ConsoleMsg(cons, "(OK   ) %% %s\t\t", s);
+		snprintf(buf, sizeof(buf), "(OK   ) %% %s", s);
+		AG_ConsoleMsgEdit(line, buf);
 	} else {
+		snprintf(buf, sizeof(buf), "(ERROR) %% %s\t\t", s);
+		AG_ConsoleMsgEdit(line, buf);
+		AG_ConsoleMsgColor(line, &red);
 		AG_ConsoleMsgColor(
-			AG_ConsoleMsg(cons, "(ERROR) %% %s\t\t", s), &red);
-		AG_ConsoleMsgColor(
-		AG_ConsoleMsgS(cons, Tcl_GetStringResult(state->interp)), &red);
+			AG_ConsoleMsgS(cons, Tcl_GetStringResult(state->interp)), &red);
 	}
 	AG_TextboxSetString(tb, "");
 	/* AG_Free(s); */
@@ -459,6 +467,7 @@ int main(int argc, char *argv[]) {
 	/* setup the console */
 	cons = AG_ConsoleNew(outer_pane->div[1], AG_CONSOLE_EXPAND);
 	AG_SetStyle(cons, "font-family", "Courier");
+	state->cons = cons;
 
 	/* setup text entry box */
 	box = AG_BoxNewHoriz(outer_pane->div[1], AG_BOX_HFILL);

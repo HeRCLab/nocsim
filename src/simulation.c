@@ -134,7 +134,7 @@ void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to) {
 	if (state->instruments[INSTRUMENT_INJECT] != NULL) {
 		if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu",
 					state->instruments[INSTRUMENT_INJECT],
-					from, to, flit->flit_no)) {
+					from->id, to->id, flit->flit_no)) {
 			print_tcl_error(state->interp);
 			err(1, "unable to proceed, exiting with failure state");
 		}

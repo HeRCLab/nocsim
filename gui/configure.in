@@ -51,3 +51,4 @@ fi
 
 MDEFINE(CFLAGS, "${CFLAGS} -I/usr/include/tcl8.6")
 MDEFINE(LIBS, "${LIBS} -ltcl")
+MDEFINE(CFLAGS, "${CFLAGS} -DNOCSIM_GUI")

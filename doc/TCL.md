@@ -230,6 +230,11 @@ Register the TCL procedure `PROCEDURE` to be called by the specified
 instrument. Each instrument may only have one registered procedure at a time.
 See the *Instrumentation* section below for more information.
 
+### `conswrite STR`
+
+Write a specified string either to standard output, or to the GUI console,
+depending on how `nocsim` is being executed.
+
 ### `route FROM TO` (routing behaviors only)
 
 Routes the flit incoming from the direction `FROM` to the direction `TO`. `TO`

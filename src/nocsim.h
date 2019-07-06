@@ -83,6 +83,12 @@
  * */
 #define str2obj(s) Tcl_NewStringObj(s, strlen(s))
 
+#define Tcl_Evalf(interp, fmt, ...) __extension__ ({ \
+	char buf[1024]; \
+	snprintf(buf, 1024, fmt, __VA_ARGS__); \
+	Tcl_Eval(interp, buf); })
+
+
 int main(int argc, char** argv);
 
 void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
@@ -99,7 +105,6 @@ void print_tcl_error(Tcl_Interp* interp);
 char* get_tcl_library_path(void);
 nocsim_node* nocsim_node_by_id(nocsim_state* state, char* id);
 nocsim_link* nocsim_link_by_nodes(nocsim_state*, char* from, char* to);
-int Tcl_Evalf(Tcl_Interp* interp, const char* fmt, ...);
 
 void nocsim_behavior_DOR(nocsim_node* node);
 void nocsim_behavior_ADOR(nocsim_node* node);

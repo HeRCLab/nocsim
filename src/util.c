@@ -189,14 +189,3 @@ nocsim_link* nocsim_link_by_nodes(nocsim_state* state, char* from, char* to) {
 	return NULL;
 
 }
-
-int Tcl_Evalf(Tcl_Interp* interp, const char* fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-
-	char buf[1024];
-
-	vsnprintf(buf, 1024, fmt, args);
-
-	return Tcl_Eval(interp, buf);
-}
