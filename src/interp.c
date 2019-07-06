@@ -119,8 +119,11 @@ interp_command(nocsim_step_command) {
 
 	nocsim_state* state = (nocsim_state*) data;
 
-	if (argc > 2) {
+	if (argc == 2) {
 		get_int(interp, argv[1], &n);
+	} else if (argc == 1) { n = 1; } else {
+		Tcl_WrongNumArgs(interp, 0, argv, "step / step N");
+		return TCL_ERROR;
 	}
 
 	if (state->enable_simulation == 1) {
