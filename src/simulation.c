@@ -131,10 +131,12 @@ void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to) {
 	/* insert into FIFO */
 	vec_push(from->pending, flit);
 
-	printf("inject %lu from %s %u %u to %s %u %u\n",
-			flit->flit_no,
-			from->id, from->row, from->col,
-			to->id, to->row, to->col);
-	printf("push %lu into %s\n", flit->flit_no, from->id);
-
+	if (state->instruments[INSTRUMENT_INJECT] != NULL) {
+		if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu",
+					state->instruments[INSTRUMENT_INJECT],
+					from, to, flit->flit_no)) {
+			print_tcl_error(state->interp);
+			err(1, "unable to proceed, exiting with failure state");
+		}
+	}
 }

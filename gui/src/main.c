@@ -275,7 +275,12 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	vec_foreach(state->nodes, cursor, i) {
 		vtx = AG_GraphVertexNew(g, (void*) cursor);
 		AG_GraphVertexLabelS(vtx, cursor->id);
-		AG_GraphVertexPosition(vtx, cursor->col * 100, cursor->row * 100);
+		if (cursor->type == node_router) {
+			AG_GraphVertexPosition(vtx, cursor->col * 150, cursor->row * 150);
+		} else {
+			AG_GraphVertexPosition(vtx, cursor->col * 150 + 75, cursor->row * 150 + 75);
+		}
+
 	}
 
 	/* TODO: performance could be _much_ improved here */
@@ -477,7 +482,7 @@ int main(int argc, char *argv[]) {
 
 	/* info view area */
 	box = AG_BoxNew(
-			AG_ScrollviewNew(infopane->div[0], AG_SCROLLVIEW_EXPAND),
+			AG_ScrollviewNew(infopane->div[0], AG_SCROLLVIEW_BY_MOUSE | AG_SCROLLVIEW_EXPAND),
 			AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", box);
 
@@ -486,7 +491,7 @@ int main(int argc, char *argv[]) {
 
 	/* simulation info view */
 	box = AG_BoxNew(
-			AG_ScrollviewNew(infopane->div[1], AG_SCROLLVIEW_EXPAND),
+			AG_ScrollviewNew(infopane->div[1], AG_SCROLLVIEW_BY_MOUSE | AG_SCROLLVIEW_EXPAND),
 			AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "siminfo_p", box);
 	simulation_update(state, dri);

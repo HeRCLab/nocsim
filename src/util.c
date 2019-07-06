@@ -181,11 +181,22 @@ nocsim_link* nocsim_link_by_nodes(nocsim_state* state, char* from, char* to) {
 
 	if (from == NULL || to == NULL) { return NULL; }
 
-	for (d = 0; d < P; d++) {
+	for (d = 0; d <= P; d++) {
 		if (from_node->outgoing[d] == NULL) { continue; }
 		if (from_node->outgoing[d]->to == to_node) { return from_node->outgoing[d]; }
 	}
 
 	return NULL;
 
+}
+
+int Tcl_Evalf(Tcl_Interp* interp, const char* fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+
+	char buf[1024];
+
+	vsnprintf(buf, 1024, fmt, args);
+
+	return Tcl_Eval(interp, buf);
 }
