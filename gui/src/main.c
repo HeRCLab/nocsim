@@ -188,7 +188,7 @@ void HandleVertexSelection(AG_Event* event) {
 		prval("col"           , "%i" , node->col);
 		prval("behavior"      , "%s" , node->behavior);
 		if (node->type == node_PE) {
-			prval("flits pending" , "%s" , node->pending->length);
+			prval("flits pending" , "%u" , node->pending->length);
 		} else {
 			prval("flits pending" , "%s" , "N/A");
 		}
@@ -213,6 +213,97 @@ void HandleVertexSelection(AG_Event* event) {
 
 }
 
+void populate_link_info(AG_Box* box, AG_Driver* dri, nocsim_state* state, nocsim_link* l) {
+
+	if (l == NULL) { return; }
+
+	AG_Box* inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
+	AG_BoxSetLabel(inner, "link data");
+
+#define prval(label, fmt, ...) \
+		AG_TextboxPrintf( \
+			AG_TextboxNewS(inner, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label), \
+			fmt, __VA_ARGS__);
+
+	/* TODO: when links become queues, this will need to be updated */
+	prval("flits", "%u", (l->flit == NULL) ? 0 : 1);
+
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
+	AG_BoxSetLabelS(inner, "performance counters");
+
+	prval("load", "%li", l->load);
+
+	/* for bidirectional links, allow us to swap which direction we are
+	 * looking at */
+	if (nocsim_link_by_nodes(state, l->to->id, l->from->id)) {
+		/* TODO: also show link info in the opposite direction */
+	}
+
+	SV_WORKAROUND(inner);
+
+#undef prval
+
+}
+
+
+void show_link_info(nocsim_state* state, AG_Driver* dri, nocsim_link* l) {
+	AG_Box* box = AG_GetPointer(dri, "infobox_p");
+	AG_Object* parent = AG_ObjectParent(AGOBJECT(box));
+	AG_ObjectDelete(box);
+	box = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
+	AG_Box* inner;
+	AG_SetPointer(dri, "infobox_p", box);
+
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_HFILL| AG_BOX_FRAME);
+	AG_BoxSetLabel(inner, "%s -> %s", l->from->id, l->to->id);
+	populate_link_info(inner, dri, state, l);
+
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_HFILL| AG_BOX_FRAME);
+	AG_BoxSetLabel(inner, "%s -> %s", l->to->id, l->from->id);
+	populate_link_info(inner, dri, state, nocsim_link_by_nodes(
+		state, l->to->id, l->from->id));
+
+	AG_WidgetHide(box);
+	AG_WidgetShow(box);
+
+}
+
+
+
+void HandleEdgeSelection(AG_Event* event) {
+	AG_GraphEdge* edge = AG_PTR(2);
+	nocsim_state* state = AG_PTR_NAMED("state");
+	AG_GraphVertex* vtx1 = edge->v1;
+	AG_GraphVertex* vtx2 = edge->v2;
+	AG_Driver* dri = get_dri();
+	nocsim_node* node1;
+	nocsim_node* node2;
+	nocsim_link* l;
+
+	AG_Box* box = AG_GetPointer(dri, "infobox_p");
+	AG_Object* parent = AG_ObjectParent(AGOBJECT(box));
+	AG_ObjectDelete(box);
+	/* box = AG_BoxNew(parent, AG_BOX_HORIZ, AG_BOX_EXPAND); */
+	box = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
+	AG_SetPointer(dri, "infobox_p", box);
+	AG_LabelNewS(box, 0, "edge data inaccessible");
+
+	if (vtx1 == NULL || vtx2 == NULL) { return; }
+	node1= (nocsim_node*) vtx1->userPtr;
+	node2 = (nocsim_node*) vtx2->userPtr;
+	if (node1 == NULL || node2 == NULL) { return; }
+
+	l = nocsim_link_by_nodes(state, node1->id, node2->id);
+
+	if (l == NULL) {
+		l = nocsim_link_by_nodes(state, node2->id, node1->id);
+	}
+
+	if (l == NULL) { return; }
+
+	show_link_info(state, dri, l);
+
+}
 
 /* Export the graph view to a file */
 void ExportGraphDialog(AG_Event* event) {
@@ -267,6 +358,7 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	/* this function will populate the info box */
 	infobox = AG_GetPointer(dri, "infobox_p");
 	AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL);
+	AG_AddEvent(g, "graph-edge-selected", HandleEdgeSelection, "%p(state)", state);
 
 	/* force the newly created widget to draw */
 	AG_WidgetHide(g);
@@ -291,6 +383,7 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 			AG_GraphVertex* vtx1;
 			AG_GraphVertex* vtx2;
 			AG_GraphEdge* e;
+			nocsim_link* l;
 
 			/* check if there is a link between these nodes */
 			if (nocsim_link_by_nodes(state, cursor->id, inner->id) == NULL) {
@@ -301,13 +394,23 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 			vtx2 = AG_GraphVertexFind(g, inner);
 			if (vtx1 == NULL || vtx2 == NULL) { continue; }
 
+			l = nocsim_link_by_nodes(state, inner->id, cursor->id);
 
 			/* the link goes both ways */
-			if (nocsim_link_by_nodes(state, inner->id, cursor->id) != NULL) {
-				AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
+			if (l != NULL) {
+				/* We want to make sure the bidirectional links only
+				 * get generated once, so we pick the smaller of the
+				 * two pointer values arbitrarily as the "origin" and
+				 * ignore it. */
+				if ((long int) vtx2 < (long int) vtx1) { continue; }
+
+				e = AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
+				AG_GraphEdgeLabel(e, "%s <-> %s", cursor->id, inner->id);
 			} else {
-				AG_DirectedGraphEdgeNew(g, vtx1, vtx2, NULL);
+				e = AG_DirectedGraphEdgeNew(g, vtx1, vtx2, NULL);
+				AG_GraphEdgeLabel(e, "%s -> %s", cursor->id, inner->id);
 			}
+
 
 		}
 	}
@@ -497,6 +600,7 @@ int main(int argc, char *argv[]) {
 
 	/* this function will populate the info box */
 	AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL);
+	AG_AddEvent(g, "graph-edge-selected", HandleEdgeSelection, "%p(state)", state);
 
 	/* simulation info view */
 	box = AG_BoxNew(
