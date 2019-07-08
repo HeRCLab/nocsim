@@ -15,6 +15,14 @@
 #define req_args(n, msg) if (argc != n) { \
 	Tcl_WrongNumArgs(interp, 0, argv, msg); return TCL_ERROR; }
 
+#define validate_direction(dir) do { \
+		if (dir < 0 || dir > P) { \
+			Tcl_SetResult(interp, "value provided for" #dir "is out of bounds", NULL); \
+			return TCL_ERROR; \
+		} \
+	} while (0)
+
+
 /*** router ID ROW COL behavior **********************************************/
 interp_command(nocsim_create_router) {
 
@@ -46,7 +54,6 @@ interp_command(nocsim_create_router) {
 		Tcl_SetResult(interp, "a node with that ID exists already", NULL);
 		return TCL_ERROR;
 	}
-
 
 	nocsim_grid_create_router(state, id, row, col, behavior);
 
@@ -415,32 +422,31 @@ interp_command(nocsim_route_command) {
 	nocsim_state* state = (nocsim_state*) data;
 	nocsim_direction from;
 	nocsim_direction to;
+	nocsim_flit* flit;
+	nocsim_node* from_node;
+	nocsim_node* to_node;
 
 	req_args(3, "route FROM TO");
 
 	get_int(interp, argv[1], (int*) &from);
 	get_int(interp, argv[2], (int*) &to);
 
-	if (from < 0 || from > P) {
-		Tcl_SetResult(interp, "value provided for from is out of bounds", NULL);
-		return TCL_ERROR;
-	}
+	validate_direction(from);
+	validate_direction(to);
 
-	if (to < 0 || to > P) {
-		Tcl_SetResult(interp, "value provided for to is out of bounds", NULL);
-		return TCL_ERROR;
-	}
-
+	/* must be called during a behavior */
 	if (state->current == NULL) {
 		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
 		return TCL_ERROR;
 	}
 
+	/* only applicable to routers, since PEs cannot route */
 	if (state->current->type != node_router) {
 		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
 		return TCL_ERROR;
 	}
 
+	/* make sure the relevant links exist */
 	if (state->current->incoming[from] == NULL) {
 		Tcl_SetResult(interp, "no incoming link from specified direction", NULL);
 		return TCL_ERROR;
@@ -451,17 +457,42 @@ interp_command(nocsim_route_command) {
 		return TCL_ERROR;
 	}
 
+	/* each link can accept only one flit per cycle */
 	if (state->current->outgoing[to]->flit_next != NULL) {
 		Tcl_SetResult(interp, "cannot route multiple flits through the same outgoing link", NULL);
 		return TCL_ERROR;
 	}
 
+	/* TODO: should probably have a nocsim_route function in simulation.c
+	 * */
+
+	/* route callback */
+	flit = state->current->incoming[from]->flit;
+	from_node = state->current->incoming[from]->from;
+	to_node = state->current->outgoing[to]->to;
+	if (state->instruments[INSTRUMENT_ROUTE] != NULL) {
+		if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu \"%s\" \"%s\"",
+					state->instruments[INSTRUMENT_INJECT],
+					flit->from->id, flit->to->id,
+					flit->flit_no,
+					flit->spawned_at,
+					flit->injected_at,
+					flit->hops,
+					from_node->id, to_node->id
+					)) {
+			print_tcl_error(state->interp);
+			err(1, "unable to proceed, exiting with failure state");
+		}
+	}
+
+	/* performance counters */
 	state->current->routed ++;
 	state->current->outgoing[to]->load ++;
+	flit->hops ++;
 
+	/* move flit to next state */
 	state->current->outgoing[to]->flit_next = \
 		state->current->incoming[from]->flit;
-
 	state->current->incoming[from]->flit = NULL;
 
 	return TCL_OK;
@@ -479,10 +510,7 @@ interp_command(nocsim_peek_command) {
 	get_int(interp, argv[1], (int*) &dir);
 	attr = Tcl_GetStringFromObj(argv[2], &length);
 
-	if (dir < 0 || dir > P) {
-		Tcl_SetResult(interp, "value provided for dir is out of bounds", NULL);
-		return TCL_ERROR;
-	}
+	validate_direction(dir);
 
 	if (state->current == NULL) {
 		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
@@ -491,6 +519,16 @@ interp_command(nocsim_peek_command) {
 
 	if (state->current->type != node_router) {
 		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->incoming[dir] == NULL) {
+		Tcl_SetResult(interp, "no link in specified direction", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->incoming[dir]->flit == NULL) {
+		Tcl_SetResult(interp, "no flit incoming from specified direction", NULL);
 		return TCL_ERROR;
 	}
 
@@ -532,6 +570,75 @@ interp_command(nocsim_peek_command) {
 	}
 }
 
+/*** incoming DIR ************************************************************/
+interp_command(nocsim_incoming_command) {
+	nocsim_state* state = (nocsim_state*) data;
+	nocsim_direction dir;
+
+	/* just check one direction */
+	req_args(2, "incoming DIR");
+	get_int(interp, argv[1], (int*) &dir);
+	validate_direction(dir);
+
+	if (state->current == NULL) {
+		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->type != node_router) {
+		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->incoming[dir] != NULL) {
+		if (state->current->incoming[dir]->flit != NULL) {
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+		} else {
+			goto none_incoming;
+		}
+	} else {
+none_incoming:
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+	}
+
+	return TCL_OK;
+
+}
+
+/*** allincoming *************************************************************/
+interp_command(nocsim_allincoming_command) {
+	nocsim_state* state = (nocsim_state*) data;
+
+	/* just check one direction */
+	req_args(1, "allincoming");
+
+	if (state->current == NULL) {
+		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
+		return TCL_ERROR;
+	}
+
+	if (state->current->type != node_router) {
+		Tcl_SetResult(interp, "route may only be called for router nodes", NULL);
+		return TCL_ERROR;
+	}
+
+	/* retrieve a list of all directions from which there are incoming */
+	/* flits  */
+	Tcl_Obj* listPtr = Tcl_NewListObj(0, NULL);
+	for (nocsim_direction dir = 0 ; dir < DIR_UNDEF ; dir++) {
+		if (state->current->incoming[dir] != NULL) {
+			if (state->current->incoming[dir]->flit != NULL) {
+				Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewIntObj(dir));
+			}
+	
+		}
+	}
+	Tcl_SetObjResult(interp, listPtr);
+	return TCL_OK;
+
+
+}
+
 /*** avail DIR ***************************************************************/
 interp_command(nocsim_avail_command) {
 	nocsim_state* state = (nocsim_state*) data;
@@ -541,10 +648,7 @@ interp_command(nocsim_avail_command) {
 
 	get_int(interp, argv[1], (int*) &dir);
 
-	if (dir < 0 || dir > P) {
-		Tcl_SetResult(interp, "value provided for dir is out of bounds", NULL);
-		return TCL_ERROR;
-	}
+	validate_direction(dir);
 
 	if (state->current == NULL) {
 		Tcl_SetResult(interp, "route may only be called during a behavior callback", NULL);
@@ -693,7 +797,9 @@ interp_command(nocsim_conswrite) {
 	str = Tcl_GetStringFromObj(argv[1], NULL);
 
 #ifdef NOCSIM_GUI
-	AG_ConsoleMsgS(state->cons, str);
+	AG_Color white;
+	AG_ColorRGB_8(&white, 255, 255, 255);
+	nocsim_console_writelines(state->cons, str, &white);
 #else
 	printf("%s", str);
 #endif
@@ -796,6 +902,8 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_linkinfo, "linkinfo");
 	defcmd(nocsim_registerinstrument, "registerinstrument");
 	defcmd(nocsim_conswrite, "conswrite");
+	defcmd(nocsim_incoming_command, "incoming");
+	defcmd(nocsim_allincoming_command, "allincoming");
 
 #undef defcmd
 
@@ -829,3 +937,4 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 #undef get_int
 #undef interp_command
 #undef req_args
+#undef validate_direction

@@ -189,3 +189,43 @@ nocsim_link* nocsim_link_by_nodes(nocsim_state* state, char* from, char* to) {
 	return NULL;
 
 }
+
+#ifdef NOCSIM_GUI
+void nocsim_console_writelines(AG_Console* console, const char* lines, AG_Color* c) {
+	char* piv;
+	char* start;
+	char* dup;
+	char* temp;
+
+	dup = strdup(lines);
+	piv = dup;
+	start = dup;
+
+	/* Split lines into newline delimited substrings and create a console
+	 * message for each one. We do this by tracking the start of the
+	 * current substring in the start pointer, and replacing each \n
+	 * we find with a null terminator. */
+	while (piv[0]) {
+		if (piv[0] == '\n') {
+			piv[0] = '\0';
+			if (strlen(start) > 0) {
+				AG_ConsoleMsgColor(
+					AG_ConsoleMsg(console, "%s", start), c);
+			}
+			start = &(piv[1]);
+		}
+		piv++;
+	}
+
+	/* handle trailing line without a \n */
+	if (((unsigned long ) start) - 1 < (unsigned long) piv) {
+		if (strlen(start) > 0) {
+			AG_ConsoleMsgColor(
+				AG_ConsoleMsg(console, "%s", start), c);
+		}
+	}
+
+	free(dup);
+}
+#endif
+

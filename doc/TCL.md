@@ -269,6 +269,20 @@ the `dir_*` magic variables). Returns one of the following values:
 | 1 | link already used this tick |
 | 2 | no such link |
 
+### `incoming DIR` (routing behaviors only)
+
+`DIR` should be specified as an integer in `nocsim`'s internal format.
+
+Returns 1 if there is a flit incoming from the specified direction,
+and 0 otherwise. Note that routing a flit removes it from the relevant incoming
+link;
+
+### `allincoming` (routing behaviors only)
+
+Returns a list of all directions (in `nocsim`'s internal integer format) from
+which there is an incoming flit awaiting processing. Using `route` to route the
+flit elsewhere will cause it to stop appearing in this list.
+
 ### `inject TO` (PE behaviors only)
 
 Inject a new flit destined for the node ID `TO`, The originating node is always
@@ -436,5 +450,7 @@ initialization between ticks.
   outgoing flit queue from it's origin node (i.e. it continues to be "first in
   line"). Backrouting still counts as a "hop".
 * **hop** -- any tick where a specific flit travels between two adjacent nodes.
-
-
+* **instrument** -- a TCL procedure called in response to a specific event
+  occurring within the simulation.
+* **behavior** -- a TCL procedure used to define how a particular node in the
+  network under simulation should act.

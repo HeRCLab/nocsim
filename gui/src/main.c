@@ -478,6 +478,9 @@ void EnterLine(AG_Event* event) {
 	AG_Color green;
 	AG_ColorRGB_8(&green, 16, 255, 16);
 
+	AG_Color white;
+	AG_ColorRGB_8(&white, 255, 255, 255);
+
 	s = AG_TextboxDupString(tb);
 
 	snprintf(buf, sizeof(buf), "%% %s", s);
@@ -486,12 +489,12 @@ void EnterLine(AG_Event* event) {
 	if (Tcl_Eval(state->interp, s) == TCL_OK) {
 		snprintf(buf, sizeof(buf), "(OK   ) %% %s", s);
 		AG_ConsoleMsgEdit(line, buf);
+		nocsim_console_writelines(cons, Tcl_GetStringResult(state->interp), &white);
 	} else {
 		snprintf(buf, sizeof(buf), "(ERROR) %% %s\t\t", s);
 		AG_ConsoleMsgEdit(line, buf);
 		AG_ConsoleMsgColor(line, &red);
-		AG_ConsoleMsgColor(
-			AG_ConsoleMsgS(cons, Tcl_GetStringResult(state->interp)), &red);
+		nocsim_console_writelines(cons, Tcl_GetStringResult(state->interp), &red);
 	}
 	AG_TextboxSetString(tb, "");
 	/* AG_Free(s); */
@@ -538,9 +541,6 @@ int main(int argc, char *argv[]) {
 	g = AG_GraphNew(inner_pane->div[1], AG_GRAPH_EXPAND);
 	AG_GraphSizeHint(g, 800, 600);
 	AG_SetPointer(dri, "graph_p", g);
-
-	/* Setup the status bar at the bottom of the window */
-	AG_SeparatorNew(win, AG_SEPARATOR_HORIZ);
 
 	/* instantiate the "File" menu dropdown */
 	AG_MenuItem* menu_file = AG_MenuNode(menu->root, "File", NULL);

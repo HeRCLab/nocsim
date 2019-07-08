@@ -1,7 +1,72 @@
+# this simple example shows a small deflection routed network using DOR routing
+
 package require math
 
 proc simpletest {} {
 	conswrite "simpletest behavior from node [current]"
+}
+
+# implements DOR routing for a specific link
+proc DORfrom {dir} {
+
+	# want to route south
+	if {peek $dir to_row > [nodeinfo row [current]]} {
+		if        {[avail [dir2int south]] == 0} {
+			route $dir south
+		} else if {[avail [dir2int east ]] == 0} {
+			route $dir east
+		} else if {[avail [dir2int west ]] == 0} {
+			route $dir west
+		} else if {[avail [dir2int north]] == 0} {
+			route $dir north
+		}
+
+	# want to route north
+	} else if {peek $dir to_row < [nodeinfo row [current]]} {
+		if        {[avail [dir2int north]] == 0} {
+			route $dir north
+		} else if {[avail [dir2int west ]] == 0} {
+			route $dir west
+		} else if {[avail [dir2int east ]] == 0} {
+			route $dir east
+		} else if {[avail [dir2int south]] == 0} {
+			route $dir south
+		}
+
+	# want to route east
+	} else if {peek $dir to_col < [nodeinfo col [current]]} {
+		if        {[avail [dir2int east ]] == 0} {
+			route $dir east
+		} else if {[avail [dir2int south]] == 0} {
+			route $dir south
+		} else if {[avail [dir2int north]] == 0} {
+			route $dir north
+		} else if {[avail [dir2int west ]] == 0} {
+			route $dir west
+		}
+	}
+
+	# want to route west
+	} else {
+		if        {[avail [dir2int west ]] == 0} {
+			route $dir west
+		} else if {[avail [dir2int north]] == 0} {
+			route $dir north
+		} else if {[avail [dir2int south]] == 0} {
+			route $dir south
+		} else if {[avail [dir2int east ]] == 0} {
+			route $dir east
+		}
+	}
+}
+
+proc simpleDOR {} {
+	conswrite "simpleDOR behavior for node [current]"
+	foreach dir [allincoming] {
+		conswrite "\trouting from direction [int2dir $dir]"
+		DORfrom $dir
+	}
+
 }
 
 proc with_P {P} {
@@ -29,8 +94,8 @@ router r2 0 1 simpletest
 router r3 1 0 simpletest
 router r4 1 1 simpletest
 
-PE p1 0 0 simpletest
-PE p2 0 1 simpletest
+PE p1 0 0 simpleinject
+PE p2 0 1 simpleinject
 PE p3 1 0 simpleinject
 PE p4 1 1 simpleinject
 
@@ -51,5 +116,3 @@ link p3 r3
 link r3 p3
 link p4 r4
 link r4 p4
-
-
