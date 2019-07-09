@@ -1,5 +1,8 @@
 #include "nocsim.h"
 
+#include <readline/readline.h>
+#include <readline/history.h>
+
 int main(int argc, char** argv) {
 	/* nocsim_state* state; */
 	/* char* errstr; */
@@ -100,9 +103,29 @@ int main(int argc, char** argv) {
 	state = nocsim_create_interp(NULL, argc, argv);
 
 	gettimeofday(&start_time, NULL);
-	if (Tcl_EvalFile(state->interp, "/dev/stdin") != TCL_OK) {
-		print_tcl_error(state->interp);
-		err(1, "unable to proceed, exiting with failure state");
+
+	if (isatty(fileno(stdin))) {
+		char* line = NULL;
+		size_t size;
+
+		while ((line = readline("nocsim> ")) != NULL) {
+			if (strlen(line) > 0) {
+				add_history(line);
+
+				if (Tcl_Eval(state->interp, line) != TCL_OK) {
+					print_tcl_error(state->interp);
+				} else {
+					printf("%s\n", Tcl_GetStringResult(state->interp));
+				}
+
+			}
+		}
+
+	} else {
+		if (Tcl_EvalFile(state->interp, "/dev/stdin") != TCL_OK) {
+			print_tcl_error(state->interp);
+			err(1, "unable to proceed, exiting with failure state");
+		}
 	}
 
 	gettimeofday(&end_time, NULL);

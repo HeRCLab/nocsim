@@ -21,7 +21,12 @@ be found [here](./doc/TCL.md).
 ## How to build `nocsim`
 
 The nocsim source code is located in the [src/](./src/) directory, and may be
-compiled via `make`. Note that `libbsd` is required to compile nocsim.
+compiled via `make`. Dependencies:
+
+* libbsd
+* readline
+
+On Ubuntu 18.04: `sudo apt install --yes libbsd-dev libreadline-dev`
 
 ### Testing `nocsim`
 

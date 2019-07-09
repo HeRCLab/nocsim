@@ -10,7 +10,7 @@ TCL_CFLAGS=-I/usr/include/tcl8.6
 TCL_LIBS=-ltcl
 
 CFLAGS+=$$(pkg-config --cflags libbsd 2>/dev/null) $(TCL_CFLAGS)
-LIBS+=$$(pkg-config --libs libbsd 2>/dev/null) $(TCL_LIBS)
+LIBS+=$$(pkg-config --libs libbsd 2>/dev/null) $(TCL_LIBS) -lreadline
 
 .PHONY: all clean output.db lint
 
@@ -23,7 +23,7 @@ src/nocsim.db:
 	make -C ./ clean && yes | ikos-scan make -C ./
 
 src/nocsim: src/nocsim.o src/grid.o src/util.o src/simulation.o src/vec.o src/interp.o
-	cd src && $(CC) $(CFLAGS) nocsim.o grid.o util.o simulation.o vec.o interp.o $(LIBS) -o ../$@
+	cd src && $(CC) $(CFLAGS) nocsim.o grid.o util.o simulation.o vec.o interp.o -o ../$@ $(LIBS) 
 
 src/nocsim.o: src/nocsim.c src/nocsim.h src/nocsim_types.h
 	cd src && $(CC) $(CFLAGS) $(LIBS) -c nocsim.c
