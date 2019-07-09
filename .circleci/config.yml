@@ -16,7 +16,7 @@ jobs:
       - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
       - checkout
-      - run: sudo apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
+      - run: apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
       - run: sh ./scripts/ci/build.sh
 
   lint:
@@ -24,7 +24,7 @@ jobs:
       - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
       - checkout
-      - run: sudo apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
+      - run: apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
       - run: sh ./scripts/ci/lint.sh
 
   sample:
@@ -32,7 +32,7 @@ jobs:
       - image: charlesdaniels/ikos_ubuntu:v2.1
     steps:
       - checkout
-      - run: sudo apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
+      - run: apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
       - run: sh ./scripts/ci/sample.sh
 
   valgrind:
@@ -41,7 +41,7 @@ jobs:
     steps:
       - checkout
       - run: apt install --yes valgrind
-      - run: sudo apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
+      - run: apt install --yes tcl-dev libtcl8.6 libbsd-dev libreadline-dev
       - run: sh ./scripts/ci/valgrind.sh
 
   complexity:
