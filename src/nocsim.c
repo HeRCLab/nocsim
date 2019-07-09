@@ -106,7 +106,6 @@ int main(int argc, char** argv) {
 
 	if (isatty(fileno(stdin))) {
 		char* line = NULL;
-		size_t size;
 
 		while ((line = readline("nocsim> ")) != NULL) {
 			if (strlen(line) > 0) {

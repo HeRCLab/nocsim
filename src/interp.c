@@ -788,8 +788,8 @@ interp_command(nocsim_registerinstrument) {
 
 /*** conswrite STR ***********************************************************/
 interp_command(nocsim_conswrite) {
+	UNUSED(data);
 
-	nocsim_state* state = (nocsim_state*) data;
 	char* str;
 
 	req_args(2, "conswrite STR");
