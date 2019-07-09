@@ -801,7 +801,7 @@ interp_command(nocsim_conswrite) {
 	AG_ColorRGB_8(&white, 255, 255, 255);
 	nocsim_console_writelines(state->cons, str, &white);
 #else
-	printf("%s", str);
+	printf("%s\n", str);
 #endif
 
 	return TCL_OK;
@@ -870,10 +870,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 		Tcl_SetVar(interp, "argv", argv[i], TCL_LIST_ELEMENT | TCL_APPEND_VALUE);
 	}
 	Tcl_SetVar(interp, "tcl_library", tcl_library_path, 0);
-	Tcl_Eval(interp, __extension__ ({
-		char buf[512];
-		snprintf(buf, sizeof(buf), "source %s/init.tcl", tcl_library_path);
-		buf;}));
+	Tcl_Evalf(interp, "source %s/init.ctl", tcl_library_path);
 	free(tcl_library_path);
 
 #define defcmd(func, name) \

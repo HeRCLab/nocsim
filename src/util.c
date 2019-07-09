@@ -141,7 +141,6 @@ char* get_tcl_library_path(void) {
 	FILE* fp;
 	char* result = NULL;
 	size_t n= 0;
-	alloc(sizeof(char) * 512, result);
 	fp = popen("echo 'puts $tcl_library' | tclsh", "r");
 	while(getline(&result, &n, fp) != -1) {}
 	fclose(fp);
