@@ -130,6 +130,7 @@ int main(int argc, char** argv) {
 	gettimeofday(&end_time, NULL);
 
 	Tcl_DeleteInterp(state->interp);
+	kh_destroy(nnptr, state->node_map);
 
 	elapsed_ms = \
 		((end_time.tv_sec - start_time.tv_sec) * 1000) +

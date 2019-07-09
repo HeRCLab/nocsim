@@ -12,6 +12,7 @@
 
 #include "nocsim_types.h"
 #include "vec.h"
+#include "khash.h"
 
 #include <err.h>
 #include <errno.h>
@@ -87,6 +88,19 @@
 	char buf[1024]; \
 	snprintf(buf, 1024, fmt, __VA_ARGS__); \
 	Tcl_Eval(interp, buf); })
+
+/* add a key-value pair to a hash table of {str -> nocsim_node*}
+ * h: hash table pointer
+ * k: key (type: char*)
+ * v: value (type: nocsim_node*) */
+#define ez_kv_insert(h, k, v) __extension__ ({ \
+	int status; \
+	khint_t kiter; \
+	/* insert key into hash table (no value assigned yet) */ \
+	kiter = kh_put(nnptr, h, k, &status); \
+	if (status == -1) { err(1, "Could not add %s (type: %d) at %d %d to hash table of nodes.", v->id, v->type, v->row, v->col); } \
+	/* assign a value to the key */ \
+	kh_value(h, kiter) = v;})
 
 
 int main(int argc, char** argv);
