@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 	struct timeval start_time;
 	struct timeval end_time;
 	unsigned long long elapsed_ms;
-	Tcl_Interp* interp;
+	nocsim_state* state;
 
 	dbprintf("beginning nocsim version %i.%i.%i\n",
 			NOCSIM_VERSION_MAJOR,
@@ -97,17 +97,17 @@ int main(int argc, char** argv) {
 	printf("meta randsig2 %u\n", rand());
 	printf("meta randsig3 %u\n", rand());
 
-	interp = nocsim_create_interp(NULL, argc, argv);
+	state = nocsim_create_interp(NULL, argc, argv);
 
 	gettimeofday(&start_time, NULL);
-	if (Tcl_EvalFile(interp, "/dev/stdin") != TCL_OK) {
-		print_tcl_error(interp);
+	if (Tcl_EvalFile(state->interp, "/dev/stdin") != TCL_OK) {
+		print_tcl_error(state->interp);
 		err(1, "unable to proceed, exiting with failure state");
 	}
 
 	gettimeofday(&end_time, NULL);
 
-	Tcl_DeleteInterp(interp);
+	Tcl_DeleteInterp(state->interp);
 
 	elapsed_ms = \
 		((end_time.tv_sec - start_time.tv_sec) * 1000) +
