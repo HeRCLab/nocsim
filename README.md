@@ -25,8 +25,9 @@ compiled via `make`. Dependencies:
 
 * libbsd
 * readline
+* libtcl
 
-On Ubuntu 18.04: `sudo apt install --yes libbsd-dev libreadline-dev`
+On Ubuntu 18.04: `sudo apt install --yes libbsd-dev libreadline-dev tcl-dev libtcl8.6`
 
 ### Testing `nocsim`
 
