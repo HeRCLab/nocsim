@@ -10,6 +10,7 @@
 #endif
 
 #include "vec.h"
+#include "khash.h"
 
 typedef enum nocsim_node_type_t {node_PE, node_router, type_undefined} nocsim_node_type;
 
@@ -139,6 +140,10 @@ typedef struct nocsim_link_t {
 	long load;
 } nocsim_link;
 
+/* hash table struct name will have "kh_nnptr" in it */
+KHASH_MAP_INIT_STR(nnptr, nocsim_node*)
+typedef khash_t(nnptr) nodemap;
+
 typedef struct nocsim_state_t {
 
 	/* in cases where we don't want to simulate anything, this is asserted
@@ -156,6 +161,8 @@ typedef struct nocsim_state_t {
 	unsigned int max_ticks;
 	char* title;
 	nodelist* nodes;
+	/* used for quick node lookups by ID */
+	nodemap* node_map;
 	unsigned int max_row;
 	unsigned int max_col;
 

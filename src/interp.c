@@ -845,6 +845,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 
 	vec_init(l);
 	state->nodes = l;
+	state->node_map = kh_init(nnptr);
 
 /*** initialize TCL interpreter **********************************************/
 

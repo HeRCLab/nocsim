@@ -153,21 +153,16 @@ char* get_tcl_library_path(void) {
 }
 
 nocsim_node* nocsim_node_by_id(nocsim_state* state, char* id) {
-	nocsim_node* cursor;
-	unsigned int i;
+	khint_t k;
 
-	vec_foreach(state->nodes, cursor, i) {
-		if (cursor->id == NULL) {
-			err(1, "node@0x%p missing ID", (void*) cursor);
-		}
-
-		if (!strncmp(id, cursor->id, NOCSIM_GRID_LINELEN)) {
-			return cursor;
-		}
+	/* get iterator to the value */
+	k = kh_get(nnptr, state->node_map, id);
+	/* missing check */
+	if (k == kh_end(state->node_map)) {
+		return NULL;
 	}
-
-	return NULL;
-
+	/* retrieve value (assume keys always have values) */
+	return kh_value(state->node_map, k);
 }
 
 nocsim_link* nocsim_link_by_nodes(nocsim_state* state, char* from, char* to) {

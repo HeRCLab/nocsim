@@ -24,6 +24,7 @@ void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, 
 	if (col > state->max_col) { state->max_col = col; }
 
 	vec_push(state->nodes, router);
+	ez_kv_insert(state->node_map, id, router);
 }
 
 /* note that the caller must verify that the ID is unique */
@@ -47,6 +48,7 @@ void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsi
 	if (col > state->max_col) { state->max_col = col; }
 
 	vec_push(state->nodes, PE);
+	ez_kv_insert(state->node_map, id, PE);
 }
 
 void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
