@@ -17,6 +17,10 @@ void next_state(nocsim_state* state, Tcl_Interp* interp) {
 
 		if (cursor->pending->length > 0) {
 
+			if (cursor->outgoing[P] == NULL) {
+				err(1, "PE %s does not have an outgoing link", cursor->id);
+			}
+
 			cursor->outgoing[P]->flit_next = \
 				vec_dequeue(cursor->pending);
 
