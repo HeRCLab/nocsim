@@ -132,13 +132,21 @@ void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_dire
 
 		vec_insert(cursor->pending, 0, cursor->incoming[P]->flit);
 
-		printf("backrouted %lu at %s\n",
-			cursor->incoming[dir]->flit->flit_no,
-			cursor->id);
+		flit = cursor->incoming[dir]->flit;
 
-		printf("push %lu into %s\n",
-				cursor->incoming[dir]->flit->flit_no,
-				cursor->id);
+		if (state->instruments[INSTRUMENT_BACKROUTE] != NULL) {
+			if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu",
+						state->instruments[INSTRUMENT_BACKROUTE],
+						flit->from->id, flit->to->id,
+						flit->flit_no,
+						flit->hops, flit->spawned_at,
+						flit->injected_at
+						)) {
+				print_tcl_error(state->interp);
+				err(1, "unable to proceed, exiting with failure state");
+			}
+		}
+
 
 		/* remove the flit from the incoming list */
 		cursor->incoming[P]->flit = NULL;
