@@ -129,7 +129,7 @@ void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit);
 
 void nocsim_step(nocsim_state* state, Tcl_Interp* interp);
 void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to);
-void nocsim_handle_arrival(nocsim_node* state, nocsim_direction dir);
+void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_direction dir);
 
 nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv);
 

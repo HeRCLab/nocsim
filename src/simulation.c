@@ -55,7 +55,7 @@ void flip_state(nocsim_state* state) {
 	vec_foreach(state->nodes, cursor, i) {
 		for (nocsim_direction dir = N ; dir <= P ; dir++) {
 			if (cursor->incoming[dir] != NULL) {
-				nocsim_handle_arrival(cursor, dir);
+				nocsim_handle_arrival(state, cursor, dir);
 			}
 
 		}
@@ -88,7 +88,8 @@ void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
  * @param cursor
  * @param dir
  */
-void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
+void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_direction dir) {
+	nocsim_flit* flit;
 
 	// do nothing if there isn't anything coming from this direction
 	if (cursor->incoming[dir]->flit == NULL) {
@@ -101,9 +102,20 @@ void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
 				cursor->incoming[dir]->flit->flit_no);
 		}
 
-		printf("arrived %lu at %s\n",
-			cursor->incoming[dir]->flit->flit_no,
-			cursor->id);
+		flit = cursor->incoming[dir]->flit;
+
+		if (state->instruments[INSTRUMENT_ARRIVE] != NULL) {
+			if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu",
+						state->instruments[INSTRUMENT_ARRIVE],
+						flit->from->id, flit->to->id,
+						flit->flit_no,
+						flit->hops, flit->spawned_at,
+						flit->injected_at
+						)) {
+				print_tcl_error(state->interp);
+				err(1, "unable to proceed, exiting with failure state");
+			}
+		}
 
 		/* delete the flit */
 		free((cursor->incoming[dir]->flit));
