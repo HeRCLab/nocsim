@@ -965,6 +965,12 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	snprintf(state->title, 512, "unspecified");
 	Tcl_LinkVar(interp, "title", (char*) &(state->title), TCL_LINK_STRING);
 
+	Tcl_Obj* vers = Tcl_NewListObj(0, NULL);
+	Tcl_ListObjAppendElement(interp, vers, Tcl_NewIntObj(NOCSIM_VERSION_MAJOR));
+	Tcl_ListObjAppendElement(interp, vers, Tcl_NewIntObj(NOCSIM_VERSION_MINOR));
+	Tcl_ListObjAppendElement(interp, vers, Tcl_NewIntObj(NOCSIM_VERSION_PATCH));
+	Tcl_ObjSetVar2(interp, str2obj("nocsim_version"), NULL, vers, 0);
+
 	return state;
 
 

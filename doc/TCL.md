@@ -91,6 +91,7 @@ should respect them or risk causing undefined behavior.
 | `flit_no` | r | number of injected flits so far + 1 |
 | `tick` | r | current tick number, starting at 0 |
 | `title` | r+w | simulation title, defaults to "unspecified" |
+| `nocsim_version` | r | list containing `nocsim` major, minor, and patch numbers in that order |
 
 ## Procedures
 

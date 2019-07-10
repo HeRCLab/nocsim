@@ -25,9 +25,9 @@
 #include <sys/time.h>
 #include <tcl.h>
 
-#define NOCSIM_VERSION_PATCH 1
+#define NOCSIM_VERSION_PATCH 0
 #define NOCSIM_VERSION_MINOR 0
-#define NOCSIM_VERSION_MAJOR 0
+#define NOCSIM_VERSION_MAJOR 1
 
 /* maximum length of a line in a grid definition */
 #define NOCSIM_GRID_LINELEN 256
