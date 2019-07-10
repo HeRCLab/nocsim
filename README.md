@@ -38,6 +38,25 @@ will require the following programs to be installed:
 * [terryyin/lizard](https://github.com/terryyin/lizard)
 * [valgrind](http://valgrind.org/)
 
+#### Testing Strategy
+
+Tests are executed via the `scripts/ci.sh` script, which in turn executes
+`scripts/ci/*.sh` one at a time, and considers there to be a build failure if
+any of these scripts return a non-zero exit code.
+
+* Two automated memory safety checkers are employed: valgrind and ikos, which
+can help to catch memory leaks and unsafe behavior
+* `nocsim` must always build with no warnings under `-Wall -Wextra -pedantic
+-std=c99 -Werror`
+* Lizard is used to validate that the cyclomatic complexity and file sizes of
+`nocsim` are kept to manageable levels
+* The script `scripts/ci/unittest.sh` executes a battery of unit tests via the
+[tcltest](https://www.tcl-lang.org/man/tcl/TclCmd/tcltest.htm) library.
+	* The unit tests are stored in `scripts/ci/unittest/*.tcl`
+	* If a script outputs `FAILED`, or exits with a nonzero exit code (i.e.
+	  in the case of a segfault), then the `unittest.sh` running considers
+	  that test failed.
+
 ## Metrics of Interest
 
 The `evalstats.py` script will gather a variety of metrics. These are described

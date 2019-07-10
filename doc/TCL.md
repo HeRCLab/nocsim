@@ -353,7 +353,11 @@ your simulation script, or included from a separate TCL library. The procedure
 should take no arguments; all necessary information about the simulation state
 is provided via magic variables and procedures.
 
-**TIP**: the magic variables provided by nocsim are defined in the top-level
+**NOTE** routing callbacks are **required** to handle all incoming flits each
+time they are called. Flits must either be routed, or dropped using the `drop`
+procedure. Failure to do so will cause the `nocsim` to exit with an error.
+
+**TIP** the magic variables provided by nocsim are defined in the top-level
 namespace of the interpreter instance. This means they are not directly
 accessibly from within procedure calls, including behavior callbacks. It is
 suggested that they might be accessed using the
@@ -412,6 +416,14 @@ counters wherever possible.
 
 **TIP** need to store data collected by an instrument? Try using
 `upvar` to attach it to the interpreter's top-level scope.
+
+**WARNING** Keep in mind that most instruments are called while the TCL
+interpreter is within the scope of a behavior, so you should always use `upvar
+#0 ...` to attach to the global interpreter scope directly, rather than the
+scope of the currently executing behavior. The specific arrangement of TCL
+scopes within `nocsim` is an implementation detail -- you should always use
+`upvar #0` rather than `upvar 1`, `upvar 2`, and so on unless you really know
+what you're doing.
 
 **BEST PRACTICE** don't make assumptions about the number of parameters that
 will be passed to an instrument -- more information might be added in future
@@ -501,3 +513,58 @@ initialization between ticks.
   occurring within the simulation.
 * **behavior** -- a TCL procedure used to define how a particular node in the
   network under simulation should act.
+
+## Advanced Topics
+
+### Reporting Strategies
+
+Information is intended to be collected via the "instrumentation" feature of
+`nocsim`. Instruments might either output information of interest via
+`conswrite` for later analysis by an external program, or might use `upvar` to
+save data into a global variable for later analysis after the simulation is
+concluded (i.e. after the last call to `step` has returned).
+
+As long as the magic variables and procedures that `nocsim` exposes are not
+collided with, the programmer has complete free reign to use any TCL programmer
+patterns or strategies that are desired, including defining procedures, import
+libraries, setting variables, or performing file I/O operations.
+
+### Simulation Parameterization
+
+It is often the case that a given simulation might need to be run with several
+different slight variations; for example, different injection rates or link la
+tenses. To that end, `argv` and `argc` are passed in from the top-level
+`nocsim` program, sans any flags or other options used to set the behavior of
+nocsim itself. The suggested approach to simulation parametrization is to
+simply provide any needed parameters as positional arguments to `nocsim`, and
+then inspecting the `$argc` and `$argv` variables.
+
+**TIP** The GUI version of `nocsim` does not pass in it's `argc` and `argv`,
+however you may simply set these variables before `source`-ing the code you
+intend to run.
+
+### Data Formats
+
+TCL supports a variety of common file formats which may be of use for
+inter-operating `nocsim` simulations with other tools.
+
+* XML
+	* [tDOM](https://core.tcl-lang.org/tdom/timeline)
+		* Appears to be the most active / up-to-date XML implementation
+	* [Tcler's Wiki XML page](https://wiki.tcl-lang.org/page/XML)
+	* [TclXML Library](http://tclxml.sourceforge.net/tclxml/3.2/README.html)
+* JSON
+	* The TCL standard library includes a [JSON module](https://core.tcl-lang.org/tcllib/doc/tcllib-1-18/embedded/www/tcllib/files/modules/json/json.html)
+* YAML
+	* The TCL standard library includes a [YAML module](https://core.tcl-lang.org/tcllib/doc/tcllib-1-18/embedded/www/tcllib/files/modules/yaml/yaml.html)
+* INI
+	* The TCL standard library includes an [INI module](https://core.tcl-lang.org/tcllib/doc/tcllib-1-18/embedded/www/tcllib/files/modules/inifile/ini.html)
+* CSV
+	* The TCL standard library includes a [CSV module](https://core.tcl-lang.org/tcllib/doc/tcllib-1-18/embedded/www/tcllib/files/modules/csv/csv.html)
+
+## TCL Resources
+
+* [Tcl Library Source Code](https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/toc.md)
+* [Practical Programming in Tcl and Tk (4th Edition)](https://www.amazon.com/Practical-Programming-Tcl-Tk-4th/dp/0130385603)
+* [The Tcler's Wiki](https://wiki.tcl-lang.org/page/Online+Tcl+and+Tk+Tutorials)
+* [Tcl/Tk Documentation](https://www.tcl-lang.org/man/tcl/contents.htm)
