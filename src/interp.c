@@ -204,7 +204,7 @@ interp_command(nocsim_linkinfo) {
 	nocsim_link* l;
 	int length;
 
-	req_args(3, "nodeinfo ID ATTR");
+	req_args(4, "linkinfo FROM TO ATTR");
 	from_str = Tcl_GetStringFromObj(argv[1], NULL);
 	to_str = Tcl_GetStringFromObj(argv[2], NULL);
 	attr = Tcl_GetStringFromObj(argv[3], &length);
