@@ -1,4 +1,4 @@
-# test that a flit can be routed correctly
+# test that a flit can be routed correctly, and also related instruments
 
 package require tcltest
 
@@ -24,12 +24,24 @@ proc r2 {} {
 }
 
 proc arr_instr {origin dest flitno hops spawned injected} {
-	upvar 1 arrived arrived
+	upvar #0 arrived arrived
 	set arrived 1
+}
+
+proc inject_instr {origin dest flitno} {
+	upvar #0 injected injected
+	set injected 1
+}
+
+proc route_instr {origin dest flitno spawned injected hops routefrom routeto} {
+	upvar #0 routed routed
+	set routed 1
 }
 
 tcltest::test 001 {should be able to route a flit} -body {
 	set arrived 0
+	set routed 0
+	set injected 0
 	router r1 0 0 r1
 	router r2 0 1 r2
 	PE p1 0 0 b_inject
@@ -38,7 +50,9 @@ tcltest::test 001 {should be able to route a flit} -body {
 	link r1 r2
 	link r2 p2
 	registerinstrument arrive arr_instr
+	registerinstrument inject inject_instr
+	registerinstrument route route_instr
 	step 3
 
-	return $arrived
-} -result {1}
+	return [ expr $arrived + $routed + $injected ]
+} -result {3}
