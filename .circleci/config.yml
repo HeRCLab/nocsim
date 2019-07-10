@@ -9,6 +9,7 @@ workflows:
       - sample
       - valgrind
       - complexity
+      - unittest
 
 jobs:
   build:
