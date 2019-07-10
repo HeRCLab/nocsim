@@ -17,11 +17,13 @@ void next_state(nocsim_state* state, Tcl_Interp* interp) {
 
 		if (cursor->pending->length > 0) {
 
-			cursor->outgoing[P]->flit = \
+			cursor->outgoing[P]->flit_next = \
 				vec_dequeue(cursor->pending);
 
+			cursor->outgoing[P]->flit_next->injected_at = state->tick;
+
 			printf("pop %lu from %s to %s->%s\n",
-				cursor->outgoing[P]->flit->flit_no,
+				cursor->outgoing[P]->flit_next->flit_no,
 				cursor->id,
 				cursor->id,
 				cursor->outgoing[P]->to->id);
@@ -37,6 +39,11 @@ void flip_state(nocsim_state* state) {
 	vec_foreach(state->nodes, cursor, i) {
 		for (nocsim_direction dir = N ; dir <= P ; dir++) {
 			if (cursor->incoming[dir] != NULL) {
+				if (cursor->incoming[dir]->flit != NULL) {
+					err(1, "invalid state: router %s has unhandled incoming flits after behavior execution",
+						cursor->id);
+				}
+
 				cursor->incoming[dir]->flit = \
 					cursor->incoming[dir]->flit_next;
 				cursor->incoming[dir]->flit_next = NULL;
@@ -82,10 +89,18 @@ void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
  * @param dir
  */
 void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
+
 	// do nothing if there isn't anything coming from this direction
 	if (cursor->incoming[dir]->flit == NULL) {
 		return;
+
 	} else if (cursor->incoming[dir]->flit->to == cursor) {
+		if (cursor->type == node_router) {
+			err(1, "router %s received flit %lu destined for it, but routers may not be the destination for flits",
+				cursor->id,
+				cursor->incoming[dir]->flit->flit_no);
+		}
+
 		printf("arrived %lu at %s\n",
 			cursor->incoming[dir]->flit->flit_no,
 			cursor->id);
@@ -97,6 +112,11 @@ void nocsim_handle_arrival(nocsim_node* cursor, nocsim_direction dir) {
 	} else if (dir == P) {
 		/* insert into top of FIFO, as this should always be going back
 		 * into the PE that injected it */
+
+		if (cursor->type == node_router) {
+			/* not applicable to routers */
+			return;
+		}
 
 		vec_insert(cursor->pending, 0, cursor->incoming[P]->flit);
 
@@ -125,7 +145,9 @@ void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to) {
 	flit->from = from;
 	flit->to = to;
 	flit->spawned_at = state->tick;
+	flit->injected_at = 0;
 	flit->flit_no = state->flit_no;
+	flit->hops = 0;
 	state->flit_no ++;
 
 	/* insert into FIFO */

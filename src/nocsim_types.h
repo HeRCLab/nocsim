@@ -38,11 +38,20 @@ typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5} nocsim_di
 
 #define NOCSIM_STR_TO_DIRECTION(s) __extension__ ({ \
 	nocsim_direction d = -1; \
-	if      (!strncasecmp(s, "N",  32)) { d = N; } \
-	else if (!strncasecmp(s, "S",  32)) { d = S; } \
-	else if (!strncasecmp(s, "E",  32)) { d = E; } \
-	else if (!strncasecmp(s, "W",  32)) { d = W; } \
-	else if (!strncasecmp(s, "PE", 32)) { d = P; } \
+	if      (!strncasecmp(s, "N",  32     )  ) { d = N; } \
+	else if (!strncasecmp(s, "up",  32    )  ) { d = N; } \
+	else if (!strncasecmp(s, "north",  32 )  ) { d = N; } \
+	else if (!strncasecmp(s, "S",  32     )  ) { d = S; } \
+	else if (!strncasecmp(s, "down",  32  )  ) { d = S; } \
+	else if (!strncasecmp(s, "south",  32 )  ) { d = S; } \
+	else if (!strncasecmp(s, "E",  32     )  ) { d = E; } \
+	else if (!strncasecmp(s, "right",  32 )  ) { d = E; } \
+	else if (!strncasecmp(s, "east",  32  )  ) { d = E; } \
+	else if (!strncasecmp(s, "W",  32     )  ) { d = W; } \
+	else if (!strncasecmp(s, "left",  32  )  ) { d = W; } \
+	else if (!strncasecmp(s, "west",  32  )  ) { d = W; } \
+	else if (!strncasecmp(s, "PE", 32     )  ) { d = P; } \
+	else if (!strncasecmp(s, "P", 32      )  ) { d = P; } \
 	else                                { d = DIR_UNDEF; } \
 	d;})
 

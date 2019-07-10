@@ -472,7 +472,7 @@ interp_command(nocsim_route_command) {
 	to_node = state->current->outgoing[to]->to;
 	if (state->instruments[INSTRUMENT_ROUTE] != NULL) {
 		if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu \"%s\" \"%s\"",
-					state->instruments[INSTRUMENT_INJECT],
+					state->instruments[INSTRUMENT_ROUTE],
 					flit->from->id, flit->to->id,
 					flit->flit_no,
 					flit->spawned_at,
@@ -664,7 +664,7 @@ interp_command(nocsim_avail_command) {
 		/* no such link */
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(2));
 
-	} else if (state->current->outgoing[dir]->flit == NULL) {
+	} else if (state->current->outgoing[dir]->flit_next == NULL) {
 		/* available */
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
 
@@ -788,7 +788,6 @@ interp_command(nocsim_registerinstrument) {
 
 /*** conswrite STR ***********************************************************/
 interp_command(nocsim_conswrite) {
-	UNUSED(data);
 
 	char* str;
 
@@ -797,10 +796,12 @@ interp_command(nocsim_conswrite) {
 	str = Tcl_GetStringFromObj(argv[1], NULL);
 
 #ifdef NOCSIM_GUI
+	nocsim_state* state = (nocsim_state*) data;
 	AG_Color white;
 	AG_ColorRGB_8(&white, 255, 255, 255);
 	nocsim_console_writelines(state->cons, str, &white);
 #else
+	UNUSED(data);
 	printf("%s\n", str);
 #endif
 
@@ -870,7 +871,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 		Tcl_SetVar(interp, "argv", argv[i], TCL_LIST_ELEMENT | TCL_APPEND_VALUE);
 	}
 	Tcl_SetVar(interp, "tcl_library", tcl_library_path, 0);
-	Tcl_Evalf(interp, "source %s/init.ctl", tcl_library_path);
+	Tcl_Evalf(interp, "source %s/init.tcl", tcl_library_path);
 	free(tcl_library_path);
 
 #define defcmd(func, name) \
@@ -891,7 +892,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_inject_command, "inject");
 	defcmd(nocsim_route_command, "route");
 	defcmd(nocsim_peek_command, "peek");
-	defcmd(nocsim_peek_command, "avail");
+	defcmd(nocsim_avail_command, "avail");
 	defcmd(nocsim_dir2int, "dir2int");
 	defcmd(nocsim_int2dir, "int2dir");
 	defcmd(nocsim_type2int, "type2int");
