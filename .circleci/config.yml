@@ -35,6 +35,14 @@ jobs:
       - run: sh ./scripts/circleci_install_deps.sh
       - run: sh ./scripts/ci/sample.sh
 
+  unittest:
+    docker:
+      - image: charlesdaniels/ikos_ubuntu:v2.1
+    steps:
+      - checkout
+      - run: sh ./scripts/circleci_install_deps.sh
+      - run: sh ./scripts/ci/unittest.sh
+
   valgrind:
     docker:
       - image: charlesdaniels/ikos_ubuntu:v2.1
