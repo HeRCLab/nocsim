@@ -302,6 +302,7 @@ interp_command(nocsim_set_behavior) {
 
 	id = Tcl_GetStringFromObj(argv[1], NULL);
 	behavior = Tcl_GetStringFromObj(argv[2], NULL);
+	Tcl_IncrRefCount(argv[2]);
 
 	node = nocsim_node_by_id(state, id);
 

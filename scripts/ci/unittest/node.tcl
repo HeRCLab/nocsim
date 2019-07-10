@@ -57,3 +57,9 @@ tcltest::test 011 {should be able to create a link } -body {
 	linkinfo r011a r011b current_load
 } -result {0}
 
+tcltest::test 012 {should be able to update router behavior} -body {
+	router ident012 1 2 dummy
+	behavior ident012 different
+	nodeinfo ident012 behavior
+} -result {different}
+
