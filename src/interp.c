@@ -499,6 +499,42 @@ interp_command(nocsim_route_command) {
 	return TCL_OK;
 }
 
+/*** drop FROM ***&***********************************************************/
+interp_command(nocsim_drop_command) {
+	nocsim_state* state = (nocsim_state*) data;
+	nocsim_direction from;
+
+	req_args(2, "drop FROM");
+
+	get_int(interp, argv[1], (int*) &from);
+
+	validate_direction(from);
+
+	/* must be called during a behavior */
+	if (state->current == NULL) {
+		Tcl_SetResult(interp, "drop may only be called during a behavior callback", NULL);
+		return TCL_ERROR;
+	}
+
+	/* only applicable to routers, since PEs cannot route */
+	if (state->current->type != node_router) {
+		Tcl_SetResult(interp, "drop may only be called for router nodes", NULL);
+		return TCL_ERROR;
+	}
+
+	/* make sure the relevant links exist */
+	if (state->current->incoming[from] == NULL) {
+		Tcl_SetResult(interp, "no incoming link from specified direction", NULL);
+		return TCL_ERROR;
+	}
+
+	/* drop the flit */
+	free(state->current->incoming[from]->flit);
+	state->current->incoming[from]->flit = NULL;
+
+	return TCL_OK;
+}
+
 /*** peek DIR ATTR ***********************************************************/
 interp_command(nocsim_peek_command) {
 	nocsim_state* state = (nocsim_state*) data;
@@ -534,11 +570,11 @@ interp_command(nocsim_peek_command) {
 	}
 
 	if (!strncmp(attr, "from", length)) {
-		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->from->id));
+		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->flit->from->id));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "to", length)) {
-		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->to->id));
+		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->flit->to->id));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "from_row", length)) {
@@ -904,6 +940,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_conswrite, "conswrite");
 	defcmd(nocsim_incoming_command, "incoming");
 	defcmd(nocsim_allincoming_command, "allincoming");
+	defcmd(nocsim_drop_command, "drop");
 
 #undef defcmd
 

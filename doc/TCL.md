@@ -241,6 +241,13 @@ Routes the flit incoming from the direction `FROM` to the direction `TO`. `TO`
 and `FROM` should both be integers corresponding to directions, the magic
 variables `dir_*` are provided to make this process easier.
 
+### `drop FROM` (routing behaviors only)
+
+Drops the  flit incoming from the direction `FROM`. This will immediately
+delete the flit from the simulation. This will trigger neither the `arrive` nor
+the `route` instruments with respect to the specified flit. Performance
+counters for the relevant router and it's links are not updated.
+
 ### `peek DIR ATTR` (routing behaviors only)
 
 Retrieves the attribute `ATTR` from the incoming flit in the direction `DIR`.
