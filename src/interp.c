@@ -915,6 +915,10 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	Tcl_Evalf(interp, "source %s/init.tcl", tcl_library_path);
 	free(tcl_library_path);
 
+	Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_PATH);
+	Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_DEV_PATH);
+	Tcl_Eval(interp, "package require NocsimTCL");
+
 #define defcmd(func, name) \
 	Tcl_CreateObjCommand(interp, name, \
 			func, (ClientData) state, \

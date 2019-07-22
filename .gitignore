@@ -62,6 +62,7 @@ src/nocsim
 output.db
 src/output.db
 src/nocsim.db
+gui/*.db
 *.bc
 
 out/
@@ -70,4 +71,8 @@ grids/
 
 src/nocsim_tcl/pkgIndex.tcl
 
-./build/
+./build/*
+./build
+
+src/nocsim_constants.h
+

@@ -10,6 +10,7 @@ workflows:
       - valgrind
       - complexity
       - unittest
+      - version
 
 jobs:
   build:
@@ -43,6 +44,14 @@ jobs:
       - checkout
       - run: sh ./scripts/circleci_install_deps.sh
       - run: sh ./scripts/ci/unittest.sh
+
+  version:
+    docker:
+      - image: charlesdaniels/ikos_ubuntu:v2.1
+    steps:
+      - checkout
+      - run: sh ./scripts/circleci_install_deps.sh
+      - run: sh ./scripts/ci/version.sh
 
   valgrind:
     docker:

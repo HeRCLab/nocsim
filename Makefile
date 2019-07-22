@@ -11,7 +11,7 @@ HEADERS=$(shell ls -1 src/*.h) src/nocsim_constants.h
 PREFIX=/usr/local
 BIN_DIR=$(PREFIX)/bin
 LIB_DIR=$(PREFIX)/lib
-TCL_DIR=$(LIB_DIR)/tcltk
+TCL_DIR=$(LIB_DIR)
 
 # constants
 NOCSIM_VERSION_PATCH=0
@@ -32,7 +32,7 @@ CFLAGS+=$$(pkg-config --cflags libbsd 2>/dev/null) $(TCL_CFLAGS)
 LIBS+=$$(pkg-config --libs libbsd 2>/dev/null) $(TCL_LIBS) -lreadline
 
 
-.PHONY: build all clean output.db lint info install gui
+.PHONY: build all clean output.db lint info install gui version
 
 info:
 	@echo "installation prefix . . . $(PREFIX)"
@@ -48,6 +48,9 @@ info:
 	@echo "execute 'make all' to build, and 'make install' to install to the specified prefix"
 	@echo "for development builds, use 'make DEVELOP=true ...'"
 	@echo "to also install the GUI, run 'make gui' before 'make build'"
+
+version:
+	@echo "$(NOCSIM_VERSION_MAJOR).$(NOCSIM_VERSION_MINOR).$(NOCSIM_VERSION_PATCH)"
 
 all: build
 
@@ -88,8 +91,8 @@ src/nocsim_constants.h:
 	echo "#define NOCSIM_VERSION_PATCH $(NOCSIM_VERSION_PATCH)" >> $@
 	echo "#define NOCSIM_VERSION_MINOR $(NOCSIM_VERSION_MINOR)" >> $@
 	echo "#define NOCSIM_VERSION_MAJOR $(NOCSIM_VERSION_MAJOR)" >> $@
-	echo "#define NOCSIM_TCL_PATH \"$(TCL_DIR)\"" >> $@
-	echo "#define NOCSIM_TCL_DEV_PATH \"$(TCL_DEV_DIR)\"" >> $@
+	echo "#define NOCSIM_TCL_PATH \"$(TCL_DIR)/NocsimTCL\"" >> $@
+	echo "#define NOCSIM_TCL_DEV_PATH \"$(TCL_DEV_DIR)/NocsimTCL\"" >> $@
 	echo "#endif" >> $@
 
 src/nocsim.o: src/nocsim.c $(HEADERS)
@@ -112,9 +115,9 @@ src/interp.o: src/interp.c $(HEADERS)
 
 src/nocsim_tcl/pkgIndex.tcl: $(TCL_FILES)
 	rm -f src/nocsim_tcl/pkgIndex.tcl
-	cd src/nocsim_tcl/ && (printf "pkg_mkIndex . $$(ls -1 *.tcl)\n" | tclsh)
+	cd src/nocsim_tcl/ && (printf "pkg_mkIndex -verbose . $$(ls -1 *.tcl)\n" | tclsh)
 
 clean:
-	rm -f src/*.o src/nocsim output.db src/output.db src/nocsim.db *.bc src/*.bc src/nocsim_tcl/pkgIndex.tcl
+	rm -f src/*.o src/nocsim output.db src/output.db src/nocsim.db *.bc src/*.bc src/nocsim_tcl/pkgIndex.tcl src/nocsim_constants.h version.txt
 	rm -rf build
 	if [ -e gui/config.status ] ; then make -C gui clean ; fi
