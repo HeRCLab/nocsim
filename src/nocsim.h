@@ -13,6 +13,7 @@
 #include "nocsim_types.h"
 #include "vec.h"
 #include "khash.h"
+#include "nocsim_constants.h"
 
 #include <err.h>
 #include <errno.h>
@@ -24,10 +25,6 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <tcl.h>
-
-#define NOCSIM_VERSION_PATCH 0
-#define NOCSIM_VERSION_MINOR 0
-#define NOCSIM_VERSION_MAJOR 1
 
 /* maximum length of a line in a grid definition */
 #define NOCSIM_GRID_LINELEN 256

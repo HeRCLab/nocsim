@@ -12,7 +12,9 @@ for f in scripts/ci/*.sh ; do
 done
 
 if [ "$PASS" = YES ] ; then
+	echo "ALL TESTS PASSED"
 	exit 0
 else
+	echo "TEST FAILURES DETECTED"
 	exit 1
 fi

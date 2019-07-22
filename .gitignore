@@ -67,3 +67,7 @@ src/nocsim.db
 out/
 .gdb_history
 grids/
+
+src/nocsim_tcl/pkgIndex.tcl
+
+./build/

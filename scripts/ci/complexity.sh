@@ -4,5 +4,5 @@ set -u
 set -e
 
 echo '#### COMPLEXITY ###############################################################'
-make clean
+make DEVELOP=true clean
 lizard src

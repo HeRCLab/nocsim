@@ -4,6 +4,6 @@ set -u
 set -e
 
 echo '#### BUILD ####################################################################'
-make clean
-make ECFLAGS=-Werror
+make DEVELOP=true clean
+make DEVELOP=true ECFLAGS=-Werror build
 exit $?

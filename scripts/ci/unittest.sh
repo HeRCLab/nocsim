@@ -6,8 +6,8 @@ set -e
 
 # unit tests
 echo '#### UNIT TESTS ###############################################################'
-make clean
-make
+make DEVELOP=true clean
+make DEVELOP=true build
 
 FAILED=0
 
@@ -20,10 +20,10 @@ onfail () {
 
 for f in scripts/ci/unittest/*.tcl ; do
 	temp="$(mktemp)"
-	if ! ./src/nocsim < "$f" > "$temp" 2>&1; then
+	if ! ./build/bin/nocsim < "$f" > "$temp" 2>&1; then
 		onfail
 		echo '----- backtrace ---------------------------------------------------------------'
-		printf 'r < '"$f"'\nbt\nquit\ny\n' | gdb ./src/nocsim
+		printf 'r < '"$f"'\nbt\nquit\ny\n' | gdb ./build/bin/nocsim
 	elif grep "FAILED" < "$temp" > /dev/null 2>&1 ; then
 		onfail
 	else

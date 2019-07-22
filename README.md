@@ -29,6 +29,14 @@ compiled via `make`. Dependencies:
 
 On Ubuntu 18.04: `sudo apt install --yes libbsd-dev libreadline-dev tcl-dev libtcl8.6`
 
+To build for development, run `make DEVELOP=true build`. You can then run
+`./build/bin/nocsim` or `./build/bin/nocsim-gui`.
+
+To install for production, run `make install`. You may wish to modify the
+`PREFIX`. Run `make info` to see where nocsim will be installed; any binaries
+will be placed in `BIN_DIR`, and the TCL library will be installed in
+`TCL_DIR`.
+
 ### Testing `nocsim`
 
 To run all automated checks, simply run the script `./scripts/ci.sh`. This

@@ -320,7 +320,7 @@ interp_command(nocsim_set_behavior) {
 /*** randnode / randnode ROW COL / randnode ID *******************************/
 interp_command(nocsim_randnode) {
 	nocsim_state* state = (nocsim_state*) data;
-	char* exclude;
+	char* exclude = "";
 	int excluderow = state->max_row + 1;
 	int excludecol = state->max_col + 1;
 	unsigned int i;
@@ -328,12 +328,15 @@ interp_command(nocsim_randnode) {
 	unsigned int counter = 0;
 
 	if (argc == 1) {
-		exclude = "";
 	} else if (argc == 2) {
 		exclude = Tcl_GetStringFromObj(argv[1], NULL);
 	} else if (argc == 3) {
 		get_int(interp, argv[1], &excluderow);
 		get_int(interp, argv[2], &excludecol);
+	} else {
+		Tcl_WrongNumArgs(interp, 0, argv,
+				"randnode / randnode ROW COL / randnode ID");
+		return TCL_ERROR;
 	}
 
 	/* keep picking a node until we find one that works */
