@@ -69,7 +69,6 @@ void flip_state(nocsim_state* state) {
 
 void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
 
-	dbprintf("beginning tick number %lu\n", state->tick);
 	printf("tick %lu\n", state->tick);
 
 	if (state->instruments[INSTRUMENT_TICK] != NULL) {

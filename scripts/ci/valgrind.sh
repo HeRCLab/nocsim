@@ -3,10 +3,12 @@
 set -u
 set -e
 
+. scripts/util.lib
+
 echo '#### VALGRIND #################################################################'
-make DEVELOP=true clean
-make DEVELOP=true build
+tail_on_error make DEVELOP=true clean
+tail_on_error make DEVELOP=true build
 
 # we ignore possibly lost because lots of things internal to TCL show up as
 # possibly lost
-valgrind --suppressions=scripts/ci/tcl.supp --error-exitcode=1 --leak-check=full ./build/bin/nocsim < sample.txt
+tail_on_error valgrind --suppressions=scripts/ci/tcl.supp --error-exitcode=1 --leak-check=full ./build/bin/nocsim < examples/mesh_DOR.tcl

@@ -3,8 +3,10 @@
 set -u
 set -e
 
+. scripts/util.lib
+
 # sample should not fail
 echo '#### SAMPLE ###################################################################'
-make DEVELOP=true clean
-make DEVELOP=true build
-./build/bin/nocsim < examples/mesh_DOR.tcl > /dev/null 2>&1 
+tail_on_error make DEVELOP=true clean
+tail_on_error make DEVELOP=true build
+tail_on_error ./build/bin/nocsim < examples/mesh_DOR.tcl

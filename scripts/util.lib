@@ -1,0 +1,29 @@
+# utility library for CI scripts to use
+
+# execute $@ saving results into a temporary file, executing tail on the temp
+# file if an error occurs and returning the error code
+tail_on_error () {
+	UTIL_SET_ERREXIT=NO
+	if [ "$(set -o | awk '/^errexit/ {print($2)}')" = "on" ] ; then
+		UTIL_SET_ERREXIT=YES
+		set +e
+	fi
+	UTIL_TEMPFILE="$(mktemp)"
+
+	$@ > "$UTIL_TEMPFILE" 2>&1
+	UTIL_RET=$?
+
+	if [ $UTIL_RET -ne 0 ] ; then
+		echo "------ error executing: $@"
+		tail -n 20 "$UTIL_TEMPFILE"
+		rm -f "$UTIL_TEMPFILE"
+	else
+		echo "------ OK: $@"
+	fi
+
+	if [ $UTIL_SET_ERREXIT = "YES" ] ; then
+		set -e
+	fi
+	
+	return $UTIL_RET
+}

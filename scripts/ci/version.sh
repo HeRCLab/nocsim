@@ -7,7 +7,9 @@
 set -u
 set -e
 
+. scripts/util.lib
+
 echo '#### VERSION ##################################################################'
-make DEVELOP=true clean
-make DEVELOP=true build
+tail_on_error make DEVELOP=true clean
+tail_on_error make DEVELOP=true build
 printf "NocsimTCL::PrintNocsimInfo\n" | ./build/bin/nocsim | grep "nocsim version: $(make version)"

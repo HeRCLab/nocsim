@@ -3,7 +3,9 @@
 set -u
 set -e
 
+. scripts/util.lib
+
 echo '#### BUILD ####################################################################'
-make DEVELOP=true clean
-make DEVELOP=true ECFLAGS=-Werror build
+tail_on_error make DEVELOP=true clean
+tail_on_error make DEVELOP=true ECFLAGS=-Werror build
 exit $?

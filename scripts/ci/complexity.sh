@@ -3,6 +3,8 @@
 set -u
 set -e
 
+. scripts/util.lib
+
 echo '#### COMPLEXITY ###############################################################'
-make DEVELOP=true clean
-lizard src
+tail_on_error make DEVELOP=true clean
+tail_on_error lizard src
