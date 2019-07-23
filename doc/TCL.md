@@ -132,7 +132,7 @@ should respect them or risk causing undefined behavior.
 | `title` | r+w | simulation title, defaults to "unspecified" |
 | `nocsim_version` | r | list containing `nocsim` major, minor, and patch numbers in that order |
 
-## Procedures
+## Simulation Procedures
 
 ### `router ID ROW COL BEHAVIOR`
 
@@ -218,52 +218,6 @@ Depending on the number of parameters provided:
 
 In each case, `randnode` will only ever return nodes of type PE.
 
-### `dir2int DIR`
-
-Converts a string direction (`DIR`) to an internal integer representation used
-by `nocsim`. Valid direction strings include:
-
-* `n`
-* `north`
-* `up`
-* `s`
-* `south`
-* `down`
-* `e`
-* `east`
-* `right`
-* `w`
-* `west`
-* `left`
-* `p`
-* `pe`
-
-**NOTE** direction strings are case insensitive.
-
-**BEST PRACTICE** it is suggested to always use the abbreviated style
-(`n`/`s`/`e`/`w`/`pe`). Other styles are made available for user friendliness in
-interactive interpreters.
-
-### `int2dir DIR`
-
-Converts an integer direction (`DIR`) in `nocsim`'s internal representation to
-to a string representation. The generated string representation will always be
-in the abbreviated `n`/`s`/`e`/`w`/`pe` style.
-
-### `type2int TYPE`
-
-Converts a string node type to `nocsim`'s internal integer representation.
-Valid node types are:
-
-* `router`
-* `pe`
-
-**NOTE** node type strings are case insensitive
-
-### `int2type TYPE`
-
-Converts an integer type in `nocsim`'s internal representation to a string.
-
 ### `registerinstrument INSTRUMENT PROCEDURE`
 
 Register the TCL procedure `PROCEDURE` to be called by the specified
@@ -334,6 +288,76 @@ flit elsewhere will cause it to stop appearing in this list.
 
 Inject a new flit destined for the node ID `TO`, The originating node is always
 the current node, which may be tested via the `current` procedure.
+
+## Utility Procedures
+
+### `PrintNocsimInfo`
+
+Display the `nocsim` and TCL versions.
+
+### `dir2int DIR`
+
+Converts a string direction (`DIR`) to an internal integer representation used
+by `nocsim`. Valid direction strings include:
+
+* `n`
+* `north`
+* `up`
+* `s`
+* `south`
+* `down`
+* `e`
+* `east`
+* `right`
+* `w`
+* `west`
+* `left`
+* `p`
+* `pe`
+
+**NOTE** direction strings are case insensitive.
+
+**BEST PRACTICE** it is suggested to always use the abbreviated style
+(`n`/`s`/`e`/`w`/`pe`). Other styles are made available for user friendliness in
+interactive interpreters.
+
+### `int2dir DIR`
+
+Converts an integer direction (`DIR`) in `nocsim`'s internal representation to
+to a string representation. The generated string representation will always be
+in the abbreviated `n`/`s`/`e`/`w`/`pe` style.
+
+### `type2int TYPE`
+
+Converts a string node type to `nocsim`'s internal integer representation.
+Valid node types are:
+
+* `router`
+* `pe`
+
+**NOTE** node type strings are case insensitive
+
+### `int2type TYPE`
+
+Converts an integer type in `nocsim`'s internal representation to a string.
+
+### `all_adjacent ID`
+
+Returns a list of all node IDs which are adjacent (i.e. north, south, east, and
+west) to the node with the specified ID. Note that links need not be present
+for adjacent nodes to be detected, this makes this function suitable for use
+during link generation.
+
+### Topography Generators
+
+### `create_mesh WIDTH HEIGHT INJECT_BEHAVIOR ROUTE_BEHAVIOR`
+
+Creates an undirected mesh topography with `WIDTH` many columns and `HEIGHT`
+many rows. All instantiated PEs will have the specified injection behavior, and
+all instantiated routers will have the specified `ROUTE_BEHAVIOR`. Nodes will
+have automatically generated IDs.
+
+Returns a list of node IDs that were generated.
 
 ## Behavior Callbacks
 
