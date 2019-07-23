@@ -7,4 +7,4 @@ set -e
 echo '#### SAMPLE ###################################################################'
 make DEVELOP=true clean
 make DEVELOP=true build
-./build/bin/nocsim < sample.txt 2>&1 > /dev/null
+./build/bin/nocsim < examples/mesh_DOR.tcl > /dev/null 2>&1 

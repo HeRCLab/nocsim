@@ -152,3 +152,5 @@ link p3 r3
 link r3 p3
 link p4 r4
 link r4 p4
+
+step 1000

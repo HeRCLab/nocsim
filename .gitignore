@@ -71,8 +71,8 @@ grids/
 
 src/nocsim_tcl/pkgIndex.tcl
 
-./build/*
-./build
+build/*
+build
 
 src/nocsim_constants.h
 
