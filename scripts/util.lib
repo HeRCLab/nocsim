@@ -15,7 +15,7 @@ tail_on_error () {
 
 	if [ $UTIL_RET -ne 0 ] ; then
 		echo "------ error executing: $@"
-		tail -n 20 "$UTIL_TEMPFILE"
+		tail -n 50 "$UTIL_TEMPFILE"
 		rm -f "$UTIL_TEMPFILE"
 	else
 		echo "------ OK: $@"
