@@ -28,7 +28,7 @@ tcltest::test 001 {all_adjacent should work} -body {
 
 	set r1_adj [all_adjacent r1]
 
-	# ensure r1 adj list contains these 
+	# ensure r1 adj list contains these
 	if {[lsearch -exact $r1_adj "r2"] < 0} { return 100 }
 	if {[lsearch -exact $r1_adj "r3"] < 0} { return 200 }
 	if {[lsearch -exact $r1_adj "r4"] < 0} { return 300 }

@@ -335,6 +335,7 @@ void ExportGraphDialog(AG_Event* event) {
 
 }
 
+
 void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	nocsim_node* cursor;
 	nocsim_node* inner;
@@ -344,6 +345,9 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	AG_Graph* g;
 	AG_Window* win;
 	AG_Box* infobox;
+
+	int* show_node_labels;
+	int* show_edge_labels;
 
 	/* delete the existing network view so we have a clean state to work
 	 * with */
@@ -358,13 +362,18 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL);
 	AG_AddEvent(g, "graph-edge-selected", HandleEdgeSelection, "%p(state)", state);
 
+	show_node_labels = AG_GetPointer(dri, "show_node_labels");
+	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
+
 	/* force the newly created widget to draw */
 	AG_WidgetHide(g);
 	AG_WidgetShow(g);
 
 	vec_foreach(state->nodes, cursor, i) {
 		vtx = AG_GraphVertexNew(g, (void*) cursor);
-		AG_GraphVertexLabelS(vtx, cursor->id);
+		if (*show_node_labels == 1) {
+			AG_GraphVertexLabelS(vtx, cursor->id);
+		}
 		if (cursor->type == node_router) {
 			AG_GraphVertexPosition(vtx, cursor->col * 150, cursor->row * 150);
 		} else {
@@ -403,15 +412,55 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 				if ((long int) vtx2 < (long int) vtx1) { continue; }
 
 				e = AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
-				AG_GraphEdgeLabel(e, "%s <-> %s", cursor->id, inner->id);
+				if (*show_edge_labels == 1) {
+					AG_GraphEdgeLabel(e, "%s <-> %s", cursor->id, inner->id);
+				}
 			} else {
 				e = AG_DirectedGraphEdgeNew(g, vtx1, vtx2, NULL);
-				AG_GraphEdgeLabel(e, "%s -> %s", cursor->id, inner->id);
+				if (*show_edge_labels == 1) {
+					AG_GraphEdgeLabel(e, "%s -> %s", cursor->id, inner->id);
+				}
 			}
 
 
 		}
 	}
+
+}
+
+void ToggleEdgeLabels(AG_Event* event) {
+	AG_Driver* dri = get_dri();
+	nocsim_state* state = AG_PTR(1);
+	AG_Box* box = AG_PTR(2);
+
+	int* show_edge_labels;
+	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
+
+	if (*show_edge_labels == 0) {
+		*show_edge_labels = 1;
+	} else {
+		*show_edge_labels = 0;
+	}
+
+	graph_update(state, dri, box);
+
+}
+
+void ToggleNodeLabels(AG_Event* event) {
+	AG_Driver* dri = get_dri();
+	nocsim_state* state = AG_PTR(1);
+	AG_Box* box = AG_PTR(2);
+
+	int* show_node_labels;
+	show_node_labels = AG_GetPointer(dri, "show_node_labels");
+
+	if (*show_node_labels == 0) {
+		*show_node_labels = 1;
+	} else {
+		*show_node_labels = 0;
+	}
+
+	graph_update(state, dri, box);
 
 }
 
@@ -519,6 +568,8 @@ int main(int argc, char *argv[]) {
 	AG_Pane* inner_pane;
 	AG_Pane* infopane;
 
+	int show_node_labels = 1;
+	int show_edge_labels = 1;
 
 	/* Initialize LibAgar */
 	if (AG_InitCore(NULL, 0) == -1 ||
@@ -540,6 +591,10 @@ int main(int argc, char *argv[]) {
 	g = AG_GraphNew(inner_pane->div[1], AG_GRAPH_EXPAND);
 	AG_GraphSizeHint(g, 800, 600);
 	AG_SetPointer(dri, "graph_p", g);
+
+	/* global flags for edge/node labels */
+	AG_SetPointer(dri, "show_node_labels", &show_node_labels);
+	AG_SetPointer(dri, "show_edge_labels", &show_edge_labels);
 
 	/* instantiate the "File" menu dropdown */
 	AG_MenuItem* menu_file = AG_MenuNode(menu->root, "File", NULL);
@@ -563,6 +618,15 @@ int main(int argc, char *argv[]) {
 	cons = AG_ConsoleNew(outer_pane->div[1], AG_CONSOLE_EXPAND);
 	AG_SetStyle(cons, "font-family", "Courier");
 	state = nocsim_create_interp(NULL, cons, argc, argv);
+
+	/* instantiate the "View" menu dropdown */
+	AG_MenuItem* menu_view = AG_MenuNode(menu->root, "View", NULL);
+
+	{
+		AG_MenuAction(menu_view, "Toggle Edge Labels", NULL, ToggleEdgeLabels, "%p,%p", state, inner_pane->div[1]);
+		AG_MenuAction(menu_view, "Toggle Node Labels", NULL, ToggleNodeLabels, "%p,%p", state, inner_pane->div[1]);
+	}
+
 
 	/* setup text entry box */
 	box = AG_BoxNewHoriz(outer_pane->div[1], AG_BOX_HFILL);
