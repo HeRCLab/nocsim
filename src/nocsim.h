@@ -128,6 +128,10 @@ void nocsim_step(nocsim_state* state, Tcl_Interp* interp);
 void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to);
 void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_direction dir);
 
+#ifdef NOCSIM_GUI
+nocsim_state* nocsim_create_interp(char* runme, AG_Console* cons, int argc, char** argv);
+#else
 nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv);
+#endif
 
 #endif

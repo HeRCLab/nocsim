@@ -519,7 +519,6 @@ int main(int argc, char *argv[]) {
 	AG_Pane* inner_pane;
 	AG_Pane* infopane;
 
-	state = nocsim_create_interp(NULL, argc, argv);
 
 	/* Initialize LibAgar */
 	if (AG_InitCore(NULL, 0) == -1 ||
@@ -563,7 +562,7 @@ int main(int argc, char *argv[]) {
 	/* setup the console */
 	cons = AG_ConsoleNew(outer_pane->div[1], AG_CONSOLE_EXPAND);
 	AG_SetStyle(cons, "font-family", "Courier");
-	state->cons = cons;
+	state = nocsim_create_interp(NULL, cons, argc, argv);
 
 	/* setup text entry box */
 	box = AG_BoxNewHoriz(outer_pane->div[1], AG_BOX_HFILL);

@@ -851,7 +851,13 @@ interp_command(nocsim_conswrite) {
 
 /*** interpreter implementation **********************************************/
 
+/* we need the console before we start running anything in case we want to
+ * print a warning */
+#ifdef NOCSIM_GUI
+nocsim_state* nocsim_create_interp(char* runme, AG_Console* cons, int argc, char** argv) {
+#else
 nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
+#endif
 	nocsim_state* state;
 	Tcl_Interp *interp;
 	nodelist* l;
@@ -872,6 +878,9 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	state->current = NULL;
 	state->max_row = 0;
 	state->max_col = 0;
+#ifdef NOCSIM_GUI
+	state->cons = cons;
+#endif
 
 	for (int i = 0 ; i < (int) ENUMSIZE_INSTRUMENT ; i++) {
 		state->instruments[i] = NULL;
@@ -915,10 +924,6 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	Tcl_Evalf(interp, "source %s/init.tcl", tcl_library_path);
 	free(tcl_library_path);
 
-	Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_PATH);
-	Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_DEV_PATH);
-	Tcl_Eval(interp, "package require NocsimTCL");
-
 #define defcmd(func, name) \
 	Tcl_CreateObjCommand(interp, name, \
 			func, (ClientData) state, \
@@ -950,6 +955,28 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_drop_command, "drop");
 
 #undef defcmd
+
+/*** load TCL commands from library ******************************************/
+
+	/* try to import NocsimTCL from the development path */
+	Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_DEV_PATH);
+	if (Tcl_Eval(interp, "package require NocsimTCL") != TCL_OK) {
+		
+		/* that didn't work, try it from the system path */
+		Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_PATH);
+		if (Tcl_Eval(interp, "package require NocsimTCL") != TCL_OK) {
+
+			/* also didn't work, display an error */
+			Tcl_Eval(interp, "conswrite \"WARNING: could not locate NocsimTCL package\"");
+		}
+	}
+
+	/* import the package namespace */
+	if (Tcl_Eval(interp, "namespace import NocsimTCL::*") != TCL_OK) {
+		Tcl_Eval(interp, "conswrite \"WARNING: could not import NocsimTCL namespace\"");
+
+	}
+
 
 
 /*** establish linked variables **********************************************/

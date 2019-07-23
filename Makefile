@@ -54,7 +54,7 @@ version:
 
 all: build
 
-build: src/nocsim src/nocsim_tcl/pkgIndex.tcl 
+build: src/nocsim src/nocsim_tcl/pkgIndex.tcl
 	rm -rf ./build
 	mkdir -p ./build/bin
 	mkdir -p ./build/NocsimTCL
@@ -70,7 +70,7 @@ install: build
 
 gui: gui/nocsim-gui
 
-gui/nocsim-gui:
+gui/nocsim-gui: $(HEADERS)
 	@if [ ! -e gui/config.status ] ; then echo "ERROR: you need to run 'cd gui && ./configure'" ; fi
 	test -e gui/config.status
 	make -C gui

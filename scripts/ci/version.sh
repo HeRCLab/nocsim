@@ -12,4 +12,4 @@ set -e
 echo '#### VERSION ##################################################################'
 tail_on_error make DEVELOP=true clean
 tail_on_error make DEVELOP=true build
-printf "NocsimTCL::PrintNocsimInfo\n" | ./build/bin/nocsim | grep "nocsim version: $(make version)"
+printf "PrintNocsimInfo\n" | ./build/bin/nocsim | grep "nocsim version: $(make version)"

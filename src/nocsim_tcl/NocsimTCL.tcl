@@ -16,8 +16,8 @@ namespace eval ::NocsimTCL {
 proc ::NocsimTCL::PrintNocsimInfo {} {
 	upvar #0 nocsim_version nocsim_version
 	upvar #0 tcl_version tcl_version
-	puts "TCL Version: $tcl_version"
-	puts "nocsim version: [join $nocsim_version "."]"
+	conswrite "TCL Version: $tcl_version"
+	conswrite "nocsim version: [join $nocsim_version "."]"
 }
 
 package provide NocsimTCL $NocsimTCL::version
