@@ -74,6 +74,20 @@ void LaunchDebugger(AG_Event *event) {
 }
 #endif
 
+
+/* lets us use AG_TAILQ */
+#define _Nullable
+AG_GraphEdge* FindEdge(AG_Graph* g, AG_GraphVertex* v1, AG_GraphVertex* v2) {
+	AG_GraphEdge* edge;
+	AG_TAILQ_HEAD_(ag_graph_edge) edges;
+	AG_TAILQ_FOREACH(edge, &g->edges, edges) {
+		if (edge->v1 == v1 && edge->v2 == v2) {
+			return edge;
+		}
+	}
+}
+#undef _Nullable
+
 static void
 RenderToSurface(AG_Event *event)
 {
@@ -352,10 +366,6 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	/* delete the existing network view so we have a clean state to work
 	 * with */
 	g = AG_GetPointer(dri, "graph_p");
-	AG_ObjectDelete(g);
-	g = AG_GraphNew(box, AG_GRAPH_EXPAND);
-	AG_GraphSizeHint(g, 800, 600);
-	AG_SetPointer(dri, "graph_p", g);
 
 	/* this function will populate the info box */
 	infobox = AG_GetPointer(dri, "infobox_p");
@@ -365,15 +375,23 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 	show_node_labels = AG_GetPointer(dri, "show_node_labels");
 	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
 
-	/* force the newly created widget to draw */
-	AG_WidgetHide(g);
-	AG_WidgetShow(g);
-
 	vec_foreach(state->nodes, cursor, i) {
-		vtx = AG_GraphVertexNew(g, (void*) cursor);
+		/* Only create a new vertex if one does not exist yet for this
+		 * element.
+		 *
+		 * XXX: this assumes nodes can never be deleted */
+		vtx = AG_GraphVertexFind(g, (void*) cursor);
+		if (vtx == NULL) {
+			vtx = AG_GraphVertexNew(g, (void*) cursor);
+		}
+
 		if (*show_node_labels == 1) {
 			AG_GraphVertexLabelS(vtx, cursor->id);
+		} else {
+			AG_GraphVertexLabelS(vtx, "");
 		}
+
+
 		if (cursor->type == node_router) {
 			AG_GraphVertexPosition(vtx, cursor->col * 150, cursor->row * 150);
 		} else {
@@ -401,6 +419,11 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 			vtx2 = AG_GraphVertexFind(g, inner);
 			if (vtx1 == NULL || vtx2 == NULL) { continue; }
 
+			e = FindEdge(g, vtx1, vtx2);
+			if (e == NULL) {
+				e = AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
+			}
+
 			l = nocsim_link_by_nodes(state, inner->id, cursor->id);
 
 			/* the link goes both ways */
@@ -411,14 +434,18 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 				 * ignore it. */
 				if ((long int) vtx2 < (long int) vtx1) { continue; }
 
-				e = AG_GraphEdgeNew(g, vtx1, vtx2, NULL);
+				e->type = AG_GRAPH_EDGE_UNDIRECTED;
 				if (*show_edge_labels == 1) {
 					AG_GraphEdgeLabel(e, "%s <-> %s", cursor->id, inner->id);
+				} else {
+					AG_GraphEdgeLabelS(e, "");
 				}
 			} else {
-				e = AG_DirectedGraphEdgeNew(g, vtx1, vtx2, NULL);
+				e->type = AG_GRAPH_EDGE_DIRECTED;
 				if (*show_edge_labels == 1) {
 					AG_GraphEdgeLabel(e, "%s -> %s", cursor->id, inner->id);
+				} else {
+					AG_GraphEdgeLabelS(e, "");
 				}
 			}
 
