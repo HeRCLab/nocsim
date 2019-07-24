@@ -229,6 +229,15 @@ See the *Instrumentation* section below for more information.
 Write a specified string either to standard output, or to the GUI console,
 depending on how `nocsim` is being executed.
 
+### `errwrite STR`
+
+Write a specified string either to standard error, or to the GUI console
+depending on how `nocsim` is being executed. Text displayed in the GUI console
+will be colored red.
+
+Aside from targeting either stderr or coloring the text red, this command
+behaves identically to conswrite.
+
 ### `route FROM TO` (routing behaviors only)
 
 Routes the flit incoming from the direction `FROM` to the direction `TO`. `TO`

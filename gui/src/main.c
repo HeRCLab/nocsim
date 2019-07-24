@@ -49,8 +49,11 @@
 	AG_Textbox* __tb = AG_TextboxNewS(parent, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label); \
 	AG_TextboxPrintf(__tb, fmt, __VA_ARGS__); \
 	__tb->ed->flags |= AG_EDITABLE_HFILL; \
-	AG_EditableSizeHint(__tb->ed, stackPrintf("%s          ", \
-		stackPrintf(fmt, __VA_ARGS__))); \
+	char* __buf_inner = alloc_printf(fmt, __VA_ARGS__); \
+	char* __buf_outer = alloc_printf("%s          ", __buf_inner); \
+	AG_EditableSizeHint(__tb->ed, __buf_outer); \
+	free(__buf_inner); \
+	free(__buf_outer); \
 	__tb;})
 
 /* handler for "quit" menu item */
@@ -535,7 +538,7 @@ void EnterLine(AG_Event* event) {
 	AG_Box* box = AG_PTR(4);
 	char* s;
 	AG_ConsoleLine* line;
-	char buf[1024];
+	char* buf;
 
 	/* void AG_ConsoleMsgEdit (AG_ConsoleLine *line, const char *s) */
 
@@ -549,22 +552,24 @@ void EnterLine(AG_Event* event) {
 	AG_ColorRGB_8(&white, 255, 255, 255);
 
 	s = AG_TextboxDupString(tb);
-
-	snprintf(buf, sizeof(buf), "%% %s", s);
+	buf = alloc_printf( "(OK   ) %% %s", s);
 	line = AG_ConsoleMsgS(cons, buf);
+	free(buf);
 
 	if (Tcl_Eval(state->interp, s) == TCL_OK) {
-		snprintf(buf, sizeof(buf), "(OK   ) %% %s", s);
+		buf = alloc_printf( "(OK   ) %% %s", s);
 		AG_ConsoleMsgEdit(line, buf);
 		nocsim_console_writelines(cons, Tcl_GetStringResult(state->interp), &white);
 	} else {
-		snprintf(buf, sizeof(buf), "(ERROR) %% %s\t\t", s);
+		buf = alloc_printf("(ERROR) %% %s\t\t", s);
 		AG_ConsoleMsgEdit(line, buf);
 		AG_ConsoleMsgColor(line, &red);
-		nocsim_console_writelines(cons, Tcl_GetStringResult(state->interp), &red);
+		print_tcl_error(state->interp);
 	}
 	AG_TextboxSetString(tb, "");
 	/* AG_Free(s); */
+
+	free(buf);
 
 	graph_update(state, get_dri(), box);
 	simulation_update(state, get_dri());

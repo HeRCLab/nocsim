@@ -131,10 +131,10 @@ unsigned int randrange(unsigned int lower, unsigned int upper) {
 
 /* display an error traceback */
 void print_tcl_error(Tcl_Interp* interp) {
-	fprintf(stderr, "TCL error: %s\n", Tcl_GetStringResult(interp));
-	fprintf(stderr, "$errorInfo is:\n%s\n", Tcl_GetVar(interp, "errorInfo", 0));
+	errwritef(interp,  "TCL error: %s", Tcl_GetStringResult(interp));
+	errwritef(interp,  "$errorInfo is: %s", Tcl_GetVar(interp, "errorInfo", 0));
 	Tcl_Eval(interp, "info errorstack");
-	fprintf(stderr, "info errorstack is:\n%s\n", Tcl_GetStringResult(interp));
+	errwritef(interp,  "info errorstack is: %s", Tcl_GetStringResult(interp));
 }
 
 char* get_tcl_library_path(void) {

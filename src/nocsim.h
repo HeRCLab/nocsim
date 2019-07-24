@@ -74,23 +74,36 @@
 
 /* int to stack-allocated string */
 #define i2sstr(n) __extension__ ({ \
-	char buf[512]; \
-	snprintf(buf, sizeof(buf), "%i", n); buf;})
+	size_t __bufsz = snprintf(NULL, 0, "%i", n) * 2; \
+	char __buf[__bufsz]; \
+	snprintf(__buf, __bufsz, "%i", n); __buf;})
 
 /* cast a string to a TCL string object (by value, s should be freed by called)
  * */
 #define str2obj(s) Tcl_NewStringObj(s, strlen(s))
 
-/* stack-allocated snprintf */
-#define stackPrintf(fmt, ...) __extension__ ({ \
-	char buf[1024]; \
-	snprintf(buf, 1024, fmt, __VA_ARGS__); \
-	buf; })
+/* automatically allocated snprintf */
+#define alloc_printf(fmt, ...) __extension__ ({ \
+	size_t __ap_bufsz = snprintf(NULL, 0, fmt, __VA_ARGS__)*2; \
+	char* __ap_buf; \
+	alloc(__ap_bufsz, __ap_buf); \
+	snprintf(__ap_buf, __ap_bufsz, fmt, __VA_ARGS__); \
+	__ap_buf; })
 
 #define Tcl_Evalf(interp, fmt, ...) __extension__ ({ \
-	char* buf = stackPrintf(fmt, __VA_ARGS__); \
-	Tcl_Eval(interp, buf); })
+	char* __evf_buf = alloc_printf(fmt, __VA_ARGS__); \
+	int __evf_res = Tcl_Eval(interp, __evf_buf); \
+	free(__evf_buf); __evf_res; })
 
+#define conswritef(interp, fmt, ...) __extension__ ({ \
+	char* __cw_buf = alloc_printf(fmt, __VA_ARGS__); \
+	int __cw_res = Tcl_Evalf(interp, "conswrite {%s}", __cw_buf); \
+	free(__cw_buf); __cw_res; })
+
+#define errwritef(interp, fmt, ...) __extension__ ({ \
+	char* __ew_buf = alloc_printf(fmt, __VA_ARGS__); \
+	int __ew_res = Tcl_Evalf(interp, "errwrite {%s}", __ew_buf); \
+	free(__ew_buf); __ew_res; })
 
 /* add a key-value pair to a hash table of {str -> nocsim_node*}
  * h: hash table pointer

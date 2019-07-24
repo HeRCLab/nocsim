@@ -831,22 +831,59 @@ interp_command(nocsim_conswrite) {
 
 	char* str;
 
-	req_args(2, "conswrite STR");
+	if (argc < 2) {
+		Tcl_WrongNumArgs(interp, 0, argv, "conswrite STR ...");
+		return TCL_ERROR;
+	}
 
-	str = Tcl_GetStringFromObj(argv[1], NULL);
+	for (int i = 1 ; i < argc ; i++) {
+
+		str = Tcl_GetStringFromObj(argv[1], NULL);
 
 #ifdef NOCSIM_GUI
-	nocsim_state* state = (nocsim_state*) data;
-	AG_Color white;
-	AG_ColorRGB_8(&white, 255, 255, 255);
-	nocsim_console_writelines(state->cons, str, &white);
+		nocsim_state* state = (nocsim_state*) data;
+		AG_Color white;
+		AG_ColorRGB_8(&white, 255, 255, 255);
+		nocsim_console_writelines(state->cons, str, &white);
 #else
-	UNUSED(data);
-	printf("%s\n", str);
+		UNUSED(data);
+		printf("%s\n", str);
 #endif
+	}
 
 	return TCL_OK;
 }
+
+/*** errwrite STR ***********************************************************/
+interp_command(nocsim_errwrite) {
+
+	char* str;
+
+	if (argc < 2) {
+		Tcl_WrongNumArgs(interp, 0, argv, "errwrite STR ...");
+		return TCL_ERROR;
+	}
+
+
+	for (int i = 1 ; i < argc ; i++) {
+
+		str = Tcl_GetStringFromObj(argv[1], NULL);
+
+#ifdef NOCSIM_GUI
+		nocsim_state* state = (nocsim_state*) data;
+		AG_Color red;
+		AG_ColorRGB_8(&red, 255, 16, 16);
+		nocsim_console_writelines(state->cons, str, &red);
+#else
+		UNUSED(data);
+		fprintf(stderr, "%s\n", str);
+#endif
+	}
+
+
+	return TCL_OK;
+}
+
 
 
 /*** interpreter implementation **********************************************/
@@ -950,6 +987,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_linkinfo, "linkinfo");
 	defcmd(nocsim_registerinstrument, "registerinstrument");
 	defcmd(nocsim_conswrite, "conswrite");
+	defcmd(nocsim_errwrite, "errwrite");
 	defcmd(nocsim_incoming_command, "incoming");
 	defcmd(nocsim_allincoming_command, "allincoming");
 	defcmd(nocsim_drop_command, "drop");
