@@ -205,6 +205,7 @@ void HandleVertexSelection(AG_Event* event) {
 		prval("row"           , "%i" , node->row);
 		prval("col"           , "%i" , node->col);
 		prval("behavior"      , "%s" , node->behavior);
+
 		if (node->type == node_PE) {
 			prval("flits pending" , "%u" , node->pending->length);
 		} else {
@@ -214,8 +215,21 @@ void HandleVertexSelection(AG_Event* event) {
 		inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
 		AG_BoxSetLabelS(inner, "performance counters");
 
-		prval("injected", "%li", node->injected);
-		prval("routed", "%li", node->routed);
+		if (node->type == node_PE) {
+			prval("dequeued", "%li", node->dequeued);
+			prval("injected", "%li", node->injected);
+			prval("routed", "%s", "N/A");
+			prval("spawned", "%li", node->spawned);
+			prval("backrouted (to this node)", "%li", node->backrouted);
+			prval("arrived", "%li", node->arrived);
+		} else {
+			prval("dequeued", "%s", "N/A");
+			prval("injected", "%s", "N/A");
+			prval("routed", "%li", node->routed);
+			prval("spawned", "%s", "N/A");
+			prval("backrouted (by this node)", "%li", node->backrouted);
+			prval("arrived", "%s", "N/A");
+		}
 
 #undef prval
 
@@ -510,6 +524,16 @@ void simulation_update(nocsim_state* state, AG_Driver* dri) {
 	prval("flit_no", "%lu", state->flit_no);
 	prval("max_row", "%u", state->max_row);
 	prval("max_col", "%u", state->max_col);
+
+	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
+	AG_BoxSetLabelS(inner, "performance counters");
+
+	prval("injected", "%li", state->injected);
+	prval("dequeued", "%li", state->dequeued);
+	prval("spawned", "%li", state->spawned);
+	prval("backrouted", "%li", state->backrouted);
+	prval("routed", "%li", state->routed);
+	prval("arrived", "%li", state->arrived);
 
 	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
 	AG_BoxSetLabelS(inner, "instruments");

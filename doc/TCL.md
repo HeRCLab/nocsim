@@ -123,14 +123,20 @@ should respect them or risk causing undefined behavior.
 
 | variable name | r/w | description |
 |-|-|-|
-| `RNG_seed` | r | value used to seed the random number generator |
-| `num_PE` | r | number of instantiated PEs |
-| `num_router` | r | number of instantiated routers |
-| `num_node` | r | number of instantiated nodes |
-| `flit_no` | r | number of injected flits so far + 1 |
-| `tick` | r | current tick number, starting at 0 |
-| `title` | r+w | simulation title, defaults to "unspecified" |
+| `nocsim_RNG_seed` | r | value used to seed the random number generator |
+| `nocsim_num_PE` | r | number of instantiated PEs |
+| `nocsim_num_router` | r | number of instantiated routers |
+| `nocsim_num_node` | r | number of instantiated nodes |
+| `nocsim_flit_no` | r | number of injected flits so far + 1 |
+| `nocsim_tick` | r | current tick number, starting at 0 |
+| `nocsim_title` | r+w | simulation title, defaults to "unspecified" |
 | `nocsim_version` | r | list containing `nocsim` major, minor, and patch numbers in that order |
+| `nocsim_injected` | r | total number of flits injected so far |
+| `nocsim_spawned` | r | total number of flits spawned so far |
+| `nocsim_dequeued` | r | total number of flits dequeued so far |
+| `nocsim_backrouted` | r | total number of flits backrouted so far |
+| `nocsim_routed` | r | total number of flits routed so far |
+| `nocsim_arrived` | r | total number of flits which have arrived so far |
 
 ## Simulation Procedures
 
@@ -171,8 +177,12 @@ available:
 | `row` | int | row number of the node |
 | `col` | int | column number of the node |
 | `behavior` | string | behavior callback for this node |
-| `injected` | int | number of flits injected thus far |
 | `routed` | int | number of flits routed thus far |
+| `spawned` | int | total number of flits spawned thus far |
+| `injected` | int | total number of flits injected thus far |
+| `dequeud` | int | total number of flits dequeued thus far |
+| `backrouted` | int | total number of flits backrouted by this node (if node is a router), or which originated by this node and were backrouted (if node is a PE) |
+| `arrived` | int | total number of flits that have arrived at this node so far (i.e. number flits whose destination was this node and who were routed into this node) |
 
 ### `linkinfo FROM TO ATTR`
 
@@ -293,10 +303,14 @@ Returns a list of all directions (in `nocsim`'s internal integer format) from
 which there is an incoming flit awaiting processing. Using `route` to route the
 flit elsewhere will cause it to stop appearing in this list.
 
+### `spawn TO` (PE behaviors only)
+
+Spawn a new flit destined for the node ID `TO`, The originating node is always
+the current node, which may be tested via the `current` procedure.
+
 ### `inject TO` (PE behaviors only)
 
-Inject a new flit destined for the node ID `TO`, The originating node is always
-the current node, which may be tested via the `current` procedure.
+Alias for `spawn`.
 
 ## Utility Procedures
 
@@ -477,6 +491,32 @@ Parameters:
 * destination node ID
 * flit number
 
+**NOTE:** it is only possible to know if a flit is injected or backrouted at
+least one tick after it is spawned (i.e. when it finishes traveling from it's
+origin PE to it's first router). Keep this in mind when comparing tick numbers
+in the `inject` instrument, as opposed to `spawn`, or `dequeue`.
+
+### `spawn`
+
+Executes any time a flit is spawned.
+
+Parameters:
+
+* origin node ID
+* destination node ID
+* flit number
+
+### `dequeue`
+
+Executes any time a flit is dequeued from a PE, regardless of weather or not it
+is later backrouted.
+
+Parameters:
+
+* origin node ID
+* destination node ID
+* flit number
+
 ### `route`
 
 Executes any time a flit is routed.
@@ -533,14 +573,18 @@ initialization between ticks.
 * **spawn** -- a flit is *spawned* when it's origin node creates it via the
   `inject` command.
 * **inject** -- a flit is *injected* when it is transmitted from it's origin
-  node (a PE) to a router without being back routing
+  node (a PE) to a router without being backrouted.
+* **dequeue** -- a flit is *dequeued* when it is transmitted from it's origin
+  node (a PE) to a router, regardless of weather it is backrouted or not.
 * **backroute** -- `nocsim` simulates backpressure by counting any event where
   a flit is transmitted back to it's origin node (a PE) from an immediately
   adjacent router (i.e. if the router lacks the buffer or outgoing link
   capacity to handle the flit this tick). When backrouting occurs, the
   backrouted flit is installed at the head, rather than the tail of the
   outgoing flit queue from it's origin node (i.e. it continues to be "first in
-  line"). Backrouting still counts as a "hop".
+  line"). Backrouting still counts as a "hop". The total number of times
+  backrouting has occurred is the total number of dequeue events less the total
+  number of inject events.
 * **hop** -- any tick where a specific flit travels between two adjacent nodes.
 * **instrument** -- a TCL procedure called in response to a specific event
   occurring within the simulation.

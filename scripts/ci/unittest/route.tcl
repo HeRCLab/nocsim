@@ -28,9 +28,9 @@ proc arr_instr {origin dest flitno hops spawned injected} {
 	set arrived 1
 }
 
-proc inject_instr {origin dest flitno} {
-	upvar #0 injected injected
-	set injected 1
+proc spawn_instr {origin dest flitno} {
+	upvar #0 spawned spawned
+	set spawned 1
 }
 
 proc route_instr {origin dest flitno spawned injected hops routefrom routeto} {
@@ -41,7 +41,7 @@ proc route_instr {origin dest flitno spawned injected hops routefrom routeto} {
 tcltest::test 001 {should be able to route a flit} -body {
 	set arrived 0
 	set routed 0
-	set injected 0
+	set spawned 0
 	router r1 0 0 r1
 	router r2 0 1 r2
 	PE p1 0 0 b_inject
@@ -50,9 +50,9 @@ tcltest::test 001 {should be able to route a flit} -body {
 	link r1 r2
 	link r2 p2
 	registerinstrument arrive arr_instr
-	registerinstrument inject inject_instr
+	registerinstrument spawn spawn_instr
 	registerinstrument route route_instr
 	step 3
 
-	return [ expr $arrived + $routed + $injected ]
+	return [ expr $arrived + $routed + $spawned ]
 } -result {3}

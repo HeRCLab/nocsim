@@ -26,11 +26,18 @@ void next_state(nocsim_state* state, Tcl_Interp* interp) {
 
 			cursor->outgoing[P]->flit_next->injected_at = state->tick;
 
-			printf("pop %lu from %s to %s->%s\n",
-				cursor->outgoing[P]->flit_next->flit_no,
-				cursor->id,
-				cursor->id,
-				cursor->outgoing[P]->to->id);
+			state->dequeued ++;
+			cursor->dequeued ++;
+			if (state->instruments[INSTRUMENT_DEQUEUE] != NULL) {
+				if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu",
+							state->instruments[INSTRUMENT_DEQUEUE],
+							cursor->id,
+							cursor->outgoing[P]->flit_next->to->id,
+							cursor->outgoing[P]->flit_next->flit_no)) {
+					print_tcl_error(state->interp);
+					err(1, "unable to proceed, exiting with failure state");
+				}
+			}
 		}
 	}
 
@@ -68,7 +75,6 @@ void flip_state(nocsim_state* state) {
 }
 
 void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
-
 	printf("tick %lu\n", state->tick);
 
 	if (state->instruments[INSTRUMENT_TICK] != NULL) {
@@ -77,7 +83,6 @@ void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
 			err(1, "unable to proceed, exiting with failure state");
 		}
 	}
-
 
 	next_state(state, interp);
 	flip_state(state);
@@ -106,6 +111,9 @@ void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_dire
 		}
 
 		flit = cursor->incoming[dir]->flit;
+
+		state->arrived ++;
+		cursor->arrived ++;
 
 		if (state->instruments[INSTRUMENT_ARRIVE] != NULL) {
 			if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu",
@@ -137,6 +145,10 @@ void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_dire
 
 		flit = cursor->incoming[dir]->flit;
 
+		state->backrouted ++;
+		flit->from->backrouted ++;
+		cursor->incoming[P]->from->backrouted ++;
+
 		if (state->instruments[INSTRUMENT_BACKROUTE] != NULL) {
 			if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu",
 						state->instruments[INSTRUMENT_BACKROUTE],
@@ -153,10 +165,11 @@ void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_dire
 
 		/* remove the flit from the incoming list */
 		cursor->incoming[P]->flit = NULL;
+
 	}
 }
 
-void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to) {
+void nocsim_spawn(nocsim_state* state, nocsim_node* from, nocsim_node* to) {
 	nocsim_flit* flit;
 
 	alloc(sizeof(nocsim_flit), flit);
@@ -171,14 +184,17 @@ void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to) {
 	flit->injected_at = 0;
 	flit->flit_no = state->flit_no;
 	flit->hops = 0;
+
+	state->spawned ++;
 	state->flit_no ++;
+	from->spawned ++;
 
 	/* insert into FIFO */
 	vec_push(from->pending, flit);
 
-	if (state->instruments[INSTRUMENT_INJECT] != NULL) {
+	if (state->instruments[INSTRUMENT_SPAWN] != NULL) {
 		if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu",
-					state->instruments[INSTRUMENT_INJECT],
+					state->instruments[INSTRUMENT_SPAWN],
 					from->id, to->id, flit->flit_no)) {
 			print_tcl_error(state->interp);
 			err(1, "unable to proceed, exiting with failure state");

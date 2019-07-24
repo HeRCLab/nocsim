@@ -39,6 +39,11 @@ void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, u
 
 	n->injected = 0;
 	n->routed = 0;
+
+	n->spawned = 0;
+	n->injected = 0;
+	n->dequeued = 0;
+	n->backrouted = 0;
 }
 
 char* nocsim_fmt_node(nocsim_node* node) {

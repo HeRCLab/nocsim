@@ -144,7 +144,7 @@ void nocsim_behavior_ADOR(nocsim_node* node);
 void nocsim_DOR_one(nocsim_node* node, nocsim_flit* flit);
 
 void nocsim_step(nocsim_state* state, Tcl_Interp* interp);
-void nocsim_inject(nocsim_state* state, nocsim_node* from, nocsim_node* to);
+void nocsim_spawn(nocsim_state* state, nocsim_node* from, nocsim_node* to);
 void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_direction dir);
 
 #ifdef NOCSIM_GUI

@@ -181,11 +181,27 @@ interp_command(nocsim_nodeinfo) {
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "injected", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->routed));
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->injected));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "routed", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->injected));
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->routed));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "spawned", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->spawned));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "dequeued", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->dequeued));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "backrouted", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->backrouted));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "arrived", length)) {
+		Tcl_SetObjResult(interp, Tcl_NewLongObj(node->arrived));
 		return TCL_OK;
 
 	} else {
@@ -378,16 +394,16 @@ interp_command(nocsim_graphviz) {
 	return TCL_OK;
 }
 
-/*** inject TO ***************************************************************/
-interp_command(nocsim_inject_command) {
+/*** spawn TO ****************************************************************/
+interp_command(nocsim_spawn_command) {
 	nocsim_state* state = (nocsim_state*) data;
 	char* to_id;
 	nocsim_node* node;
 
-	req_args(2, "inject TO");
+	req_args(2, "spawn TO");
 
 	if (state->current == NULL) {
-		Tcl_SetResult(interp, "inject may only be called during a behavior callback", NULL);
+		Tcl_SetResult(interp, "spawn may only be called during a behavior callback", NULL);
 		return TCL_ERROR;
 	}
 
@@ -414,8 +430,7 @@ interp_command(nocsim_inject_command) {
 		return TCL_ERROR;
 	}
 
-	state->current->injected ++;
-	nocsim_inject(state, state->current, node);
+	nocsim_spawn(state, state->current, node);
 
 	return TCL_OK;
 
@@ -474,6 +489,8 @@ interp_command(nocsim_route_command) {
 	flit = state->current->incoming[from]->flit;
 	from_node = state->current->incoming[from]->from;
 	to_node = state->current->outgoing[to]->to;
+
+	state->routed ++;
 	if (state->instruments[INSTRUMENT_ROUTE] != NULL) {
 		if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu \"%s\" \"%s\"",
 					state->instruments[INSTRUMENT_ROUTE],
@@ -487,6 +504,24 @@ interp_command(nocsim_route_command) {
 			print_tcl_error(state->interp);
 			err(1, "unable to proceed, exiting with failure state");
 		}
+	}
+
+	/* if we are being routed somewhere that isn't our origin, then this
+	 * counts as an injection event */
+	if ((flit->from != to_node) && (flit->from == from_node)) {
+		if (state->instruments[INSTRUMENT_INJECT] != NULL) {
+			if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu",
+					state->instruments[INSTRUMENT_INJECT],
+					flit->from->id,
+					flit->to->id,
+					flit->flit_no)) {
+				print_tcl_error(interp);
+				err(1, "unable to proceed, exiting with failure state");
+			}
+		}
+
+		state->injected ++;
+		flit->from->injected ++;
 	}
 
 	/* performance counters */
@@ -910,11 +945,16 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	state->num_node = 0;
 	state->flit_no = 0;
 	state->tick = 0;
-	state->default_P_inject = 0;
 	state->title = NULL; /* allocated as a linked var later */
 	state->current = NULL;
 	state->max_row = 0;
 	state->max_col = 0;
+	state->injected = 0;
+	state->dequeued = 0;
+	state->spawned = 0;
+	state->backrouted = 0;
+	state->routed = 0;
+	state->arrived = 0;
 #ifdef NOCSIM_GUI
 	state->cons = cons;
 #endif
@@ -976,7 +1016,8 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_findnode, "findnode");
 	defcmd(nocsim_set_behavior, "behavior");
 	defcmd(nocsim_randnode, "randnode");
-	defcmd(nocsim_inject_command, "inject");
+	defcmd(nocsim_spawn_command, "inject");  /* alias */
+	defcmd(nocsim_spawn_command, "spawn");
 	defcmd(nocsim_route_command, "route");
 	defcmd(nocsim_peek_command, "peek");
 	defcmd(nocsim_avail_command, "avail");
@@ -1025,17 +1066,23 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	Tcl_LinkVar(interp, sym, (char*) temp, flags); \
 	} while (0);
 
-	link(int, "RNG_seed", &(state->RNG_seed), TCL_LINK_INT | TCL_LINK_READ_ONLY);
-	link(int, "num_PE", &(state->num_PE), TCL_LINK_INT | TCL_LINK_READ_ONLY);
-	link(int, "num_router", &(state->num_router), TCL_LINK_INT | TCL_LINK_READ_ONLY);
-	link(int, "num_node", &(state->num_node), TCL_LINK_INT | TCL_LINK_READ_ONLY);
-	link(long, "flit_no", &(state->flit_no), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
-	link(long, "tick", &(state->tick), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(int, "nocsim_RNG_seed", &(state->RNG_seed), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(int, "nocsim_num_PE", &(state->num_PE), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(int, "nocsim_num_router", &(state->num_router), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(int, "nocsim_num_node", &(state->num_node), TCL_LINK_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_flit_no", &(state->flit_no), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_tick", &(state->tick), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_injected", &(state->injected), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_spawned", &(state->spawned), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_dequeued", &(state->dequeued), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_backrouted", &(state->backrouted), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_routed", &(state->routed), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
+	link(long, "nocsim_arrived", &(state->arrived), TCL_LINK_WIDE_INT | TCL_LINK_READ_ONLY);
 #undef link
 
 	state->title = (char*) Tcl_Alloc(sizeof(char) * 512);
 	snprintf(state->title, 512, "unspecified");
-	Tcl_LinkVar(interp, "title", (char*) &(state->title), TCL_LINK_STRING);
+	Tcl_LinkVar(interp, "nocsim_title", (char*) &(state->title), TCL_LINK_STRING);
 
 	Tcl_Obj* vers = Tcl_NewListObj(0, NULL);
 	Tcl_ListObjAppendElement(interp, vers, Tcl_NewIntObj(NOCSIM_VERSION_MAJOR));

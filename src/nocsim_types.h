@@ -58,27 +58,33 @@ typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5} nocsim_di
 
 typedef enum nocsim_instrument_t {
 	INSTRUMENT_UNDEFINED = 0,
-	INSTRUMENT_INJECT,
+	INSTRUMENT_SPAWN,
 	INSTRUMENT_ROUTE,
 	INSTRUMENT_ARRIVE,
 	INSTRUMENT_BACKROUTE,
 	INSTRUMENT_TICK,
+	INSTRUMENT_INJECT,
+	INSTRUMENT_DEQUEUE,
 	ENUMSIZE_INSTRUMENT
 } nocsim_instrument;
 
 #define NOCSIM_INSTRUMENT_TO_STR(ins) \
-	(ins == INSTRUMENT_INJECT) ? "inject" : \
+	(ins == INSTRUMENT_SPAWN) ? "spawn" : \
 	(ins == INSTRUMENT_ROUTE) ? "route" : \
 	(ins == INSTRUMENT_ARRIVE) ? "arrive" : \
 	(ins == INSTRUMENT_BACKROUTE) ? "backroute" : \
+	(ins == INSTRUMENT_INJECT) ? "inject" : \
+	(ins == INSTRUMENT_DEQUEUE) ? "dequeue" : \
 	(ins == INSTRUMENT_TICK) ? "tick" : "INSTRUMENT UNDEFINED"
 
 #define NOCSIM_STR_TO_INSTRUMENT(s) \
-	(!strncasecmp(s, "inject", 32)) ? INSTRUMENT_INJECT : \
+	(!strncasecmp(s, "spawn", 32)) ? INSTRUMENT_SPAWN: \
 	(!strncasecmp(s, "route", 32)) ? INSTRUMENT_ROUTE : \
 	(!strncasecmp(s, "arrive", 32)) ? INSTRUMENT_ARRIVE : \
+	(!strncasecmp(s, "inject", 32)) ? INSTRUMENT_INJECT: \
 	(!strncasecmp(s, "backroute", 32)) ? INSTRUMENT_BACKROUTE : \
 	(!strncasecmp(s, "tick", 32)) ? INSTRUMENT_TICK : \
+	(!strncasecmp(s, "dequeue", 32)) ? INSTRUMENT_DEQUEUE: \
 	INSTRUMENT_UNDEFINED
 
 
@@ -108,8 +114,8 @@ typedef struct nocsim_node_t {
 	char* id;
 	unsigned int node_number;
 	unsigned int type_number;
-	long injected;
 	long routed;
+	long backrouted;
 
 	/* used to define either routing behavior or injection behavior
 	 * according to node type */
@@ -118,6 +124,10 @@ typedef struct nocsim_node_t {
 	/**** only used for PE type ******************************************/
 	flitlist* pending;
 	float P_inject;
+	long spawned;
+	long dequeued;
+	long injected;
+	long arrived;
 
 } nocsim_node;
 
@@ -165,6 +175,12 @@ typedef struct nocsim_state_t {
 	nodemap* node_map;
 	unsigned int max_row;
 	unsigned int max_col;
+	long spawned;
+	long injected;
+	long dequeued;
+	long backrouted;
+	long routed;
+	long arrived;
 
 	/* used during behavior callbacks */
 	nocsim_node* current;

@@ -109,10 +109,10 @@
 
 #define vec_find(v, val, idx)\
 		do {\
-			for ((idx) = 0; (idx) < (v)->length; (idx)++) {\
+			for ((idx) = 0; ((unsigned int) idx) < (v)->length; (idx)++) {\
 				if ((v)->data[(idx)] == (val)) break;\
 			}\
-			if ((idx) == (v)->length) (idx) = -1;\
+			if (((unsigned int) idx) == (v)->length) (idx) = -1;\
 		} while (0)
 
 
@@ -126,7 +126,7 @@
 
 #define vec_reverse(v)\
 		do {\
-			int i__ = (v)->length / 2;\
+			unsigned int i__ = (v)->length / 2;\
 			while (i__--) {\
 				vec_swap((v), i__, (v)->length - (i__ + 1));\
 			}\

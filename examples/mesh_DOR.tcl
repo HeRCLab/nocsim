@@ -109,8 +109,8 @@ proc simpleinject {} {
 }
 
 proc tickinstrument {} {
-	upvar 1 tick tick
-	conswrite "tick instrument! tick is $tick"
+	upvar 1 nocsim_tick nocsim_tick
+	conswrite "tick instrument! tick is $nocsim_tick"
 }
 
 proc injectinstrument {origin dest id} {
@@ -125,32 +125,6 @@ registerinstrument tick tickinstrument
 registerinstrument inject injectinstrument
 registerinstrument route routeinstrument
 
-router r1 0 0 simpleDOR
-router r2 0 1 simpleDOR
-router r3 1 0 simpleDOR
-router r4 1 1 simpleDOR
-
-PE p1 0 0 simpleinject
-PE p2 0 1 simpleinject
-PE p3 1 0 simpleinject
-PE p4 1 1 simpleinject
-
-link r1 r2
-link r2 r1
-link r1 r3
-link r3 r1
-link r3 r4
-link r4 r3
-link r2 r4
-link r4 r2
-
-link p1 r1
-link r1 p1
-link p2 r2
-link r2 p2
-link p3 r3
-link r3 p3
-link p4 r4
-link r4 p4
+create_mesh 3 3 simpleinject simpleDOR
 
 step 1000
