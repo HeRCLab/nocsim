@@ -88,18 +88,39 @@ interp_command(nocsim_create_PE) {
 	return TCL_OK;
 }
 
-/*** link ID ID **************************************************************/
+/*** link ID ID / link ID ID DIR / link ID ID DIR DIR ************************/
 interp_command(nocsim_create_link) {
 	nocsim_state* state = (nocsim_state*) data;
 	char* src = NULL;
 	char* dst = NULL;
+	nocsim_direction from_dir = DIR_UNDEF;
+	nocsim_direction to_dir = DIR_UNDEF;
 
-	req_args(3, "SRCID DSTID");
+	if (argc < 3 || argc > 5) {
+		Tcl_WrongNumArgs(interp, 0, argv, "link ID ID / link ID ID DIR / link ID ID DIR DIR");
+		return TCL_ERROR;
+	}
 
-	src = Tcl_GetStringFromObj(argv[1], NULL);
-	dst = Tcl_GetStringFromObj(argv[2], NULL);
+	if (argc >= 3 ) {
+		src = Tcl_GetStringFromObj(argv[1], NULL);
+		dst = Tcl_GetStringFromObj(argv[2], NULL);
+	}
 
-	nocsim_grid_create_link(state, src, dst);
+	if (argc == 4) {
+
+		get_int(interp, argv[3], (int*) &to_dir);
+
+	}  else if (argc == 5) {
+
+		get_int(interp, argv[3], (int*) &from_dir);
+		get_int(interp, argv[4], (int*) &to_dir);
+
+	}
+
+	if (nocsim_grid_create_link(state, src, dst, from_dir, to_dir) != NOCSIM_RESULT_OK) {
+		Tcl_SetResult(interp, state->errstr, NULL);
+		return TCL_ERROR;
+	}
 
 	return TCL_OK;
 }
@@ -705,7 +726,7 @@ interp_command(nocsim_allincoming_command) {
 			if (state->current->incoming[dir]->flit != NULL) {
 				Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewIntObj(dir));
 			}
-	
+
 		}
 	}
 	Tcl_SetObjResult(interp, listPtr);
@@ -955,6 +976,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	state->backrouted = 0;
 	state->routed = 0;
 	state->arrived = 0;
+	state->errstr = NULL;
 #ifdef NOCSIM_GUI
 	state->cons = cons;
 #endif
@@ -1040,7 +1062,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	/* try to import NocsimTCL from the development path */
 	Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_DEV_PATH);
 	if (Tcl_Eval(interp, "package require NocsimTCL") != TCL_OK) {
-		
+
 		/* that didn't work, try it from the system path */
 		Tcl_Evalf(interp, "lappend auto_path \"%s\"", NOCSIM_TCL_PATH);
 		if (Tcl_Eval(interp, "package require NocsimTCL") != TCL_OK) {

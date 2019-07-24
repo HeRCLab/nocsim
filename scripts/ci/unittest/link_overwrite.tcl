@@ -14,13 +14,13 @@ tcltest::test 001 {should not be possible to overwrite a link on both ends} -bod
 } -result 0
 
 tcltest::test 002 {should not be possible to overwrite a link on source end } -body {
-	router r2 0 1 dummy
-	router r3 0 2 dummy
-	router r4 0 3 dummy
+	router r3 1 1 dummy
+	router r4 1 2 dummy
+	router r5 1 3 dummy
 
-	link r2 r3
+	link r3 r4 [dir2int east] [dir2int west]
 
-	if { [catch {link r2 r4} err] } {
+	if { [catch {link r3 r5 [dir2int east] [dir2int west]} err] } {
 		return 0
 	} else {
 		return 100
@@ -30,13 +30,13 @@ tcltest::test 002 {should not be possible to overwrite a link on source end } -b
 
 
 tcltest::test 003 {should not be possible to overwrite a link on dest end } -body {
-	router r5 1 1 dummy
-	router r6 1 2 dummy
-	router r7 1 3 dummy
+	router r6 2 1 dummy
+	router r7 2 2 dummy
+	router r8 2 3 dummy
 
-	link r5 r7
+	link r6 r7 [dir2int east] [dir2int west]
 
-	if { [catch {link r7 r6} err] } {
+	if { [catch {link r8 r7 [dir2int east] [dir2int west]} err] } {
 		return 0
 	} else {
 		return 100

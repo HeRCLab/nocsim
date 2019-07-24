@@ -189,6 +189,47 @@ nocsim_link* nocsim_link_by_nodes(nocsim_state* state, char* from, char* to) {
 
 }
 
+/* infer the direction of a link from->to automatically */
+nocsim_direction infer_direction(nocsim_state* state, char* from_id, char* to_id) {
+	nocsim_node* from;
+	nocsim_node* to;
+
+	from = nocsim_node_by_id(state, from_id);
+	to = nocsim_node_by_id(state, to_id);
+
+
+	/* router to PE or PE to router is always PE direction */
+	if (((from->type == node_PE) && (to->type == node_router)) ||
+		((from->type == node_router) && (to->type == node_PE))) {
+		return P;
+
+	} else {
+		if (from->row < to->row) {
+			return N;
+
+		} else if (from->row > to->row) {
+			return S;
+
+		} else if (from->col < to->col) {
+			return W;
+
+		} else if (from->col > to->col) {
+			return E;
+		} else {
+			return DIR_UNDEF;
+		}
+	}
+}
+
+nocsim_direction invert_direction(nocsim_direction d) {
+	if      (d == P) { return P; }
+	else if (d == N) { return S; }
+	else if (d == S) { return N; }
+	else if (d == E) { return W; }
+	else if (d == W) { return E; }
+	else             { return DIR_UNDEF; }
+}
+
 #ifdef NOCSIM_GUI
 void nocsim_console_writelines(AG_Console* console, const char* lines, AG_Color* c) {
 	char* piv;

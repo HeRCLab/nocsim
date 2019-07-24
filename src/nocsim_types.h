@@ -35,7 +35,11 @@ typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5} nocsim_di
 	(dir == S) ? "S" : \
 	(dir == E) ? "E" : \
 	(dir == W) ? "W" : \
+	(dir == DIR_UNDEF) ? "UNDEFINED" : \
 	(dir == P) ? "PE" : "ERROR"
+
+#define NOCSIM_DIRECTION_VALID(dir) \
+	( (dir == N) || (dir == S) || (dir == E) || (dir == W) || (dir == P) )
 
 #define NOCSIM_STR_TO_DIRECTION(s) __extension__ ({ \
 	nocsim_direction d = -1; \
@@ -87,6 +91,15 @@ typedef enum nocsim_instrument_t {
 	(!strncasecmp(s, "dequeue", 32)) ? INSTRUMENT_DEQUEUE: \
 	INSTRUMENT_UNDEFINED
 
+typedef enum nocsim_result_t {
+	NOCSIM_RESULT_OK,
+	NOCSIM_RESULT_ERROR,
+} nocsim_result;
+
+#define NOCSIM_RESULT_TO_STR(res) \
+	(res == NOCSIM_RESULT_OK) ? "ok" : \
+	(res == NOCSIM_RESULT_ERROR) ? "general error" : \
+	"unknown error"
 
 /* Max number of links, which is 5 since there are 4 directions + PE. It
  * is important that this is eual to the number of types in nocsim_direction_t
@@ -181,6 +194,9 @@ typedef struct nocsim_state_t {
 	long backrouted;
 	long routed;
 	long arrived;
+	
+	/* used by some functions to return an error string */
+	char* errstr;
 
 	/* used during behavior callbacks */
 	nocsim_node* current;

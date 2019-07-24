@@ -105,6 +105,16 @@
 	int __ew_res = Tcl_Evalf(interp, "errwrite {%s}", __ew_buf); \
 	free(__ew_buf); __ew_res; })
 
+#define nocsim_return_error(__state, fmt, ...) do { \
+	char* __re_buf = alloc_printf(fmt, __VA_ARGS__); \
+	if (__state->errstr != NULL) { \
+		free(__state->errstr); \
+		__state->errstr = NULL; \
+	} \
+	__state->errstr = __re_buf; \
+	return NOCSIM_RESULT_ERROR; } while (0)
+
+
 /* add a key-value pair to a hash table of {str -> nocsim_node*}
  * h: hash table pointer
  * k: key (type: char*)
@@ -123,7 +133,7 @@ int main(int argc, char** argv);
 
 void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
 void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsigned int col, char* behavior);
-void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id);
+nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id, nocsim_direction from_dir, nocsim_direction to_dir);
 
 void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, unsigned int col, char* id);
 char* nocsim_fmt_node(nocsim_node* node);
@@ -135,6 +145,8 @@ void print_tcl_error(Tcl_Interp* interp);
 char* get_tcl_library_path(void);
 nocsim_node* nocsim_node_by_id(nocsim_state* state, char* id);
 nocsim_link* nocsim_link_by_nodes(nocsim_state*, char* from, char* to);
+nocsim_direction infer_direction(nocsim_state* state, char* from_id, char* to_id);
+nocsim_direction invert_direction(nocsim_direction d);
 #ifdef NOCSIM_GUI
 void nocsim_console_writelines(AG_Console* console, const char* lines, AG_Color* c);
 #endif

@@ -125,6 +125,6 @@ registerinstrument tick tickinstrument
 registerinstrument inject injectinstrument
 registerinstrument route routeinstrument
 
-create_mesh 3 3 simpleinject simpleDOR
+create_mesh 4 4 simpleinject simpleDOR
 
 step 1000

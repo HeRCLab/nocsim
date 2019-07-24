@@ -154,9 +154,52 @@ Exactly as with `router`, except that the instantiated node will be a PE. Note
 that the behavior callbacks for PEs and routers may not be interchangeable,
 depending on how they are implemented.
 
-### `link FROM_ID TO_ID`
+### `link FROM_ID TO_ID` / `link FROM_ID TO_ID TO_DIR` / `link FROM_ID TO_ID FROM_DIR TO_DIR`
 
 Creates a new link, connecting the specified node IDs.
+
+If only the node IDs are provided, then the link direction is inferred
+automatically. Note that when inferring link direction, any link from a PE to a
+router is assumed to have the direction `PE`, regardless of relative row/col
+values.
+
+If `TO_DIR` is given, then the command proceeds as if `FROM_DIR` was given as
+the opposite of `TO_DIR` (note that the opposite of `PE` is defined as `PE` in
+this case).
+
+If `TO_DIR` and `FROM_DIR` are given, then the outgoing link from node
+`FROM_ID` always has the direction `FROM_DIR` and the incoming link to `TO_ID`
+always has the direction `TO_DIR`.
+
+Consider this example network:
+
+```plaintext
++-----------------------------------------------------+
+|                                                     |
+|                                                     |
+|                                                     |
+|                                                     |
+|                                                     v
+|       +----------------+                   +--------+------+
+|       |       N        |                   |       N       |
+|       |                |                   |               |
+|       |                |                   |               |
++-------+   router1      |                   |     router2   |
+        |W  (0,0)      E |                   | W   (0,1)   E |
+        |                |                   |               |
+        |                |                   |               |
+        |         S      |                   |       S       |
+        +----------------+                   +---------------+
+```
+
+This configuration could be obtained by issuing `link router1 router2 [dir2int
+W] [dir2int N]`.
+
+In general, it is recommended to allow nocsim to infer the directions of nodes
+relative to one another. However the ability to override the default link
+direction is provided to generating particularly novel network configurations.
+It is assumed that if you are using this capability, you know what you are
+doing.
 
 ### `current`
 

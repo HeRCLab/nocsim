@@ -51,7 +51,11 @@ void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsi
 	ez_kv_insert(state->node_map, id, PE);
 }
 
-void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
+nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id, nocsim_direction from_dir, nocsim_direction to_dir) {
+
+	/* if d is DIR_UNDEF, infer the direction, otherwise it is assume
+	 * that d is the direction the link is pointing */
+
 	nocsim_node* from;
 	nocsim_node* to;
 	nocsim_link* link;
@@ -70,11 +74,11 @@ void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
 	drprintf("\n");
 
 	if (from == NULL) {
-		err(1, "could not link from unknown node '%s'", from_id);
+		nocsim_return_error(state, "could not link from unknown node '%s'", from_id);
 	}
 
 	if (to == NULL) {
-		err(1, "could not link to unknown node '%s'", to_id);
+		nocsim_return_error(state, "could not link to unknown node '%s'", to_id);
 	}
 
 	link->to = to;
@@ -83,45 +87,67 @@ void nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id) {
 	link->flit_next = NULL;
 	link->load = 0;
 
-	if ((from->type == node_PE) && (to->type == node_PE)) {
-		err(1, "cannot create illegal link from PE '%s' to PE '%s'",
-			from_id, to_id);
+	nocsim_direction selected_to_dir;
+	nocsim_direction selected_from_dir;
 
-	} else if (((from->type == node_PE) && (to->type == node_router)) ||
-		((from->type == node_router) && (to->type == node_PE))) {
-		dbprintf("link direction: PE\n");
-		from->outgoing[P] = link;
-		to->incoming[P] = link;
+	if (to_dir == DIR_UNDEF && from_dir == DIR_UNDEF) {
+		selected_to_dir = infer_direction(state, from_id, to_id);
+		selected_from_dir = invert_direction(selected_to_dir);
 
+	} else if (to_dir == DIR_UNDEF) {
+		selected_from_dir = from_dir;
+		selected_to_dir = invert_direction(from_dir);
+
+	} else if (from_dir == DIR_UNDEF) {
+		selected_to_dir = to_dir;
+		selected_from_dir = invert_direction(to_dir);
 	} else {
-		if (from->row < to->row) {
-			dbprintf("link direction: S->N (down)\n");
-			from->outgoing[S] = link;
-			to->incoming[N] = link;
-
-		} else if (from->row > to->row) {
-			dbprintf("link direction: N->S (up)\n");
-			from->outgoing[N] = link;
-			to->incoming[S] = link;
-
-		} else if (from->col < to->col) {
-			dbprintf("link direction: E->W (right)\n");
-			from->outgoing[E] = link;
-			to->incoming[W] = link;
-
-		} else if (from->col > to->col) {
-			dbprintf("link direction: W->E (left)\n");
-			from->outgoing[W] = link;
-			to->incoming[E] = link;
-
-		} else {
-			fprintf(stderr, "nodes: ");
-			nocsim_print_node(stderr, from);
-			fprintf(stderr, " and ");
-			nocsim_print_node(stderr, to);
-			fprintf(stderr, " cannot be linked because they have overlapping coordinates\n");
-			err(1, NULL);
-
-		}
+		selected_to_dir = to_dir;
+		selected_from_dir = from_dir;
 	}
+
+	dbprintf("from dir=%s to dir=%s\n",
+			NOCSIM_DIRECTION_TO_STR(selected_from_dir),
+			NOCSIM_DIRECTION_TO_STR(selected_to_dir));
+
+
+	if ( (!NOCSIM_DIRECTION_VALID(selected_to_dir)) ||
+		( (!NOCSIM_DIRECTION_VALID(selected_from_dir) ))) {
+
+		nocsim_return_error(state,
+			"inferred invalid to/from directions %s, %s from nodes %s and %s and directions %s and %s",
+			NOCSIM_DIRECTION_TO_STR(selected_from_dir),
+			NOCSIM_DIRECTION_TO_STR(selected_to_dir),
+			from_id, to_id,
+			NOCSIM_DIRECTION_TO_STR(from_dir),
+			NOCSIM_DIRECTION_TO_STR(to_dir));
+	}
+
+	if ((from->type == node_PE) && (to->type == node_PE)) {
+
+		nocsim_return_error(state,
+				"cannot create illegal link from PE '%s' to PE '%s'",
+			from_id, to_id);
+	}  else if (from->outgoing[selected_from_dir] != NULL) {
+
+		nocsim_return_error(state,
+				"cannot create link from %s to %s, would overwrite existing link from %s to %s",
+				from_id, to_id,
+				from->outgoing[selected_from_dir]->from->id,
+				from->outgoing[selected_from_dir]->to->id);
+	}  else if (to->incoming[selected_to_dir] != NULL) {
+
+		nocsim_return_error(state,
+				"cannot create link from %s to %s, would overwrite existing link from %s to %s",
+				from_id, to_id,
+				to->incoming[selected_to_dir]->from->id,
+				to->incoming[selected_to_dir]->to->id);
+	} else {
+
+		from->outgoing[selected_from_dir] = link;
+		to->incoming[selected_to_dir] = link;
+	}
+
+	return NOCSIM_RESULT_OK;
+
 }
