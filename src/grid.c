@@ -74,10 +74,12 @@ nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* 
 	drprintf("\n");
 
 	if (from == NULL) {
+		free(link);
 		nocsim_return_error(state, "could not link from unknown node '%s'", from_id);
 	}
 
 	if (to == NULL) {
+		free(link);
 		nocsim_return_error(state, "could not link to unknown node '%s'", to_id);
 	}
 
@@ -114,6 +116,7 @@ nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* 
 	if ( (!NOCSIM_DIRECTION_VALID(selected_to_dir)) ||
 		( (!NOCSIM_DIRECTION_VALID(selected_from_dir) ))) {
 
+		free(link);
 		nocsim_return_error(state,
 			"inferred invalid to/from directions %s, %s from nodes %s and %s and directions %s and %s",
 			NOCSIM_DIRECTION_TO_STR(selected_from_dir),
@@ -125,11 +128,13 @@ nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* 
 
 	if ((from->type == node_PE) && (to->type == node_PE)) {
 
+		free(link);
 		nocsim_return_error(state,
 				"cannot create illegal link from PE '%s' to PE '%s'",
 			from_id, to_id);
 	}  else if (from->outgoing[selected_from_dir] != NULL) {
 
+		free(link);
 		nocsim_return_error(state,
 				"cannot create link from %s to %s, would overwrite existing link from %s to %s",
 				from_id, to_id,
@@ -137,6 +142,7 @@ nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* 
 				from->outgoing[selected_from_dir]->to->id);
 	}  else if (to->incoming[selected_to_dir] != NULL) {
 
+		free(link);
 		nocsim_return_error(state,
 				"cannot create link from %s to %s, would overwrite existing link from %s to %s",
 				from_id, to_id,
