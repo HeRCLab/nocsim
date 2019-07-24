@@ -66,12 +66,15 @@ void QuitApplication(AG_Event *event) {
 void LaunchDebugger(AG_Event *event) {
 	AG_Driver* dri;
 	AG_Window* db_window;
+	AG_Window* win;
 
 	/* Fetch the top-level driver object, which is also the parent of the
 	 * main window. We will attach the debugger window to this object. */
 	dri = (AG_Driver*) get_dri();
 
-	db_window = AG_GuiDebugger(dri);
+	win = AG_GetPointer(dri, "main_window");
+
+	db_window = AG_GuiDebugger(win);
 	AG_WindowShow(db_window);
 }
 #endif
@@ -596,6 +599,8 @@ int main(int argc, char *argv[]) {
 
 	/* setup the state handler and edge creation vertex variables */
 	dri = (AG_Driver*) AG_ObjectRoot(win);
+
+	AG_SetPointer(dri, "main_window", win);
 
 	menu = AG_MenuNew(win, 0);
 
