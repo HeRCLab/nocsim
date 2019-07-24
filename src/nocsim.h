@@ -81,10 +81,16 @@
  * */
 #define str2obj(s) Tcl_NewStringObj(s, strlen(s))
 
-#define Tcl_Evalf(interp, fmt, ...) __extension__ ({ \
+/* stack-allocated snprintf */
+#define stackPrintf(fmt, ...) __extension__ ({ \
 	char buf[1024]; \
 	snprintf(buf, 1024, fmt, __VA_ARGS__); \
+	buf; })
+
+#define Tcl_Evalf(interp, fmt, ...) __extension__ ({ \
+	char* buf = stackPrintf(fmt, __VA_ARGS__); \
 	Tcl_Eval(interp, buf); })
+
 
 /* add a key-value pair to a hash table of {str -> nocsim_node*}
  * h: hash table pointer

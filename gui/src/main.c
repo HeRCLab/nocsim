@@ -36,12 +36,6 @@
 
 #include "nocsim.h"
 
-/* work around incorrect SV sizing with AG_Editable */
-#define SV_WORKAROUND(parent) \
-	AG_WidgetHideAll(\
-			AG_LabelNewS(parent, 0,\
-		"(SV_WORKAROUND)                                           "))
-
 /* handy macro to check if a string ends with a certain 4 letter character
  * sequence. This is used for checking file extensions. */
 #define check_ext(str, ext) (strlen(str) > 4 && !strcmp(str + strlen(str) - 4, ext))
@@ -50,6 +44,14 @@
  * grab the top-level driver object. This is needed since AG_ObjectRoot()
  * dosen't always traverse all the way up the tree in one go */
 #define get_dri() (AG_Driver*) AG_ObjectFindParent(AG_SELF(), "agDrivers", NULL)
+
+#define AG_FixedTextboxNew(parent, label, fmt, ...) __extension__ ({ \
+	AG_Textbox* __tb = AG_TextboxNewS(parent, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label); \
+	AG_TextboxPrintf(__tb, fmt, __VA_ARGS__); \
+	__tb->ed->flags |= AG_EDITABLE_HFILL; \
+	AG_EditableSizeHint(__tb->ed, stackPrintf("%s          ", \
+		stackPrintf(fmt, __VA_ARGS__))); \
+	__tb;})
 
 /* handler for "quit" menu item */
 void QuitApplication(AG_Event *event) {
@@ -187,10 +189,7 @@ void HandleVertexSelection(AG_Event* event) {
 		inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
 		AG_BoxSetLabelS(inner, "node data");
 
-#define prval(label, fmt, ...) \
-		AG_TextboxPrintf( \
-			AG_TextboxNewS(inner, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label), \
-			fmt, __VA_ARGS__);
+#define prval(label, fmt, ...) AG_FixedTextboxNew(inner, label, fmt, __VA_ARGS__) 
 
 		prval("ID", "%s", node->id);
 		prval("type", "%s", NOCSIM_NODE_TYPE_TO_STR(node->type));
@@ -212,8 +211,6 @@ void HandleVertexSelection(AG_Event* event) {
 		prval("injected", "%li", node->injected);
 		prval("routed", "%li", node->routed);
 
-		SV_WORKAROUND(inner);
-
 #undef prval
 
 
@@ -233,10 +230,7 @@ void populate_link_info(AG_Box* box, AG_Driver* dri, nocsim_state* state, nocsim
 	AG_Box* inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
 	AG_BoxSetLabel(inner, "link data");
 
-#define prval(label, fmt, ...) \
-		AG_TextboxPrintf( \
-			AG_TextboxNewS(inner, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label), \
-			fmt, __VA_ARGS__);
+#define prval(label, fmt, ...) AG_FixedTextboxNew(inner, label, fmt, __VA_ARGS__) 
 
 	/* TODO: when links become queues, this will need to be updated */
 	prval("flits", "%u", (l->flit == NULL) ? 0 : 1);
@@ -251,8 +245,6 @@ void populate_link_info(AG_Box* box, AG_Driver* dri, nocsim_state* state, nocsim
 	if (nocsim_link_by_nodes(state, l->to->id, l->from->id)) {
 		/* TODO: also show link info in the opposite direction */
 	}
-
-	SV_WORKAROUND(inner);
 
 #undef prval
 
@@ -503,10 +495,7 @@ void simulation_update(nocsim_state* state, AG_Driver* dri) {
 	inner = AG_BoxNew(box, AG_BOX_VERT, AG_BOX_FRAME | AG_BOX_HFILL);
 	AG_BoxSetLabelS(inner, "general");
 
-#define prval(label, fmt, ...) \
-		AG_TextboxPrintf( \
-			AG_TextboxNewS(inner, AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, label), \
-			fmt, __VA_ARGS__)
+#define prval(label, fmt, ...) AG_FixedTextboxNew(inner, label, fmt, __VA_ARGS__) 
 
 	prval("tick", "%lu", state->tick);
 	prval("num_PE", "%u", state->num_PE);
@@ -528,7 +517,6 @@ void simulation_update(nocsim_state* state, AG_Driver* dri) {
 	}
 
 
-	SV_WORKAROUND(box);
 #undef prval
 
 	AG_WidgetHide(box);
@@ -604,7 +592,7 @@ int main(int argc, char *argv[]) {
 		return (1);
 	win = AG_WindowNew(0);
 	AG_WindowSetCaptionS (win, "nocsim-gui");
-	AG_WindowSetGeometry(win, -1, -1, 1200, 1000);
+	AG_WindowSetGeometry(win, -1, -1, 1100, 900);
 
 	/* setup the state handler and edge creation vertex variables */
 	dri = (AG_Driver*) AG_ObjectRoot(win);
@@ -696,4 +684,5 @@ int main(int argc, char *argv[]) {
 	AG_EventLoop();
 	return (0);
 }
-#undef SV_WORKAROUND
+
+#undef AG_FixedTextboxNew

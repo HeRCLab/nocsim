@@ -49,7 +49,6 @@ tcltest::test 001 {all_adjacent should work} -body {
 	if {[lsearch -exact $r2_adj "r5"] >= 0} { return 1200 }
 	if {[lsearch -exact $r2_adj "r7"] >= 0} { return 1300 }
 
-
 	return 0
 
 } -result {0}
