@@ -11,7 +11,7 @@ the `nocsim` CLI binary.
 
 Note that the `nocsim` GUI depends on [libAgar](http://libagar.org/) version
 1.6.0 or better. At time of writing, this version of libAgar does not have a
-stable release. SVN version r10268 is known to work correctly to build
+stable release. SVN version r10336 is known to work correctly to build
 `nocsim-gui`.
 
 ## Troubleshooting
