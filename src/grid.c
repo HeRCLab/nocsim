@@ -83,6 +83,11 @@ nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* 
 		nocsim_return_error(state, "could not link to unknown node '%s'", to_id);
 	}
 
+	if (from == to) {
+		free(link);
+		nocsim_return_error(state, "could not link node '%s' to node '%s' which is the same node", from_id, to_id);
+	}
+
 	link->to = to;
 	link->from = from;
 	link->flit = NULL;
