@@ -2,10 +2,6 @@
 
 package require math
 
-proc simpletest {} {
-	conswrite "simpletest behavior from node [current]"
-}
-
 # implements DOR routing for a specific link
 proc DORfrom {dir} {
 	conswrite "\trouting from direction [int2dir $dir]"
@@ -91,7 +87,6 @@ proc DORfrom {dir} {
 }
 
 proc simpleDOR {} {
-	conswrite "simpleDOR behavior for node [current]"
 	if {[incoming [dir2int north]]} {DORfrom [dir2int north]}
 	if {[incoming [dir2int south]]} {DORfrom [dir2int south]}
 	if {[incoming [dir2int east]]}  {DORfrom [dir2int east]}
@@ -105,26 +100,11 @@ proc with_P {P} {
 }
 
 proc simpleinject {} {
-	if {[with_P 0.8]} { inject [randnode [current]] }
+	if {[with_P 0.3]} { inject [randnode [current]] }
 }
 
-proc tickinstrument {} {
-	upvar 1 nocsim_tick nocsim_tick
-	conswrite "tick instrument! tick is $nocsim_tick"
-}
+create_mesh 5 5 simpleinject simpleDOR
 
-proc injectinstrument {origin dest id} {
-	conswrite "inject instrument: origin=$origin, dest=$dest, id=$id"
-}
+step 5000
 
-proc routeinstrument {origin dest flitno spawnedat injectedat numhops routefrom routeto} {
-	conswrite "route flit $flitno to $routeto from $routefrom"
-}
-
-registerinstrument tick tickinstrument
-registerinstrument inject injectinstrument
-registerinstrument route routeinstrument
-
-create_mesh 4 4 simpleinject simpleDOR
-
-step 1000
+conswrite "throughput = [expr $nocsim_routed / ( $nocsim_num_PE * $nocsim_tick ) ] flits per PE per cycle"

@@ -57,7 +57,6 @@ proc ::NocsimTCL::create_mesh {width height inject_behavior route_behavior} {
 			}
 
 			link $router $adj
-			link $adj $router
 		}
 	}
 
