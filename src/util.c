@@ -178,7 +178,7 @@ nocsim_link* nocsim_link_by_nodes(nocsim_state* state, char* from, char* to) {
 	from_node = nocsim_node_by_id(state, from);
 	to_node = nocsim_node_by_id(state, to);
 
-	if (from == NULL || to == NULL) { return NULL; }
+	if (from == NULL || to == NULL || from_node == NULL || to_node == NULL) { return NULL; }
 
 	for (d = 0; d <= P; d++) {
 		if (from_node->outgoing[d] == NULL) { continue; }
