@@ -75,7 +75,6 @@ void flip_state(nocsim_state* state) {
 }
 
 void nocsim_step(nocsim_state* state, Tcl_Interp* interp) {
-	printf("tick %lu\n", state->tick);
 
 	if (state->instruments[INSTRUMENT_TICK] != NULL) {
 		if (Tcl_Eval(interp, state->instruments[INSTRUMENT_TICK]) != TCL_OK) {
@@ -129,7 +128,7 @@ void nocsim_handle_arrival(nocsim_state* state, nocsim_node* cursor, nocsim_dire
 		}
 
 		/* delete the flit */
-		free((cursor->incoming[dir]->flit));
+		free(flit);
 		cursor->incoming[dir]->flit = NULL;
 
 	} else if (dir == P) {

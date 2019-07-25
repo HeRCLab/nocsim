@@ -44,6 +44,7 @@ void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, u
 	n->injected = 0;
 	n->dequeued = 0;
 	n->backrouted = 0;
+	n->arrived = 0;
 }
 
 char* nocsim_fmt_node(nocsim_node* node) {

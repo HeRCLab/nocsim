@@ -239,9 +239,13 @@ Retrieve information about the link connecting the nodes with ID `FROM` and
 | `in_flight` | list of int | list of flit numbers currently in the link |
 | `current_load` | int | number of flits currently in the link |
 | `load` | int  | number of flits routed through this link so far |
+| `from_dir` | int | outgoing direction of link from it's source node |
+| `to_dir` | int | incoming direction of link to it's destination node |
 
 **NOTE** `current_load` should be used with care, as it may yield inaccurate
 results if accessed during a behavior callback.
+
+**NOTE** directions are given in nocsim's internal integer representation.
 
 **TIP** remember that links are strictly directional, i.e. the link `foo bar`
 is not the same as the link `bar baz`.

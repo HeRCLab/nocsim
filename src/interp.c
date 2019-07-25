@@ -240,6 +240,7 @@ interp_command(nocsim_linkinfo) {
 	nocsim_state* state = (nocsim_state*) data;
 	nocsim_link* l;
 	int length;
+	nocsim_direction d = DIR_UNDEF;
 
 	req_args(4, "linkinfo FROM TO ATTR");
 	from_str = Tcl_GetStringFromObj(argv[1], NULL);
@@ -275,6 +276,33 @@ interp_command(nocsim_linkinfo) {
 	} else if (!strncmp(attr, "load", length)) {
 		Tcl_SetObjResult(interp, Tcl_NewLongObj(l->load));
 		return TCL_OK;
+
+	} else if (!strncmp(attr, "from_dir", length)) {
+		if      (l->from->outgoing[N] == l) { d = N; }
+		else if (l->from->outgoing[S] == l) { d = S; }
+		else if (l->from->outgoing[E] == l) { d = E; }
+		else if (l->from->outgoing[W] == l) { d = W; }
+		else if (l->from->outgoing[P] == l) { d = P; }
+		else {
+			Tcl_SetResult(interp, "simulation state corrupted: link does not originate from it's origin", NULL);
+			return TCL_ERROR;
+		}
+		Tcl_SetObjResult(interp, Tcl_NewIntObj((int) d));
+		return TCL_OK;
+
+	} else if (!strncmp(attr, "to_dir", length)) {
+		if      (l->to->incoming[N] == l) { d = N; }
+		else if (l->to->incoming[S] == l) { d = S; }
+		else if (l->to->incoming[E] == l) { d = E; }
+		else if (l->to->incoming[W] == l) { d = W; }
+		else if (l->to->incoming[P] == l) { d = P; }
+		else {
+			Tcl_SetResult(interp, "simulation state corrupted: link does not terminate at it's destination", NULL);
+			return TCL_ERROR;
+		}
+		Tcl_SetObjResult(interp, Tcl_NewIntObj((int) d));
+		return TCL_OK;
+
 	} else {
 		Tcl_SetResult(interp, "invalid attribute", NULL);
 		return TCL_ERROR;

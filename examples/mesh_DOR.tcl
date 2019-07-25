@@ -4,7 +4,6 @@ package require math
 
 # implements DOR routing for a specific link
 proc DORfrom {dir} {
-	conswrite "\trouting from direction [int2dir $dir]"
 
 	# want to route south
 	if {[peek $dir to_row] > [nodeinfo [current] row]} {
@@ -96,15 +95,33 @@ proc simpleDOR {} {
 }
 
 proc with_P {P} {
-	return ::math::random <= $P
+	if { [::math::random] <= $P } { return 1 } else {return 0}
 }
 
 proc simpleinject {} {
 	if {[with_P 0.3]} { inject [randnode [current]] }
 }
 
-create_mesh 5 5 simpleinject simpleDOR
+proc on_arrive {origin dest flitno hops spawned_at injected_at} {
+	conswrite "flit $flitno arrives at $dest after $hops hops"
+}
+
+proc on_route {origin dest flitno spawnedat injectedat hops fromnode tonode} {
+	upvar #0 nocsim_tick nocsim_tick
+	if {$flitno == 37} {
+		conswrite "(tick=$nocsim_tick) flitno $flitno routed from $fromnode to $tonode"
+	}
+}
+
+registerinstrument arrive on_arrive
+registerinstrument route on_route
+
+create_mesh 10 10 simpleinject simpleDOR
 
 step 5000
 
-conswrite "throughput = [expr $nocsim_routed / ( $nocsim_num_PE * $nocsim_tick ) ] flits per PE per cycle"
+conswrite "routed $nocsim_routed flits"
+conswrite "$nocsim_arrived flits arrived"
+conswrite "$nocsim_spawned flits spawned"
+conswrite "$nocsim_injected flits injected"
+conswrite "throughput = [expr (1.0 * $nocsim_routed /  $nocsim_num_PE) / $nocsim_tick ] flits per PE per cycle"
