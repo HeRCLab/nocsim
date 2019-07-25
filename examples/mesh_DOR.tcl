@@ -116,9 +116,9 @@ proc on_route {origin dest flitno spawnedat injectedat hops fromnode tonode} {
 registerinstrument arrive on_arrive
 registerinstrument route on_route
 
-create_mesh 10 10 simpleinject simpleDOR
+create_mesh 5 5 simpleinject simpleDOR
 
-step 5000
+step 200
 
 conswrite "routed $nocsim_routed flits"
 conswrite "$nocsim_arrived flits arrived"
