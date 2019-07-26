@@ -814,7 +814,9 @@ interp_command(nocsim_dir2int) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj((int) result));
 		return TCL_OK;
 	} else {
-		Tcl_SetObjResult(interp, str2obj("invalid direction"));
+		char* errstr = alloc_printf("invalid_direction: %s", dir);
+		Tcl_SetObjResult(interp, str2obj(errstr));
+		free(errstr);
 		return TCL_ERROR;
 	}
 }

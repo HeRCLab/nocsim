@@ -41,4 +41,5 @@ tcltest::test 003 {should not be possible to overwrite a link on dest end } -bod
 	} else {
 		return 100
 	}
+
 } -result {0}

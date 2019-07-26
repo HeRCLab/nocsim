@@ -11,6 +11,9 @@ namespace eval ::NocsimTCL {
 	namespace export PrintNocsimInfo
 	namespace export create_mesh
 	namespace export all_adjacent
+	namespace export route_priority
+	namespace export lshift
+	namespace export dir2list
 
 }
 
@@ -62,6 +65,55 @@ proc ::NocsimTCL::create_mesh {width height inject_behavior route_behavior} {
 
 	return [concat $routers $PEs]
 
+}
+
+# as described here: https://wiki.tcl-lang.org/page/lshift
+proc ::NocsimTCL::lshift {args} {
+	lassign $args listVar count
+	upvar 1 $listVar var
+	if { ! [info exists var] } {
+		return -level 1 -code error \
+			"can't read \"$listVar\": no such variable"
+	}
+	switch -exact -- [llength $args] {
+		1 {
+			set var [lassign $var value]
+		}
+		2 {
+			set value [lrange $var 0 $count-1]
+			set var [lrange $var $count end]
+		}
+		default {
+			return -level 1 -code error \
+				"wrong # args: should be \"lshift listVar ?count?\""
+				# error-args "lshift listVar ?count?"
+			}
+	}
+	return $value
+}
+
+proc ::NocsimTCL::dir2list args {
+	set result {}
+	foreach arg $args {
+		lappend result [dir2int $arg]
+	}
+	return $result
+}
+
+proc ::NocsimTCL::route_priority args {
+	set from_dir [lshift args]
+
+	# nothing to do
+	if { [incoming $from_dir] != 1} {return;}
+
+	foreach arg $args {
+		if { [avail $arg] == 0 } {
+			route $from_dir $arg
+			return $arg;
+		}
+	}
+
+	return;
 }
 
 package provide NocsimTCL $NocsimTCL::version

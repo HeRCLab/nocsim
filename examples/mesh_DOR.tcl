@@ -7,81 +7,29 @@ proc DORfrom {dir} {
 
 	# want to route south
 	if {[peek $dir to_row] > [nodeinfo [current] row]} {
-		if        {[avail [dir2int south]] == 0} {
-			route $dir [dir2int south]
-		} elseif {[avail [dir2int east ]] == 0} {
-			route $dir [dir2int east]
-		} elseif {[avail [dir2int west ]] == 0} {
-			route $dir [dir2int west]
-		} elseif {[avail [dir2int north]] == 0} {
-			route $dir [dir2int north]
-		} elseif {[avail [dir2int PE]] == 0} {
-			route $dir [dir2int PE]
-		} else {
-			conswrite "\tno available outgoing links from [current]"
-		}
+
+		route_priority $dir {*}[dir2list south east west north PE]
+
 	# want to route north
 	} elseif {[peek $dir to_row] < [nodeinfo [current] row]} {
-		if        {[avail [dir2int north]] == 0} {
-			route $dir [dir2int north]
-		} elseif {[avail [dir2int west ]] == 0} {
-			route $dir [dir2int west]
-		} elseif {[avail [dir2int east ]] == 0} {
-			route $dir [dir2int east]
-		} elseif {[avail [dir2int south]] == 0} {
-			route $dir [dir2int south]
-		} elseif {[avail [dir2int PE]] == 0} {
-			route $dir [dir2int PE]
-		} else {
-			conswrite "\tno available outgoing links from [current]"
-		}
+
+		route_priority $dir {*}[dir2list north west east south pe]
 
 	# want to route east
 	} elseif {[peek $dir to_col] < [nodeinfo [current] col]} {
-		if        {[avail [dir2int east ]] == 0} {
-			route $dir [dir2int east]
-		} elseif {[avail [dir2int south]] == 0} {
-			route $dir [dir2int south]
-		} elseif {[avail [dir2int north]] == 0} {
-			route $dir [dir2int north]
-		} elseif {[avail [dir2int west ]] == 0} {
-			route $dir [dir2int west]
-		} elseif {[avail [dir2int PE]] == 0} {
-			route $dir [dir2int PE]
-		} else {
-			conswrite "\tno available outgoing links from [current]"
-		}
+
+		route_priority $dir {*}[dir2list east south north west PE]
+
 	# want to route west
 	} elseif {[peek $dir to_col] > [nodeinfo [current] col]} {
-		if        {[avail [dir2int west ]] == 0} {
-			route $dir [dir2int west]
-		} elseif {[avail [dir2int north]] == 0} {
-			route $dir [dir2int north]
-		} elseif {[avail [dir2int south]] == 0} {
-			route $dir [dir2int south]
-		} elseif {[avail [dir2int east ]] == 0} {
-			route $dir [dir2int east]
-		} elseif {[avail [dir2int PE]] == 0} {
-			route $dir [dir2int PE]
-		} else {
-			conswrite "\tno available outgoing links from [current]"
-		}
+
+		route_priority $dir {*}[dir2list west north south east PE]
 
 	# our PE is the destination
 	} else {
-		if {[avail [dir2int PE]] == 0} {
-			route $dir [dir2int PE]
-		} elseif {[avail [dir2int west ]] == 0} {
-			route $dir [dir2int west]
-		} elseif {[avail [dir2int north]] == 0} {
-			route $dir [dir2int north]
-		} elseif {[avail [dir2int south]] == 0} {
-			route $dir [dir2int south]
-		} elseif {[avail [dir2int east ]] == 0} {
-			route $dir [dir2int east]
-		} else {
-			conswrite "\tno available outgoing links from [current]"
-		}
+
+		route_priority $dir {*}[dir2list PE west north south east]
+
 	}
 }
 

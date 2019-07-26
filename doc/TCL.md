@@ -301,6 +301,24 @@ Routes the flit incoming from the direction `FROM` to the direction `TO`. `TO`
 and `FROM` should both be integers corresponding to directions, the magic
 variables `dir_*` are provided to make this process easier.
 
+### `route_priority FROM ...` (routing behaviors only)
+
+Routes the flit incoming from the direction `FROM` into the highest priority
+available outgoing link. Remaining arguments after `FROM` are a list of
+directions (in nocsim's internal integer representation), in depending order of
+preference. `route_from` will automatically select the highest priority link
+which exists and is available.
+
+The direction of the select link will be returned if one is found, and
+otherwise no value (`""`) will be returned.
+
+For example, `route_priority [dir2int east] [dir2int north] [dir2int south]`
+would route the flit incoming from the east to the north if it is available,
+and then to the south if the north is unavailable.
+
+Note that the existence/availability of all such links is checked without
+`route_priority`, and failures are silent (aside from the return value).
+
 ### `drop FROM` (routing behaviors only)
 
 Drops the  flit incoming from the direction `FROM`. This will immediately
@@ -340,9 +358,9 @@ the `dir_*` magic variables). Returns one of the following values:
 
 `DIR` should be specified as an integer in `nocsim`'s internal format.
 
-Returns 1 if there is a flit incoming from the specified direction,
-and 0 otherwise. Note that routing a flit removes it from the relevant incoming
-link;
+Returns 1 if there is a flit incoming from the specified direction, and 0
+otherwise (including if the link in that direction does not exist). Note that
+routing a flit removes it from the relevant incoming link;
 
 ### `allincoming` (routing behaviors only)
 
@@ -391,6 +409,16 @@ by `nocsim`. Valid direction strings include:
 (`n`/`s`/`e`/`w`/`pe`). Other styles are made available for user friendliness in
 interactive interpreters.
 
+### `dir2list ...`
+
+Converts a list of direction strings to a list of integers using `dir2int`.
+
+This is especially useful for commands such as `route_priority`.
+
+**TIP**: [the TCL list expansion
+operator](http://www.wellho.net/mouth/3583_Expanding-a-list-of-parameters-in-Tcl-and-eval.html)
+may be of use to you.
+
 ### `int2dir DIR`
 
 Converts an integer direction (`DIR`) in `nocsim`'s internal representation to
@@ -417,6 +445,15 @@ Returns a list of all node IDs which are adjacent (i.e. north, south, east, and
 west) to the node with the specified ID. Note that links need not be present
 for adjacent nodes to be detected, this makes this function suitable for use
 during link generation.
+
+### `lshift LISTVAR` / `lshift LISTVAR COUNT`
+
+The `lshfit` method described [here](https://wiki.tcl-lang.org/page/lshift)
+(specifically fredderic's variation).  This procedure pops the first element
+from a list and returns it.
+
+If `COUNT` is specified, then that many list elements are popped and returned
+as a list.
 
 ### Topography Generators
 
