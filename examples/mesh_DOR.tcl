@@ -1,36 +1,44 @@
 # this simple example shows a small deflection routed network using DOR routing
 
-package require math
+package require math::statistics
 
 # implements DOR routing for a specific link
 proc DORfrom {dir} {
 
+	set prilist {}
+
 	# want to route south
 	if {[peek $dir to_row] > [nodeinfo [current] row]} {
 
-		route_priority $dir {*}[dir2list south east west north PE]
+		set prilist [dir2list south north east west PE]
 
 	# want to route north
 	} elseif {[peek $dir to_row] < [nodeinfo [current] row]} {
 
-		route_priority $dir {*}[dir2list north west east south pe]
+		set prilist [dir2list north south east west PE]
 
 	# want to route east
-	} elseif {[peek $dir to_col] < [nodeinfo [current] col]} {
-
-		route_priority $dir {*}[dir2list east south north west PE]
-
-	# want to route west
 	} elseif {[peek $dir to_col] > [nodeinfo [current] col]} {
 
-		route_priority $dir {*}[dir2list west north south east PE]
+		set prilist [dir2list east west south north PE]
+
+	# want to route west
+	} elseif {[peek $dir to_col] < [nodeinfo [current] col]} {
+
+		set prilist [dir2list west east south north PE]
 
 	# our PE is the destination
 	} else {
 
-		route_priority $dir {*}[dir2list PE west north south east]
+		set prilist [dir2list PE west north south east]
 
 	}
+
+	# make the direction we came from always the lowest priority
+	# set prilist [lremove prilist $dir]
+	# lappend prilist $dir
+
+	route_priority $dir {*}$prilist
 }
 
 proc simpleDOR {} {
@@ -47,11 +55,13 @@ proc with_P {P} {
 }
 
 proc simpleinject {} {
-	if {[with_P 0.3]} { inject [randnode [current]] }
+	if {[with_P 0.2]} { inject [randnode [current]] }
 }
 
 proc on_arrive {origin dest flitno hops spawned_at injected_at} {
-	conswrite "flit $flitno arrives at $dest after $hops hops"
+	upvar #0 age_on_arrive age_on_arrive
+	upvar #0 nocsim_tick nocsim_tick
+	lappend age_on_arrive [expr $nocsim_tick - $spawned_at]
 }
 
 proc on_route {origin dest flitno spawnedat injectedat hops fromnode tonode} {
@@ -62,14 +72,21 @@ proc on_route {origin dest flitno spawnedat injectedat hops fromnode tonode} {
 }
 
 registerinstrument arrive on_arrive
-registerinstrument route on_route
+#registerinstrument route on_route
 
-create_mesh 5 5 simpleinject simpleDOR
+create_mesh 10 10 simpleinject simpleDOR
 
-step 200
+set age_on_arrive {}
+
+step 500
 
 conswrite "routed $nocsim_routed flits"
 conswrite "$nocsim_arrived flits arrived"
 conswrite "$nocsim_spawned flits spawned"
 conswrite "$nocsim_injected flits injected"
 conswrite "throughput = [expr (1.0 * $nocsim_routed /  $nocsim_num_PE) / $nocsim_tick ] flits per PE per cycle"
+conswrite "age on arrival... "
+conswrite "\tmean    : [::math::statistics::mean $age_on_arrive]"
+conswrite "\tmedian  : [::math::statistics::median $age_on_arrive]"
+conswrite "\tstdev   : [::math::statistics::stdev $age_on_arrive]"
+conswrite "\tvariance: [::math::statistics::var $age_on_arrive]"
