@@ -723,9 +723,82 @@ inter-operating `nocsim` simulations with other tools.
 * CSV
 	* The TCL standard library includes a [CSV module](https://core.tcl-lang.org/tcllib/doc/tcllib-1-18/embedded/www/tcllib/files/modules/csv/csv.html)
 
+### Using `nocsim` With Tk
+
+You may find it useful to use Tk, which it TCL's native GUI library, in
+conjunction with `nocsim`. For example, it might be useful to build a custom UI
+for manipulating some aspect of your simulation, or to display a plot of
+results.
+
+Tk can be used within `nocsim` weather it is running on the console or as via
+the GUI. However, some care must be taken. `nocsim` is a single-threaded
+application, so directly executing the a Tk event loop in the foreground
+`nocsim` thread will cause the simulation to block.
+
+The suggested approach is to execute the main Tk window using a background
+thread, and to use `thread::send -async` to update the state of the Tk window.
+
+Here is an example of a simple Tk program which will create a window with two
+text widgets. One of the widgets will be updated with a new value after 2
+seconds.
+
+```tcl
+package require Thread
+
+# create the thread
+set t1 [thread::create]
+
+# initial setup
+thread::send -async $t1 {
+	package require Tk
+
+	# this widget will not be changed
+	text .hello_label -height 2 -width 40
+	.hello_label insert 1.0 "hello, Tk"
+	.hello_label insert 2.0 "\nthis widget stays static"
+	pack .hello_label
+
+	# we will later update this widget with new contents
+	text .should_update -height 2 -width 40
+	.should_update insert 1.0 "replace me!"
+	pack .should_update
+
+	# run TCL/Tk event loop
+	vwait done
+}
+
+# wait a while
+after 2000
+
+# update the text in the second widget
+thread::send -async $t1 {
+
+	# clear existing text value
+	.should_update delete 0.0 end
+
+	# send in new value
+	.should_update insert 1.0 "new value!"
+
+	# force the widget to update
+	pack .should_update
+}
+```
+
+Keep in mind that while the embedded TCL interpreter does allow
+multi-threading, `nocsim` itself is **not** thread safe. `nocsim` commands
+should only ever be executed from a single thread. This is not enforced by
+technical means. It is suggested that the foreground thread should interact
+with `nocsim`, and the background thread should be used only for updating what
+is displayed in the GUI.
+
+[Tcl Programming/Tk
+examples](https://en.wikibooks.org/wiki/Tcl_Programming/Tk_examples) contains
+several helpful examples of basic Tk programming.
+
 ## TCL Resources
 
 * [Tcl Library Source Code](https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/toc.md)
 * [Practical Programming in Tcl and Tk (4th Edition)](https://www.amazon.com/Practical-Programming-Tcl-Tk-4th/dp/0130385603)
 * [The Tcler's Wiki](https://wiki.tcl-lang.org/page/Online+Tcl+and+Tk+Tutorials)
 * [Tcl/Tk Documentation](https://www.tcl-lang.org/man/tcl/contents.htm)
+* [Tcl Programming/Tk examples](https://en.wikibooks.org/wiki/Tcl_Programming/Tk_examples)
