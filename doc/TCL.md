@@ -730,7 +730,7 @@ conjunction with `nocsim`. For example, it might be useful to build a custom UI
 for manipulating some aspect of your simulation, or to display a plot of
 results.
 
-Tk can be used within `nocsim` weather it is running on the console or as via
+Tk can be used within `nocsim` whether it is running on the console or as via
 the GUI. However, some care must be taken. `nocsim` is a single-threaded
 application, so directly executing the a Tk event loop in the foreground
 `nocsim` thread will cause the simulation to block.
