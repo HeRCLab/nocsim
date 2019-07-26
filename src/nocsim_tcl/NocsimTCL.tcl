@@ -14,6 +14,7 @@ namespace eval ::NocsimTCL {
 	namespace export route_priority
 	namespace export lshift
 	namespace export dir2list
+	namespace export lremove
 
 }
 
@@ -114,6 +115,13 @@ proc ::NocsimTCL::route_priority args {
 	}
 
 	return;
+}
+
+proc ::NocsimTCL::lremove {listname val} {
+	upvar 1 $listname target_list
+
+	set idx [lsearch $target_list $val]
+	return [lreplace $target_list $idx $idx]
 }
 
 package provide NocsimTCL $NocsimTCL::version

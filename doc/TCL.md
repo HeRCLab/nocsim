@@ -455,7 +455,26 @@ from a list and returns it.
 If `COUNT` is specified, then that many list elements are popped and returned
 as a list.
 
-### Topography Generators
+**NOTE**: `LISTVAR` should be the name of the list to be operated on (i.e.
+`listname`, not `$listname`).
+
+### `lremove LISTVAR VAL`
+
+Remove an element from a list by value, rather than by index.  If multiple
+instances of the same value are present, only the first will be removed. The
+modified list is returned, rather than updated in-place.
+
+For example"
+
+```tcl
+set mylist {a b c d}
+set mylist [lremove mylist b]
+puts $mylist
+```
+
+Would output: `a c d`.
+
+## Topography Generation Procedures
 
 ### `create_mesh WIDTH HEIGHT INJECT_BEHAVIOR ROUTE_BEHAVIOR`
 
