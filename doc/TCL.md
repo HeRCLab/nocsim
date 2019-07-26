@@ -784,16 +784,85 @@ thread::send -async $t1 {
 }
 ```
 
-Keep in mind that while the embedded TCL interpreter does allow
-multi-threading, `nocsim` itself is **not** thread safe. `nocsim` commands
-should only ever be executed from a single thread. This is not enforced by
-technical means. It is suggested that the foreground thread should interact
-with `nocsim`, and the background thread should be used only for updating what
-is displayed in the GUI.
-
 [Tcl Programming/Tk
 examples](https://en.wikibooks.org/wiki/Tcl_Programming/Tk_examples) contains
 several helpful examples of basic Tk programming.
+
+### Transferring Control to Tk
+
+In some cases, you may wish to use Tk as the foreground process, it is possible
+to effectively convert the foreground `nocsim` thread into a background thread.
+This following script provides an example of this:
+
+```tcl
+package require Thread
+
+set gui_thread [thread::create]
+set fg_thread [thread::id]
+
+# send the foreground thread handle to the GUI thread
+thread::send -async $gui_thread "set fg_thread $fg_thread"
+
+thread::send -async $gui_thread {
+	package require Tk
+
+	proc nop {} {}
+
+	set msg_text "foreground thread is (none yet)"
+
+	# show that we were passed the foreground thread handle properly
+	label .sim_thread_label -textvariable msg_text
+	pack .sim_thread_label
+
+	button .step_btn -command { thread::send -async $fg_thread {
+		step
+	} } -text {step once}
+	pack .step_btn
+
+	button .step10_btn -command { thread::send -async $fg_thread {
+		step 10
+	} } -text {step 10 times}
+	pack .step10_btn
+
+	button .mesh_btn -command { thread::send -async $fg_thread {
+		create_mesh 5 5 nop nop
+	} } -text {create mesh}
+	pack .mesh_btn
+
+}
+
+# enter event loop, to allow this thread to be controlled by the Tk thread
+thread::wait
+
+```
+
+Note that due to the way in which `thread::release` is implemented within TCL,
+it is not possible to resume execution of the foreground thread after control
+has passed to the GUI thread. For this reason, this method is mutually
+exclusive to the `nocsim` GUI.
+
+Alternatively, simple run the TCL event loop (i.e. `vwait done`) directly in
+the `nocsim` TCL interpreter, rather than in a background thread. When using
+this approach, the Tk window will not update while `nocsim` commands such as
+`step` are running.
+
+### Caveats
+
+There are several caveats to keep in mind when using Tk within `nocsim`
+
+* When running in the `nocsim` GUI, the TCL event loop **must** run in a
+  background thread, or else the GUI will hang, as it runs in the same thread
+  as the TCL interpreter.
+* `nocsim` commands can only be executed from the foreground thread. This is
+  because nocsim is not implemented as a TCL C extension, but rather injects
+  it's commands directly into a nested TCL interpreter before running it. This
+  is necessary due to how `nocsim` manages the simulation state internally.
+* If `thread::wait` is called in the foreground thread, execution can be
+  resumed by calling `thread::release` on the foreground thread from a
+  background thread (for example, in response to a Tcl button press). However,
+  due to implementation details of the `Thread` package, the foreground thread
+  no longer has a valid handle (i.e. `thread::id` no longer refers to a valid
+  thread ID). As a result, `thread::wait` can never (usefully) be called again.
 
 ## TCL Resources
 
