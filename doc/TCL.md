@@ -474,6 +474,10 @@ puts $mylist
 
 Would output: `a c d`.
 
+### `allnodes`
+
+Return a list of all currently instantiated node IDs.
+
 ## Topography Generation Procedures
 
 ### `create_mesh WIDTH HEIGHT INJECT_BEHAVIOR ROUTE_BEHAVIOR`

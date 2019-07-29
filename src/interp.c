@@ -1003,6 +1003,25 @@ interp_command(nocsim_nodecolor_command) {
 
 }
 
+/*** allnodes ****************************************************************/
+interp_command(nocsim_allnodes_command) {
+	nocsim_state* state = (nocsim_state*) data;
+	nocsim_node* cursor;
+	unsigned int i;
+	Tcl_Obj* listPtr;
+
+	req_args(1, "allnodes");
+
+	listPtr = Tcl_NewListObj(0, NULL);
+
+	vec_foreach(state->nodes, cursor, i) {
+		Tcl_ListObjAppendElement(interp, listPtr, str2obj(cursor->id));
+	}
+
+	Tcl_SetObjResult(interp, listPtr);
+	return TCL_OK;
+
+}
 
 
 /*** interpreter implementation **********************************************/
@@ -1118,6 +1137,7 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	defcmd(nocsim_allincoming_command, "allincoming");
 	defcmd(nocsim_drop_command, "drop");
 	defcmd(nocsim_nodecolor_command, "nodecolor");
+	defcmd(nocsim_allnodes_command, "allnodes");
 
 #undef defcmd
 
