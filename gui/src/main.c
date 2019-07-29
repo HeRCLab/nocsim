@@ -410,6 +410,12 @@ void graph_update(nocsim_state* state, AG_Driver* dri, AG_Box* box) {
 			AG_GraphVertexPosition(vtx, cursor->col * 150 + 75, cursor->row * 150 + 75);
 		}
 
+		/* show colors */
+		AG_ObjectLock(vtx->graph);
+		vtx->bgColor = cursor->c;
+		AG_ObjectUnlock(vtx->graph);
+		AG_Redraw(vtx->graph);
+
 	}
 
 	/* TODO: performance could be _much_ improved here */

@@ -142,6 +142,11 @@ typedef struct nocsim_node_t {
 	long injected;
 	long arrived;
 
+	/**** GUI ************************************************************/
+#ifdef NOCSIM_GUI
+	AG_Color c;
+#endif
+
 } nocsim_node;
 
 typedef vec_t(nocsim_node*) nodelist;

@@ -45,6 +45,11 @@ void nocsim_init_node(nocsim_node* n, nocsim_node_type type, unsigned int row, u
 	n->dequeued = 0;
 	n->backrouted = 0;
 	n->arrived = 0;
+
+#ifdef NOCSIM_GUI
+	AG_ColorRGBA_8(&n->c, 255,255,255, 128);
+#endif
+
 }
 
 char* nocsim_fmt_node(nocsim_node* node) {
