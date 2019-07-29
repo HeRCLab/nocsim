@@ -485,6 +485,25 @@ have automatically generated IDs.
 
 Returns a list of node IDs that were generated.
 
+## Visualization Procedures
+
+**NOTE**: These procedures are intended to help build visualizations using
+`nocsim-gui`. They may be called in the CLI version of nocsim, but will have no
+effect. In other words, it is safe to include these commands in a script that
+runs in the CLI version of nocsim, as they will simply be ignored.
+
+### `nodecolor ID R G B A`
+
+Render the node specified by `ID` with the given RGBA color tuple. Note that
+all color channels are cast to unsigned 8 bit integers before being used.
+
+### `mapcolor R1 G1 B1 A1 R2 G2 B2 A2 LOWER UPPER VAL`
+
+Given a pair of colors by their RGBA color tuples, and an upper and lower
+bound, map a given value `VAL` to an RGBA color tuple. For example, `VAL` being
+exactly half way between `LOWER` and `UPPER`, should result in a returned color
+exactly between the two given colors.
+
 ## Behavior Callbacks
 
 The behavior of each node in simulate network is defined by a *behavior

@@ -15,6 +15,7 @@ namespace eval ::NocsimTCL {
 	namespace export lshift
 	namespace export dir2list
 	namespace export lremove
+	namespace export mapcolor
 
 }
 
@@ -122,6 +123,19 @@ proc ::NocsimTCL::lremove {listname val} {
 
 	set idx [lsearch $target_list $val]
 	return [lreplace $target_list $idx $idx]
+}
+
+proc ::NocsimTCL::mapcolor {r1 g1 b1 a1 r2 g2 b2 a2 lower upper val} {
+
+	if { $upper < $lower } { return [::NocsimTCL::mapcolor $r1 $g1 $b1 $a1 $r2 $g2 $b2 $a2 $upper $lower $val] }
+
+	set d [ expr (1.0 * $val - 1.0 * $lower) / (1.0 * $upper - 1.0 * $lower) ]
+	set r [ expr abs($r2 - $r1) * $d ]
+	set g [ expr abs($g2 - $g1) * $d ]
+	set b [ expr abs($b2 - $b1) * $d ]
+	set a [ expr abs($a2 - $a1) * $d ]
+
+	return [ list $r $g $b $a ]
 }
 
 package provide NocsimTCL $NocsimTCL::version
