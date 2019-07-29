@@ -14,9 +14,10 @@ LIB_DIR=$(PREFIX)/lib
 TCL_DIR=$(LIB_DIR)
 
 # constants
-NOCSIM_VERSION_PATCH=0
+NOCSIM_VERSION_PATCH=1
 NOCSIM_VERSION_MINOR=0
 NOCSIM_VERSION_MAJOR=1
+NOCSIM_VERSION_DEV=1
 
 ifeq ($(DEVELOP),true)
 	CFLAGS=-O0 -g3 -Wall -Wextra -pedantic -std=c99 -DEBUG $(ECFLAGS)
@@ -91,6 +92,7 @@ src/nocsim_constants.h:
 	echo "#define NOCSIM_VERSION_PATCH $(NOCSIM_VERSION_PATCH)" >> $@
 	echo "#define NOCSIM_VERSION_MINOR $(NOCSIM_VERSION_MINOR)" >> $@
 	echo "#define NOCSIM_VERSION_MAJOR $(NOCSIM_VERSION_MAJOR)" >> $@
+	echo "#define NOCSIM_VERSION_DEV $(NOCSIM_VERSION_DEV)" >> $@
 	echo "#define NOCSIM_TCL_PATH \"$(TCL_DIR)/NocsimTCL\"" >> $@
 	echo "#define NOCSIM_TCL_DEV_PATH \"$(TCL_DEV_DIR)/NocsimTCL\"" >> $@
 	echo "#endif" >> $@

@@ -1140,6 +1140,10 @@ nocsim_state* nocsim_create_interp(char* runme, int argc, char** argv) {
 	Tcl_ListObjAppendElement(interp, vers, Tcl_NewIntObj(NOCSIM_VERSION_PATCH));
 	Tcl_ObjSetVar2(interp, str2obj("nocsim_version"), NULL, vers, 0);
 
+	if (NOCSIM_VERSION_DEV == 1) {
+		Tcl_Eval(interp, "conswrite \"THIS IS A DEVELOPMENT COPY OF NOCSIM\"");
+	}
+
 	return state;
 
 
