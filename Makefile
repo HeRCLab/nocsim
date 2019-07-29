@@ -47,7 +47,7 @@ info:
 	@echo "development build?  . . . $(DEVELOP)"
 	@echo "execute 'make all' to build, and 'make install' to install to the specified prefix"
 	@echo "for development builds, use 'make DEVELOP=true ...'"
-	@echo "to also install the GUI, run 'make gui' before 'make build'"
+	@echo "to also install the GUI, run 'make gui' before 'make all'"
 
 version:
 	@echo "$(NOCSIM_VERSION_MAJOR).$(NOCSIM_VERSION_MINOR).$(NOCSIM_VERSION_PATCH)"
