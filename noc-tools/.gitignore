@@ -1,0 +1,11 @@
+.depend
+*/.depend
+config.log
+config.status
+config/
+*.o
+*.so
+*.a
+*.so*
+*.la
+*.gch
