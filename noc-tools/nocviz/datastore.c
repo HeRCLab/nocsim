@@ -19,24 +19,24 @@ void nocviz_ds_free(nocviz_ds* ds) {
 	strvec* vec;
 	nocviz_op* oper;
 
-	nocviz_ds_foreach_kvp(ds, key, str,
-		free(str);
-	);
+	/* nocviz_ds_foreach_kvp(ds, key, str, */
+	/*         free(str); */
+	/* ); */
 	kh_destroy(mstrstr, ds->kvp);
 
-	nocviz_ds_foreach_fmt(ds, key, str,
-		free(str);
-	);
+	/* nocviz_ds_foreach_fmt(ds, key, str, */
+	/*         free(str); */
+	/* ); */
 	kh_destroy(mstrstr, ds->fmt);
 
-	nocviz_ds_foreach_op(ds, key, oper,
-		nocviz_op_free(oper);
-	);
+	/* nocviz_ds_foreach_op(ds, key, oper, */
+	/*         nocviz_op_free(oper); */
+	/* ); */
 	kh_destroy(mstrop, ds->ops);
 
-	nocviz_ds_foreach_section(ds, key, vec,
-		vec_deinit(vec);
-	);
+	/* nocviz_ds_foreach_section(ds, key, vec, */
+	/*         vec_deinit(vec); */
+	/* ); */
 	kh_destroy(mstrvec, ds->sections);
 
 	free(ds);
