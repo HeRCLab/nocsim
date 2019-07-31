@@ -2,7 +2,7 @@ TOP=.
 include ${TOP}/Makefile.config
 
 PROJECT=		"noc-tools"
-SUBDIR=			nocviz
+SUBDIR=			3rdparty nocviz
 
 CFLAGS=			-std=C11
 
@@ -21,4 +21,4 @@ depend: depend-subdir
 include ${TOP}/mk/build.common.mk
 include ${TOP}/mk/build.subdir.mk
 
-.PHONY: all clean cleandir install deinstall depend
+.PHONY: all clean cleandir install deinstall depend show_cflags show_libs

@@ -1,7 +1,10 @@
 #ifndef NOCVIZ_OPERATIONS_H
 #define NOCVIZ_OPERATIONS_H
 
+#include <string.h>
 #include <tcl.h>
+
+#include "../common/util.h"
 
 /******************************************************************************
  *
@@ -16,8 +19,10 @@ typedef struct nocviz_op_t {
 	char* description;
 } nocviz_op;
 
+/* Copies the given strings, since op_free will free them. Caller must free the
+ * copies on it's side, if any. */
 nocviz_op* nocviz_op_init(char* script, char* description);
-init nocviz_op_execute(nocviz_op* oper, Tcl_Interp* interp);
 void nocviz_op_free(nocviz_op* oper);
+int nocviz_op_execute(nocviz_op* oper, Tcl_Interp* interp);
 
 #endif

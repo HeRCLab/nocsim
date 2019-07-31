@@ -4,6 +4,9 @@
 #include "../3rdparty/khash.h"
 #include "../3rdparty/vec.h"
 #include "operations.h"
+#include "../common/util.h"
+
+#include <tcl.h>
 
 /******************************************************************************
  *
@@ -16,32 +19,44 @@
  * A datatore also stores operations, and provides a key-value pair store
  * mapping operation IDs to operation struts.
  *
+ * Because the formatted version of a value only changes when either the value
+ * or format string changes, so the formatted version of each values is cached
+ * and updated as needed.
+ *
+ * NOTE: the fmtcache is not guarnteed to be up to date, nocviz_ds_format()
+ * should always be used when retrieving values for display.
+ *
  *****************************************************************************/
 
+typedef vec_t(char*) strvec;
+
 /* mapping of strings to other strings */
-KHASH_MAP_INIT_STR(mstrstr, char*);
+KHASH_MAP_INIT_STR(mstrstr, char*)
 
 /* mapping of strings to vectors of strings */
-KHASH_MAP_INIT_STR(mstrvec, vec_t(char*)*);
+KHASH_MAP_INIT_STR(mstrvec, strvec*)
 
 /* maping of strings to operations */
-KHASH_MAP_INIT_STR(mstrop, nocviz_op*);
+KHASH_MAP_INIT_STR(mstrop, nocviz_op*)
 
 typedef struct nocviz_ds_t {
 	khash_t(mstrstr)* kvp;
 	khash_t(mstrstr)* fmt;
+	khash_t(mstrstr)* fmtcache;
 	khash_t(mstrvec)* sections;
 	khash_t(mstrop)* ops;
 } nocviz_ds;
 
 /* initialization */
-nocviz_datastore* nocviz_ds_init(void);
+nocviz_ds* nocviz_ds_init(void);
+void nocviz_ds_free(nocviz_ds* ds);
 
 /* getters */
 char* nocviz_ds_get_kvp(nocviz_ds* ds, char* k);
 char* nocviz_ds_get_fmt(nocviz_ds* ds, char* k);
+char* nocviz_ds_get_fmtcache(nocviz_ds* ds, char* k);
 nocviz_op* nocviz_ds_get_op(nocviz_ds* ds, char* opid);
-vec_t(char*)* nocviz_ds_get_section(nocviz_ds* ds, char* sect);
+strvec* nocviz_ds_get_section(nocviz_ds* ds, char* sect);
 
 /* retrieve a formatted value */
 char* nocviz_ds_format(nocviz_ds* ds, char* k);
@@ -49,26 +64,27 @@ char* nocviz_ds_format(nocviz_ds* ds, char* k);
 /* setters */
 void nocviz_ds_set_kvp(nocviz_ds* ds, char* k, char* v);
 void nocviz_ds_set_fmt(nocviz_ds* ds, char* k, char* fmt);
-void nocviz_ds_set_op(nocviz_ds* ds, char* opid, nocsim_op* oper);
+void nocviz_ds_set_fmtcache(nocviz_ds* ds, char* k, char* fmt);
+void nocviz_ds_set_op(nocviz_ds* ds, char* opid, nocviz_op* oper);
 /* no setter for sections, caller can modify the vec_t directly */
 
 /* deleters -- don't free values, just return them */
 char* nocviz_ds_del_kvp(nocviz_ds* ds, char* k);
 char* nocviz_ds_del_fmt(nocviz_ds* ds, char* k);
+char* nocviz_ds_del_fmtcache(nocviz_ds* ds, char* k);
 nocviz_op* nocviz_ds_del_op(nocviz_ds* ds, char* opid);
-vec_t(char*)* nocviz_ds_del_section(nocviz_ds* ds, char* section);
-
-/* deinitialization */
-nocviz_ds_free(nocviz_ds* ds);
+strvec* nocviz_ds_del_section(nocviz_ds* ds, char* section);
 
 /* iterators */
-/* TODO
 
-#define nocviz_ds_foreach_kvp(ds, kvar, vvar, code)
-#define nocviz_ds_foreach_fmt(ds, kvar, vvar, code)
-#define nocviz_ds_foreach_op(ds, kvar, vvar, code)
-#define nocviz_ds_foreach_section(ds, kvar, vvar, code)
+#define nocviz_ds_foreach_kvp(ds, kvar, vvar, code) \
+	kh_foreach(ds->kvp, kvar, vvar, code)
+#define nocviz_ds_foreach_fmt(ds, kvar, vvar, code) \
+	kh_foreach(ds->fmt, kvar, vvar, code)
+#define nocviz_ds_foreach_op(ds, kvar, vvar, code) \
+	kh_foreach(ds->ops, kvar, vvar, code)
+#define nocviz_ds_foreach_section(ds, kvar, vvar, code) \
+	kh_foreach(ds->sections, kvar, vvar, code)
 
-*/
 
 #endif

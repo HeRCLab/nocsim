@@ -378,10 +378,10 @@ echo "    --with-gettext            Use gettext for multi-language [auto-detect]
 echo "    --with-libtool            Specify path to libtool [bundled]"
 echo "    --with-manlinks           Add manual entries for every function [no]"
 echo "    --with-manpages           Generate Unix manual pages [yes]"
-echo "    --enable-warnings           Enable compiler warnings [default: no]"
 echo "    --with-agar[=PREFIX]        Agar installation path [default: auto]"
 echo "    --enable-debugger           Enable Agar debugger - requires libagar to be built with support for debugging [default: no]"
 echo "    --enable-devmode            Enable generation of debugging symbols and other development features [default: no]"
+echo "    --enable-werror             Treat all compiler warnings as errors [default: no]"
 exit 1
 fi;
 if [ "${show_version}" = "yes" ]; then
@@ -1483,15 +1483,11 @@ echo "* " >> config.log
 echo "configure failed!"
 exit 1
 fi;
-if [ "${enable_warnings}" = "yes" ]
- then
-CFLAGS="$CFLAGS -Wall -Werror"
-CFLAGS="$CFLAGS -Wno-unused"
-fi
 if [ "${enable_debugger}" = "yes" ] 
  then
 CFLAGS="$CFLAGS -DENABLE_DEBUGGER"
 fi
+CFLAGS="$CFLAGS -Wall -Wextra -pedantic"
 if [ "${enable_devmode}" = "yes" ] 
  then
 CFLAGS="$CFLAGS -DEBUG"
@@ -1499,68 +1495,72 @@ CFLAGS="$CFLAGS -Og -g"
 else
 CFLAGS="$CFLAGS -O3"
 fi
-echo "TCL_LIBS=$TCL_LIBS" >>Makefile.config
-echo "mdefs[\"TCL_LIBS\"] = \"$TCL_LIBS\"" >>configure.lua
-echo "ENABLE_NLS=$ENABLE_NLS" >>Makefile.config
-echo "mdefs[\"ENABLE_NLS\"] = \"$ENABLE_NLS\"" >>configure.lua
-echo "CC=$CC" >>Makefile.config
-echo "mdefs[\"CC\"] = \"$CC\"" >>configure.lua
-echo "PACKAGE=$PACKAGE" >>Makefile.config
-echo "mdefs[\"PACKAGE\"] = \"$PACKAGE\"" >>configure.lua
-echo "SYSCONFDIR=$SYSCONFDIR" >>Makefile.config
-echo "mdefs[\"SYSCONFDIR\"] = \"$SYSCONFDIR\"" >>configure.lua
-echo "VERSION=$VERSION" >>Makefile.config
-echo "mdefs[\"VERSION\"] = \"$VERSION\"" >>configure.lua
-echo "CFLAGS=$CFLAGS" >>Makefile.config
-echo "mdefs[\"CFLAGS\"] = \"$CFLAGS\"" >>configure.lua
-echo "EXECSUFFIX=$EXECSUFFIX" >>Makefile.config
-echo "mdefs[\"EXECSUFFIX\"] = \"$EXECSUFFIX\"" >>configure.lua
-echo "HAVE_AGAR=$HAVE_AGAR" >>Makefile.config
-echo "mdefs[\"HAVE_AGAR\"] = \"$HAVE_AGAR\"" >>configure.lua
-echo "HAVE_GETTEXT=$HAVE_GETTEXT" >>Makefile.config
-echo "mdefs[\"HAVE_GETTEXT\"] = \"$HAVE_GETTEXT\"" >>configure.lua
-echo "BINDIR=$BINDIR" >>Makefile.config
-echo "mdefs[\"BINDIR\"] = \"$BINDIR\"" >>configure.lua
-echo "MODULEDIR=$MODULEDIR" >>Makefile.config
-echo "mdefs[\"MODULEDIR\"] = \"$MODULEDIR\"" >>configure.lua
-echo "LIBDIR=$LIBDIR" >>Makefile.config
-echo "mdefs[\"LIBDIR\"] = \"$LIBDIR\"" >>configure.lua
-echo "HAVE_LD_NO_UNDEFINED=$HAVE_LD_NO_UNDEFINED" >>Makefile.config
-echo "mdefs[\"HAVE_LD_NO_UNDEFINED\"] = \"$HAVE_LD_NO_UNDEFINED\"" >>configure.lua
-echo "AGAR_CFLAGS=$AGAR_CFLAGS" >>Makefile.config
-echo "mdefs[\"AGAR_CFLAGS\"] = \"$AGAR_CFLAGS\"" >>configure.lua
-echo "AGAR_LIBS=$AGAR_LIBS" >>Makefile.config
-echo "mdefs[\"AGAR_LIBS\"] = \"$AGAR_LIBS\"" >>configure.lua
-echo "STATEDIR=$STATEDIR" >>Makefile.config
-echo "mdefs[\"STATEDIR\"] = \"$STATEDIR\"" >>configure.lua
-echo "PROG_GUI_FLAGS=$PROG_GUI_FLAGS" >>Makefile.config
-echo "mdefs[\"PROG_GUI_FLAGS\"] = \"$PROG_GUI_FLAGS\"" >>configure.lua
-echo "TCL_CFLAGS=$TCL_CFLAGS" >>Makefile.config
-echo "mdefs[\"TCL_CFLAGS\"] = \"$TCL_CFLAGS\"" >>configure.lua
-echo "MANDIR=$MANDIR" >>Makefile.config
-echo "mdefs[\"MANDIR\"] = \"$MANDIR\"" >>configure.lua
-echo "HAVE_CC_MWINDOWS=$HAVE_CC_MWINDOWS" >>Makefile.config
-echo "mdefs[\"HAVE_CC_MWINDOWS\"] = \"$HAVE_CC_MWINDOWS\"" >>configure.lua
-echo "LOCALEDIR=$LOCALEDIR" >>Makefile.config
-echo "mdefs[\"LOCALEDIR\"] = \"$LOCALEDIR\"" >>configure.lua
-echo "PROG_CLI_FLAGS=$PROG_CLI_FLAGS" >>Makefile.config
-echo "mdefs[\"PROG_CLI_FLAGS\"] = \"$PROG_CLI_FLAGS\"" >>configure.lua
-echo "LIBEXECDIR=$LIBEXECDIR" >>Makefile.config
-echo "mdefs[\"LIBEXECDIR\"] = \"$LIBEXECDIR\"" >>configure.lua
-echo "LIBTOOLOPTS_SHARED=$LIBTOOLOPTS_SHARED" >>Makefile.config
-echo "mdefs[\"LIBTOOLOPTS_SHARED\"] = \"$LIBTOOLOPTS_SHARED\"" >>configure.lua
-echo "HAVE_LD_STATIC_LIBGCC=$HAVE_LD_STATIC_LIBGCC" >>Makefile.config
-echo "mdefs[\"HAVE_LD_STATIC_LIBGCC\"] = \"$HAVE_LD_STATIC_LIBGCC\"" >>configure.lua
-echo "HAVE_CYGWIN=$HAVE_CYGWIN" >>Makefile.config
-echo "mdefs[\"HAVE_CYGWIN\"] = \"$HAVE_CYGWIN\"" >>configure.lua
-echo "HAVE_CC_WARNINGS=$HAVE_CC_WARNINGS" >>Makefile.config
-echo "mdefs[\"HAVE_CC_WARNINGS\"] = \"$HAVE_CC_WARNINGS\"" >>configure.lua
+if [ "${enable_werror}" = "yes" ] 
+ then
+CFLAGS="$CFLAGS -Werror"
+fi
 echo "HAVE_CC_MCONSOLE=$HAVE_CC_MCONSOLE" >>Makefile.config
 echo "mdefs[\"HAVE_CC_MCONSOLE\"] = \"$HAVE_CC_MCONSOLE\"" >>configure.lua
+echo "PROG_CLI_FLAGS=$PROG_CLI_FLAGS" >>Makefile.config
+echo "mdefs[\"PROG_CLI_FLAGS\"] = \"$PROG_CLI_FLAGS\"" >>configure.lua
+echo "HAVE_CYGWIN=$HAVE_CYGWIN" >>Makefile.config
+echo "mdefs[\"HAVE_CYGWIN\"] = \"$HAVE_CYGWIN\"" >>configure.lua
+echo "LIBDIR=$LIBDIR" >>Makefile.config
+echo "mdefs[\"LIBDIR\"] = \"$LIBDIR\"" >>configure.lua
+echo "SYSCONFDIR=$SYSCONFDIR" >>Makefile.config
+echo "mdefs[\"SYSCONFDIR\"] = \"$SYSCONFDIR\"" >>configure.lua
+echo "CC=$CC" >>Makefile.config
+echo "mdefs[\"CC\"] = \"$CC\"" >>configure.lua
+echo "HAVE_LD_NO_UNDEFINED=$HAVE_LD_NO_UNDEFINED" >>Makefile.config
+echo "mdefs[\"HAVE_LD_NO_UNDEFINED\"] = \"$HAVE_LD_NO_UNDEFINED\"" >>configure.lua
 echo "HAVE_TCL=$HAVE_TCL" >>Makefile.config
 echo "mdefs[\"HAVE_TCL\"] = \"$HAVE_TCL\"" >>configure.lua
+echo "TCL_CFLAGS=$TCL_CFLAGS" >>Makefile.config
+echo "mdefs[\"TCL_CFLAGS\"] = \"$TCL_CFLAGS\"" >>configure.lua
+echo "MODULEDIR=$MODULEDIR" >>Makefile.config
+echo "mdefs[\"MODULEDIR\"] = \"$MODULEDIR\"" >>configure.lua
+echo "LIBTOOLOPTS_SHARED=$LIBTOOLOPTS_SHARED" >>Makefile.config
+echo "mdefs[\"LIBTOOLOPTS_SHARED\"] = \"$LIBTOOLOPTS_SHARED\"" >>configure.lua
+echo "AGAR_LIBS=$AGAR_LIBS" >>Makefile.config
+echo "mdefs[\"AGAR_LIBS\"] = \"$AGAR_LIBS\"" >>configure.lua
+echo "BINDIR=$BINDIR" >>Makefile.config
+echo "mdefs[\"BINDIR\"] = \"$BINDIR\"" >>configure.lua
+echo "HAVE_CC_MWINDOWS=$HAVE_CC_MWINDOWS" >>Makefile.config
+echo "mdefs[\"HAVE_CC_MWINDOWS\"] = \"$HAVE_CC_MWINDOWS\"" >>configure.lua
+echo "PACKAGE=$PACKAGE" >>Makefile.config
+echo "mdefs[\"PACKAGE\"] = \"$PACKAGE\"" >>configure.lua
+echo "CFLAGS=$CFLAGS" >>Makefile.config
+echo "mdefs[\"CFLAGS\"] = \"$CFLAGS\"" >>configure.lua
+echo "PROG_GUI_FLAGS=$PROG_GUI_FLAGS" >>Makefile.config
+echo "mdefs[\"PROG_GUI_FLAGS\"] = \"$PROG_GUI_FLAGS\"" >>configure.lua
+echo "VERSION=$VERSION" >>Makefile.config
+echo "mdefs[\"VERSION\"] = \"$VERSION\"" >>configure.lua
+echo "HAVE_CC_WARNINGS=$HAVE_CC_WARNINGS" >>Makefile.config
+echo "mdefs[\"HAVE_CC_WARNINGS\"] = \"$HAVE_CC_WARNINGS\"" >>configure.lua
+echo "STATEDIR=$STATEDIR" >>Makefile.config
+echo "mdefs[\"STATEDIR\"] = \"$STATEDIR\"" >>configure.lua
+echo "TCL_LIBS=$TCL_LIBS" >>Makefile.config
+echo "mdefs[\"TCL_LIBS\"] = \"$TCL_LIBS\"" >>configure.lua
+echo "HAVE_AGAR=$HAVE_AGAR" >>Makefile.config
+echo "mdefs[\"HAVE_AGAR\"] = \"$HAVE_AGAR\"" >>configure.lua
+echo "EXECSUFFIX=$EXECSUFFIX" >>Makefile.config
+echo "mdefs[\"EXECSUFFIX\"] = \"$EXECSUFFIX\"" >>configure.lua
+echo "LOCALEDIR=$LOCALEDIR" >>Makefile.config
+echo "mdefs[\"LOCALEDIR\"] = \"$LOCALEDIR\"" >>configure.lua
+echo "LIBEXECDIR=$LIBEXECDIR" >>Makefile.config
+echo "mdefs[\"LIBEXECDIR\"] = \"$LIBEXECDIR\"" >>configure.lua
+echo "HAVE_GETTEXT=$HAVE_GETTEXT" >>Makefile.config
+echo "mdefs[\"HAVE_GETTEXT\"] = \"$HAVE_GETTEXT\"" >>configure.lua
+echo "MANDIR=$MANDIR" >>Makefile.config
+echo "mdefs[\"MANDIR\"] = \"$MANDIR\"" >>configure.lua
 echo "DATADIR=$DATADIR" >>Makefile.config
 echo "mdefs[\"DATADIR\"] = \"$DATADIR\"" >>configure.lua
+echo "AGAR_CFLAGS=$AGAR_CFLAGS" >>Makefile.config
+echo "mdefs[\"AGAR_CFLAGS\"] = \"$AGAR_CFLAGS\"" >>configure.lua
+echo "ENABLE_NLS=$ENABLE_NLS" >>Makefile.config
+echo "mdefs[\"ENABLE_NLS\"] = \"$ENABLE_NLS\"" >>configure.lua
+echo "HAVE_LD_STATIC_LIBGCC=$HAVE_LD_STATIC_LIBGCC" >>Makefile.config
+echo "mdefs[\"HAVE_LD_STATIC_LIBGCC\"] = \"$HAVE_LD_STATIC_LIBGCC\"" >>configure.lua
 if [ "${srcdir}" != "" ]; then
 	$ECHO_N "* Source is in ${srcdir}. Generating Makefiles..."
 	${PERL} ${SRC}/mk/mkconcurrent.pl ${SRC}

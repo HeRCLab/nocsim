@@ -14,10 +14,10 @@ PACKAGE("nocsim-gui")
 VERSION("2.0.0")
 
 # Register our configure options.
-REGISTER("--enable-warnings",	 "Enable compiler warnings [default: no]")
 REGISTER("--with-agar[=PREFIX]", "Agar installation path [default: auto]")
 REGISTER("--enable-debugger", "Enable Agar debugger - requires libagar to be built with support for debugging [default: no]")
 REGISTER("--enable-devmode", "Enable generation of debugging symbols and other development features [default: no]")
+REGISTER("--enable-werror", "Treat all compiler warnings as errors [default: no]")
 
 # Require a C compiler.
 REQUIRE(cc)
@@ -40,19 +40,19 @@ REQUIRE(tcl, 8.6.0)
 #C_DEFINE(_USE_AGAR_TYPES)
 #C_DEFINE(_USE_AGAR_MATH)
 
-# Set some warning switches you like you use.
-if [ "${enable_warnings}" = "yes" ]; then
-        MDEFINE(CFLAGS, "$CFLAGS -Wall -Werror")
-        MDEFINE(CFLAGS, "$CFLAGS -Wno-unused")
-fi
-
 if [ "${enable_debugger}" = "yes" ] ; then
 	MDEFINE(CFLAGS, "$CFLAGS -DENABLE_DEBUGGER")
 fi
 
+MDEFINE(CFLAGS, "$CFLAGS -Wall -Wextra -pedantic")
 if [ "${enable_devmode}" = "yes" ] ; then
 	MDEFINE(CFLAGS, "$CFLAGS -DEBUG")
 	MDEFINE(CFLAGS, "$CFLAGS -Og -g")
 else
 	MDEFINE(CFLAGS, "$CFLAGS -O3")
 fi
+
+if [ "${enable_werror}" = "yes" ] ; then
+	MDEFINE(CFLAGS, "$CFLAGS -Werror")
+fi
+
