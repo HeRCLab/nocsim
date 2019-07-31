@@ -6,7 +6,8 @@ LIB_SHARED=	Yes
 
 SRCS=		${SRCS_NOCVIZ} nocviz.c datastore.c operations.c
 
-CFLAGS+=	${TCL_CFLAGS} ${AGAR_CFLAGS} -DUSE_TCL_STUBS
+STUBS_CFLAGS?=	-DUSE_TCL_STUBS
+CFLAGS+=	${TCL_CFLAGS} ${AGAR_CFLAGS} ${STUBS_CFLAGS}
 LIBS+=		${TCL_LIBS} ${AGAR_LIBS}
 
 include ${TOP}/mk/build.lib.mk

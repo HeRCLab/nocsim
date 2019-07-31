@@ -6,7 +6,7 @@
 
 #define noctools_malloc(size) \
 	__extension__ ({ \
-		void* __res = calloc(size, 1); \
+		void* __res = malloc(size); \
 		if (__res == NULL) { warn("malloc failed"); } \
 		__res;})
 

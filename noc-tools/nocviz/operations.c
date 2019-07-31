@@ -4,10 +4,10 @@ nocviz_op* nocviz_op_init(char* script, char* description) {
 	nocviz_op* oper;
 
 	oper = noctools_malloc(sizeof(nocviz_op));
-	oper->script = noctools_malloc(sizeof(char) * strlen(script));
+	oper->script = noctools_malloc(sizeof(char) * (strlen(script) + 1));
 	strcpy(oper->script, script);
 
-	oper->description = noctools_malloc(sizeof(char) * strlen(description));
+	oper->description = noctools_malloc(sizeof(char) * (strlen(description) + 1));
 	strcpy(oper->description, description);
 
 	return oper;
