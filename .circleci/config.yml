@@ -11,7 +11,6 @@ workflows:
       - complexity
       - unittest
       - version
-      - nocviz
 
 jobs:
   build:
@@ -62,10 +61,3 @@ jobs:
     steps:
       - checkout
       - run: sh ./scripts/ci/complexity.sh
-
-  nocviz:
-    docker:
-      - image: herc/nocsim_ci:latest
-    steps:
-      - checkout
-      - run: sh ./noc-tools/nocviz/tests/run_tests.sh
