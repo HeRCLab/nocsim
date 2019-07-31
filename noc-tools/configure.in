@@ -17,6 +17,7 @@ VERSION("2.0.0")
 REGISTER("--enable-warnings",	 "Enable compiler warnings [default: no]")
 REGISTER("--with-agar[=PREFIX]", "Agar installation path [default: auto]")
 REGISTER("--enable-debugger", "Enable Agar debugger - requires libagar to be built with support for debugging [default: no]")
+REGISTER("--enable-devmode", "Enable generation of debugging symbols and other development features [default: no]")
 
 # Require a C compiler.
 REQUIRE(cc)
@@ -47,8 +48,11 @@ fi
 
 if [ "${enable_debugger}" = "yes" ] ; then
 	MDEFINE(CFLAGS, "$CFLAGS -DENABLE_DEBUGGER")
-	MDEFINE(CFLAGS, "${CFLAGS} -g")
 fi
 
-MDEFINE(CFLAGS, "${CFLAGS} -I/usr/include/tcl8.6")
-MDEFINE(LIBS, "${LIBS} -ltcl")
+if [ "${enable_devmode}" = "yes" ] ; then
+	MDEFINE(CFLAGS, "$CFLAGS -DEBUG")
+	MDEFINE(CFLAGS, "$CFLAGS -Og -g")
+else
+	MDEFINE(CFLAGS, "$CFLAGS -O3")
+fi

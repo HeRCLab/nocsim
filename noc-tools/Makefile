@@ -4,6 +4,8 @@ include ${TOP}/Makefile.config
 PROJECT=		"noc-tools"
 SUBDIR=			nocviz
 
+CFLAGS=			-std=C11
+
 all: all-subdir
 
 clean: clean-subdir
