@@ -219,3 +219,5 @@ done
 make -C ../../ clean > /dev/null 2>&1
 
 echo "$TEST_FAILURES tests failed"
+
+exit $TEST_FAILURES
