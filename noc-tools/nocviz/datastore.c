@@ -7,6 +7,7 @@ nocviz_ds* nocviz_ds_init(void) {
 
 	ds->kvp = kh_init(mstrstr);
 	ds->fmt = kh_init(mstrstr);
+	ds->fmtcache = kh_init(mstrstr);
 	ds->sections = kh_init(mstrvec);
 	ds->ops = kh_init(mstrop);
 
@@ -35,6 +36,12 @@ void nocviz_ds_free(nocviz_ds* ds) {
 	);
 	kh_destroy(mstrstr, ds->fmt);
 
+	nocviz_ds_foreach_fmtcache(ds, key, str,
+		free(str);
+		free((char*) key);
+	);
+	kh_destroy(mstrstr, ds->fmtcache);
+
 	nocviz_ds_foreach_op(ds, key, oper,
 		nocviz_op_free(oper);
 		free((char*) key);
@@ -43,6 +50,7 @@ void nocviz_ds_free(nocviz_ds* ds) {
 
 	nocviz_ds_foreach_section(ds, key, vec,
 		vec_deinit(vec);
+		free(vec);
 		free((char*) key);
 	);
 	kh_destroy(mstrvec, ds->sections);
@@ -109,6 +117,23 @@ void nocviz_ds_set_fmtcache(nocviz_ds* ds, char* k, char* v) {
 
 void nocviz_ds_set_op(nocviz_ds* ds, char* k, nocviz_op* oper) {
 	setter_logic(ds, k, oper, mstrop, ops, nocviz_op_free, nocviz_ds_del_op);
+}
+
+strvec* nocviz_ds_new_section(nocviz_ds* ds, char* section_name) {
+	khint_t iter;
+	int r;
+	strvec* sec = noctools_malloc(sizeof(strvec));
+
+	iter = kh_get(mstrvec, ds->sections, section_name);
+	if (iter != kh_end(ds->sections)) {
+		/* cannot create a section that already exists */
+		return NULL;
+	}
+
+	iter = kh_put(mstrvec, ds->sections, strdup(section_name), &r);
+	vec_init(sec);
+	kh_val(ds->sections, iter) = sec;
+	return sec;
 }
 
 #undef setter_logic

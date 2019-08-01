@@ -3,6 +3,7 @@
 #include "../datastore.h"
 #include "test_util.h"
 #include "../../common/util.h"
+#include "../../3rdparty/vec.h"
 
 int main() {
 	nocviz_ds* ds;
@@ -23,6 +24,22 @@ int main() {
 	sprintf(val, "%s", "test string!");
 	nocviz_ds_set_kvp(ds, "abc", val);
 	str_should_equal(nocviz_ds_get_kvp(ds, "abc"), "test string!");
+
+	nocviz_ds_set_fmt(ds, "abc", strdup("aaa"));
+	str_should_equal(nocviz_ds_get_fmt(ds, "abc"), "aaa");
+
+	nocviz_ds_set_fmtcache(ds, "abc", strdup("bbb"));
+	str_should_equal(nocviz_ds_get_fmtcache(ds, "abc"), "bbb");
+
+	nocviz_op* op = nocviz_op_init("123", "456");
+	nocviz_ds_set_op(ds, "abc", op);
+	str_should_equal(nocviz_ds_get_op(ds, "abc")->description, "456");
+	str_should_equal(nocviz_ds_get_op(ds, "abc")->script, "123");
+
+	strvec* sect = nocviz_ds_new_section(ds, "xyz");
+	vec_push(sect, "123456");
+	str_should_equal(nocviz_ds_get_section(ds, "xyz")->data[0], "123456");
+
 	nocviz_ds_free(ds);
 
 	/* test that we can overwrite a value in place */

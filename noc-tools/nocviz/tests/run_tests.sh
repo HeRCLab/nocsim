@@ -118,7 +118,7 @@ run_test() {
 	rm -f "$test_name.bin"
 
 	# try to compile the test
-	if ! show_on_err $CC $CFLAGS $test_file ../*.o $LIBS -o $test_name.bin ; then
+	if ! show_on_err $CC $CFLAGS $test_file ../*.o ../../3rdparty/*.o $LIBS -o $test_name.bin ; then
 
 		# cant do any other part of the test with no binary
 		test_failed=1

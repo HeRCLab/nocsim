@@ -73,7 +73,8 @@ void nocviz_ds_set_kvp(nocviz_ds* ds, char* k, char* v);
 void nocviz_ds_set_fmt(nocviz_ds* ds, char* k, char* fmt);
 void nocviz_ds_set_fmtcache(nocviz_ds* ds, char* k, char* fmt);
 void nocviz_ds_set_op(nocviz_ds* ds, char* opid, nocviz_op* oper);
-/* no setter for sections, caller can modify the vec_t directly */
+
+strvec* nocviz_ds_new_section(nocviz_ds* ds, char* section_name);
 
 /* deleters -- don't free values, just return them */
 char* nocviz_ds_del_kvp(nocviz_ds* ds, char* k);
@@ -88,6 +89,8 @@ strvec* nocviz_ds_del_section(nocviz_ds* ds, char* section);
 	kh_foreach(ds->kvp, kvar, vvar, code)
 #define nocviz_ds_foreach_fmt(ds, kvar, vvar, code) \
 	kh_foreach(ds->fmt, kvar, vvar, code)
+#define nocviz_ds_foreach_fmtcache(ds, kvar, vvar, code) \
+	kh_foreach(ds->fmtcache, kvar, vvar, code)
 #define nocviz_ds_foreach_op(ds, kvar, vvar, code) \
 	kh_foreach(ds->ops, kvar, vvar, code)
 #define nocviz_ds_foreach_section(ds, kvar, vvar, code) \
