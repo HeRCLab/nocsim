@@ -26,6 +26,12 @@
  * NOTE: the fmtcache is not guarnteed to be up to date, nocviz_ds_format()
  * should always be used when retrieving values for display.
  *
+ * NOTE: nocviz_ds_free will free all keys and all values stored in the
+ * datastore. While the setter functions will copy the keys used, any values
+ * you insert MUST be heap-allocated, or nocviz_ds_free will segfault. You
+ * should use nocviz_ds_del_*() to remove items you don't wish free-ed from
+ * the datastore BEFORE calling nocviz_ds_free.
+ *
  *****************************************************************************/
 
 typedef vec_t(char*) strvec;
@@ -49,6 +55,7 @@ typedef struct nocviz_ds_t {
 
 /* initialization */
 nocviz_ds* nocviz_ds_init(void);
+
 void nocviz_ds_free(nocviz_ds* ds);
 
 /* getters */

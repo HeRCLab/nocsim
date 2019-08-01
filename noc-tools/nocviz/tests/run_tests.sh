@@ -205,7 +205,9 @@ echo "CC=$CC"
 
 # re-compile with stubs disabled
 show_on_err make -C ../../ STUBS_CFLAGS="" clean
-show_on_err make -C ../../ STUBS_CFLAGS=""
+if ! show_on_err make -C ../../ STUBS_CFLAGS="" ; then
+	exit 1
+fi
 
 # count up any failed tests
 TEST_FAILURES=0
