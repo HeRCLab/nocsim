@@ -80,7 +80,7 @@ show_on_err() {
 		echo ""
 
 
-		tail -n 50 "$logfile"
+		tail -n 200 "$logfile"
 
 		# exit with the given return code
 		status=$rc

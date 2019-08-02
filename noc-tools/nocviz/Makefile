@@ -4,7 +4,7 @@ include ${TOP}/Makefile.config
 LIB=		nocviz
 LIB_SHARED=	Yes
 
-SRCS=		${SRCS_NOCVIZ} nocviz.c datastore.c operations.c
+SRCS=		${SRCS_NOCVIZ} nocviz.c datastore.c operations.c graph.c
 
 STUBS_CFLAGS?=	-DUSE_TCL_STUBS
 CFLAGS+=	${TCL_CFLAGS} ${AGAR_CFLAGS} ${STUBS_CFLAGS} -D_GNU_SOURCE

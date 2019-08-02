@@ -12,12 +12,6 @@ int main() {
 	ds = nocviz_ds_init();
 	nocviz_ds_free(ds);
 
-	/* test that we can add a value into the main kvp and retrieve it later
-	 * */
-	/* ds = nocviz_ds_init(); */
-	/* nocviz_ds_set_kvp(ds, "abc", "xyz"); */
-	/* str_should_equal(nocviz_ds_get_kvp(ds, "abc"), "xyz"); */
-
 	/* test adding a heap-allocated value should not memory leak */
 	ds = nocviz_ds_init();
 	char* val = malloc(128);

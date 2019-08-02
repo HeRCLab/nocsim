@@ -197,7 +197,6 @@ strvec* nocviz_ds_new_section(nocviz_ds* ds, char* section_name) {
 	return sec;
 }
 
-
 #define del_logic(__ds, __k, __typ, __memb, __rettyp) do { \
 	__rettyp __val; \
 	khint_t __iter; \

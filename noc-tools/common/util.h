@@ -32,3 +32,5 @@
 #else
 #define dbprint_node(node)
 #endif
+
+#define UNUSED(x) (void)(x)
