@@ -8,6 +8,9 @@
 
 #include <tcl.h>
 
+#include <stdio.h>
+
+
 /******************************************************************************
  *
  * A datastore is used to provide they key-value pair store(s) attached to
@@ -51,6 +54,7 @@ typedef struct nocviz_ds_t {
 	khash_t(mstrstr)* fmtcache;
 	khash_t(mstrvec)* sections;
 	khash_t(mstrop)* ops;
+	Tcl_Interp* interp;
 } nocviz_ds;
 
 /* initialization */
@@ -65,8 +69,12 @@ char* nocviz_ds_get_fmtcache(nocviz_ds* ds, char* k);
 nocviz_op* nocviz_ds_get_op(nocviz_ds* ds, char* opid);
 strvec* nocviz_ds_get_section(nocviz_ds* ds, char* sect);
 
-/* retrieve a formatted value */
+/* Retrieve a formatted value. If there is an error, then the unformatted value
+ * will be used instead */
 char* nocviz_ds_format(nocviz_ds* ds, char* k);
+
+/* update fmtcache for a given key -- returns TCL_OK or TCL_ERROR */
+int nocviz_ds_update_fmtcache(nocviz_ds*, char* k);
 
 /* setters */
 void nocviz_ds_set_kvp(nocviz_ds* ds, char* k, char* v);

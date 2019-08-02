@@ -11,6 +11,8 @@ nocviz_ds* nocviz_ds_init(void) {
 	ds->sections = kh_init(mstrvec);
 	ds->ops = kh_init(mstrop);
 
+	ds->interp = Tcl_CreateInterp();
+
 	return ds;
 }
 
@@ -55,6 +57,8 @@ void nocviz_ds_free(nocviz_ds* ds) {
 	);
 	kh_destroy(mstrvec, ds->sections);
 
+	Tcl_DeleteInterp(ds->interp);
+
 	free(ds);
 }
 
@@ -89,7 +93,60 @@ strvec* nocviz_ds_get_section(nocviz_ds* ds, char* k) {
 #undef getter_logic
 
 char* nocviz_ds_format(nocviz_ds* ds, char* k) {
-	return nocviz_ds_get_fmtcache(ds, k);
+	char* result;
+	result = nocviz_ds_get_fmtcache(ds, k);
+
+	if (result == NULL) {
+		result = nocviz_ds_get_kvp(ds, k);
+	}
+
+	if (result == NULL) {
+		result = "FORMAT ERROR";
+	}
+	return result;
+}
+
+int nocviz_ds_update_fmtcache(nocviz_ds* ds, char* k) {
+
+	dbprintf("update format cache for %s\n", k);
+
+	/* clear any existing value in the cache */
+	char* temp;
+	temp = nocviz_ds_del_fmtcache(ds, k);
+	if (temp != NULL) { free(temp); }
+
+	char* val = nocviz_ds_get_kvp(ds, k);
+	char* fmt = nocviz_ds_get_fmt(ds, k);
+
+	if (val == NULL) {
+		return TCL_ERROR;
+	}
+
+	if (fmt == NULL) {
+		fmt = "%s";
+	}
+
+	char* tcl_cmd;
+	if (asprintf(&tcl_cmd, "format {%s} {%s}", fmt, val) < 0) {
+		return TCL_ERROR;
+	}
+
+	dbprintf("generated TCL command: %s\n", tcl_cmd);
+
+	if (Tcl_Eval(ds->interp, tcl_cmd) != TCL_OK) {
+		dbprintf("TCL error: %s\n", Tcl_GetStringResult(ds->interp));
+		free(tcl_cmd);
+		return TCL_ERROR;
+	}
+	free(tcl_cmd);
+
+	char* result = strdup(Tcl_GetStringResult(ds->interp));
+	dbprintf("TCL result: %s\n", result);
+
+	nocviz_ds_set_fmtcache(ds, k, result);
+
+	return TCL_OK;
+
 }
 
 #define setter_logic(__ds, __k, __v, __typ, __memb, __free, __del) do { \
@@ -105,10 +162,12 @@ char* nocviz_ds_format(nocviz_ds* ds, char* k) {
 
 void nocviz_ds_set_kvp(nocviz_ds* ds, char* k, char* v) {
 	setter_logic(ds, k, v, mstrstr, kvp, free, nocviz_ds_del_kvp);
+	nocviz_ds_update_fmtcache(ds, k);
 }
 
 void nocviz_ds_set_fmt(nocviz_ds* ds, char* k, char* v) {
 	setter_logic(ds, k, v, mstrstr, fmt, free, nocviz_ds_del_fmt);
+	nocviz_ds_update_fmtcache(ds, k);
 }
 
 void nocviz_ds_set_fmtcache(nocviz_ds* ds, char* k, char* v) {
@@ -118,6 +177,8 @@ void nocviz_ds_set_fmtcache(nocviz_ds* ds, char* k, char* v) {
 void nocviz_ds_set_op(nocviz_ds* ds, char* k, nocviz_op* oper) {
 	setter_logic(ds, k, oper, mstrop, ops, nocviz_op_free, nocviz_ds_del_op);
 }
+
+#undef setter_logic
 
 strvec* nocviz_ds_new_section(nocviz_ds* ds, char* section_name) {
 	khint_t iter;
@@ -136,7 +197,6 @@ strvec* nocviz_ds_new_section(nocviz_ds* ds, char* section_name) {
 	return sec;
 }
 
-#undef setter_logic
 
 #define del_logic(__ds, __k, __typ, __memb, __rettyp) do { \
 	__rettyp __val; \

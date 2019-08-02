@@ -54,7 +54,6 @@ int main() {
 	/* test addresses remain constant even after resize */
 	ds = nocviz_ds_init();
 	char* teststr = strdup("TESTTEST");
-	printf("%p\n", teststr);
 	nocviz_ds_set_kvp(ds, "teststr", teststr);
 	nocviz_ds_set_kvp(ds, "001", strdup("dummy"));
 	nocviz_ds_set_kvp(ds, "002", strdup("dummy"));
@@ -120,14 +119,23 @@ int main() {
 	nocviz_ds_set_kvp(ds, "062", strdup("dummy"));
 	nocviz_ds_set_kvp(ds, "063", strdup("dummy"));
 	nocviz_ds_set_kvp(ds, "064", strdup("dummy"));
-	if (strcmp(nocviz_ds_get_kvp(ds, "teststr"), "TESTTEST") != 0) {
-		return 5;
-	}
-	if (nocviz_ds_get_kvp(ds, "teststr") != teststr) {
-		return 6;
-	}
+	str_should_equal(nocviz_ds_get_kvp(ds, "teststr"), "TESTTEST");
+	should_be_true(nocviz_ds_get_kvp(ds, "teststr") == teststr);
 	nocviz_ds_free(ds);
 
+	ds = nocviz_ds_init();
+	nocviz_ds_set_kvp(ds, "key1", strdup("123.45678"));
+	str_should_equal(nocviz_ds_format(ds, "key1"), "123.45678");
+	nocviz_ds_set_fmt(ds, "key1", strdup("%2.3f"));
+	str_should_equal(nocviz_ds_format(ds, "key1"), "123.457");
+
+	/* default formatting should be %s */
+	nocviz_ds_set_kvp(ds, "key2", strdup("abcd"));
+	str_should_equal(nocviz_ds_format(ds, "key2"), "abcd");
+
+	/* undefined keys should use a predictable error message */
+	str_should_equal(nocviz_ds_format(ds, "key3"), "FORMAT ERROR");
+	nocviz_ds_free(ds);
 
 	return 0;
 }

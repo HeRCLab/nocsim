@@ -15,6 +15,7 @@ VERSION("2.0.0")
 
 # Register our configure options.
 REGISTER("--with-agar[=PREFIX]", "Agar installation path [default: auto]")
+REGISTER("--with-tcl[=PREFIX]", "TCL installation path [default: auto]")
 REGISTER("--enable-debugger", "Enable Agar debugger - requires libagar to be built with support for debugging [default: no]")
 REGISTER("--enable-devmode", "Enable generation of debugging symbols and other development features [default: no]")
 REGISTER("--enable-werror", "Treat all compiler warnings as errors [default: no]")
@@ -25,7 +26,12 @@ REQUIRE(cc)
 # Require at least Agar 1.6.0.
 REQUIRE(agar, 1.6.0, ${prefix_agar})
 
-REQUIRE(tcl, 8.6.0)
+if [ -z "$with_tcl" ] ; then
+	REQUIRE(tcl, 8.6.0)
+else
+	MDEFINE(TCL_CFLAGS, "-I$with_tcl")
+	MDEFINE(TCL_LIBS, "-ltcl -ltclstub")
+fi
 
 # Require other Agar-based libraries.
 #REQUIRE(agar-vg, 1.5.0, ${prefix_agar})
@@ -55,4 +61,3 @@ fi
 if [ "${enable_werror}" = "yes" ] ; then
 	MDEFINE(CFLAGS, "$CFLAGS -Werror")
 fi
-
