@@ -91,14 +91,14 @@ Throws an exception if a node with that ID exists already.
 Destroy the specified node. This also destroys the node's key-value pair store,
 as well as any links which have this node as an endpoint.
 
-### `node row ROW` / `node col COL`
+### `node row ID ROW` / `node col ID COL`
 
 Specifies either the node's row or column respectively. Nodes will be created
 with at row 0 column 0 by default.
 
 The row and column values are used for layout in certain cases.
 
-### `node title TITLE`
+### `node title ID TITLE`
 
 Specifies the node's title, which is an arbitrary, possibly non-unique string
 that is shown to the user. If no title is specified, then the node's ID is used

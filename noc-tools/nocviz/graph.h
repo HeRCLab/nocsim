@@ -40,6 +40,9 @@ typedef struct nocviz_node_t {
 	/* keys are target node IDs, values are links */
 	khash_t(mstrlink)* adjacent;
 	char* id;
+	char* title;
+	int row;
+	int col;
 	nocviz_ds* ds;
 } nocviz_node;
 

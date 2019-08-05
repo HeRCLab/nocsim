@@ -1,8 +1,11 @@
 #include "nocviz.h"
 
-/* static int __nocviz_command_node(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) { */
-/*         return nocviz_command_node(cdata, interp, objc, objv); */
-/* } */
+/* this is required to ensure the namespace and backing datastore is properly
+ * cleaned up when the interpreter exits */
+void nocviz_namespace_delete(ClientData cdata) {
+	nocviz_graph* g = cdata;
+	nocviz_graph_free(g);
+}
 
 /*
  * Hello_Init -- Called when Tcl loads your extension.
@@ -18,7 +21,7 @@ Nocviz_Init(Tcl_Interp *interp)
 		return TCL_ERROR;
 	}
 
-	nsPtr = Tcl_CreateNamespace(interp, "nocviz", NULL, NULL);
+	nsPtr = Tcl_CreateNamespace(interp, "nocviz", g, nocviz_namespace_delete);
 	if (nsPtr == NULL) {
 		return TCL_ERROR;
 	}

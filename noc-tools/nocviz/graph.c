@@ -35,6 +35,9 @@ nocviz_node* nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	n->adjacent = kh_init(mstrlink);
 	n->id = strdup(id);
 	n->ds = nocviz_ds_init();
+	n->title = strdup(id);
+	n->row = 0;
+	n->col = 0;
 
 	iter = kh_put(mstrnode, g->nodes, n->id, &r);
 	kh_val(g->nodes, iter) = n;
@@ -149,6 +152,7 @@ void nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
 	/* clean up data structures */
 	nocviz_ds_free(node->ds);
 	free(node->id);
+	free(node->title);
 	kh_destroy(mstrlink, node->adjacent);
 	free(node);
 

@@ -42,5 +42,28 @@
 		if ((expr) == NULL) { fail("'%s' should not have been NULL and was not", #expr); } \
 	} while(0)
 
+#define tcl_should_eval(interp, fmt, ...) do { \
+		if (Tcl_Evalf(interp, (fmt), __VA_ARGS__) != TCL_OK) { \
+			fprintf(stderr, "TCL Result: %s\n", Tcl_GetStringResult(interp)); \
+			fprintf(stderr, "errorInfo: %s\n", Tcl_GetVar(interp, "errorInfo", 0)); \
+			char* __cmd; \
+			if (asprintf(&__cmd, fmt, __VA_ARGS__) < 0) { \
+				warn("asprintf error!"); \
+			} \
+			fail("TCL command '%s' should have executed without error and did not", __cmd); \
+		} \
+	} while(0)
+
+#define tcl_should_not_eval(interp, fmt, ...) do { \
+		if (Tcl_Evalf(interp, (fmt), __VA_ARGS__) != TCL_ERROR) { \
+			fprintf(stderr, "TCL Result: %s\n", Tcl_GetStringResult(interp)); \
+			fprintf(stderr, "errorInfo: %s\n", Tcl_GetVar(interp, "errorInfo", 0)); \
+			char* __cmd; \
+			if (asprintf(&__cmd, fmt, __VA_ARGS__) < 0) { \
+				warn("asprintf error!"); \
+			} \
+			fail("TCL command '%s' should have thrown an error and did not", __cmd); \
+		} \
+	} while(0)
 
 #endif

@@ -39,8 +39,8 @@
 
 /*** TCL UTILITIES ***********************************************************/
 
-#define Tcl_RequireArgs(interp, n, msg) if (argc != n) { \
-	Tcl_WrongNumArgs(interp, 0, argv, msg); return TCL_ERROR; }
+#define Tcl_RequireArgs(interp, n, msg) if (objc != n) { \
+	Tcl_WrongNumArgs(interp, 0, objv, msg); return TCL_ERROR; }
 
 #define Tcl_ObjToInt(interp, obj, ptr) if (Tcl_GetIntFromObj(interp, obj, ptr) != TCL_OK) \
 			{return TCL_ERROR;}
@@ -53,8 +53,17 @@
 			warn("asprintf(\"%p, %s, %s\") failed", (void*) &__msg, fmt, #__VA_ARGS__); \
 			break; \
 		} \
-		Tcl_SetResult(interp, __msg, NULL); \
+		Tcl_SetObjResult(interp, Tcl_NewStringObj(__msg, strlen(__msg))); \
+		free(__msg); \
 	} while(0)
+
+#define Tcl_Evalf(interp, fmt, ...) __extension__ ({ \
+	char* __evf_buf; \
+	if (asprintf(&__evf_buf, fmt, __VA_ARGS__) < 0) { \
+		warn("asprintf(\"%p, %s, %s\") failed", (void*) &__evf_buf, fmt, #__VA_ARGS__); \
+	} \
+	int __evf_res = Tcl_Eval(interp, __evf_buf); \
+	free(__evf_buf); __evf_res; })
 	
 
 #endif /* NOCVIZ_UTIL_H */
