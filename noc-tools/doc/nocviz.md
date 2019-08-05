@@ -54,8 +54,6 @@ were specified as arguments to this procedure). The value provided for
 This method may be called again to change which keys are shown in a given
 section. A section which contains no keys will not be displayed.
 
-If any of the keys given do not exist, an exception will be thrown.
-
 The user interface will automatically poll the values stored in the key value
 pair store and display updated values to the user as they are changed.
 

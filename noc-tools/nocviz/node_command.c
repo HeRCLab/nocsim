@@ -135,6 +135,9 @@ int nocviz_subcmd_node_data(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_
 	} else if (string_equals(subcmd, "keys")) {
 		return nocviz_subcmd_node_data_keys(cdata, interp, objc, objv);
 
+	} else if (string_equals(subcmd, "show")) {
+		return nocviz_subcmd_node_data_show(cdata, interp, objc, objv);
+
 	} else {
 		Tcl_SetResultf(interp, "no such node subcommand: %s", subcmd);
 		return TCL_ERROR;
@@ -228,7 +231,7 @@ int nocviz_subcmd_node_data_keys(ClientData cdata, Tcl_Interp* interp, int objc,
 	nocviz_graph* g = cdata;
 	char* id;
 	nocviz_node* n;
-	char* key;
+	const char* key;
 	char* val;
 	Tcl_Obj* listPtr;
 
@@ -246,10 +249,47 @@ int nocviz_subcmd_node_data_keys(ClientData cdata, Tcl_Interp* interp, int objc,
 	listPtr = Tcl_NewListObj(0, NULL);
 
 	nocviz_ds_foreach_kvp(n->ds, key, val,
+		UNUSED(val);
 		Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewStringObj(key, strlen(key)))
 	);
 
 	Tcl_SetObjResult(interp, listPtr);
+
+	return TCL_OK;
+}
+
+int nocviz_subcmd_node_data_show(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	char* id;
+	char* section_name;
+	nocviz_node* n;
+	strvec* section;
+
+	if (objc < 5) {
+		Tcl_WrongNumArgs(interp, 0, objv, "node data show ID SECTION KEY1 ... KEYn");
+		return TCL_ERROR;
+	}
+
+	id = Tcl_GetString(objv[3]);
+	section_name = Tcl_GetString(objv[4]);
+
+	n = nocviz_graph_get_node(g, id);
+
+	if (n == NULL) {
+		Tcl_SetResultf(interp, "no such node: %s", id);
+		return TCL_ERROR;
+	}
+
+	/* delete the section if it exists */
+	if (nocviz_ds_get_section(n->ds, section_name) != NULL) {
+		nocviz_ds_del_section(n->ds, section_name);
+	}
+
+	/* populate the section */
+	section = nocviz_ds_new_section(n->ds, section_name);
+	for (int i = 5 ; i < objc ; i++) {
+		vec_push(section, Tcl_GetString(objv[i]));
+	}
 
 	return TCL_OK;
 }
