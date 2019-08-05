@@ -17,8 +17,10 @@ nocviz_ds* nocviz_ds_init(void) {
 	 */
 	Tcl_FindExecutable(NULL);
 
-
 	ds->interp = Tcl_CreateInterp();
+
+	ds->mutex = noctools_malloc(sizeof(AG_Mutex));
+	AG_MutexInit(ds->mutex);
 
 	return ds;
 }
@@ -28,6 +30,8 @@ void nocviz_ds_free(nocviz_ds* ds) {
 	char* str;
 	strvec* vec;
 	nocviz_op* oper;
+
+	AG_MutexLock(ds->mutex);
 
 	nocviz_ds_foreach_kvp(ds, key, str,
 		free(str);
@@ -66,15 +70,26 @@ void nocviz_ds_free(nocviz_ds* ds) {
 
 	Tcl_DeleteInterp(ds->interp);
 
+	AG_MutexUnlock(ds->mutex);
+	AG_MutexDestroy(ds->mutex);
+	free(ds->mutex);
+
 	free(ds);
 }
 
 #define getter_logic(__ds, __k, __typ, __memb) \
 	do { \
-	khint_t __iter; \
-	__iter = kh_get(__typ, __ds->__memb, __k); \
-	if (__iter == kh_end(__ds->__memb)) { return NULL; } \
-	return kh_value(__ds->__memb, __iter); \
+		char* __res; \
+		AG_MutexLock(__ds->mutex); \
+		khint_t __iter; \
+		__iter = kh_get(__typ, __ds->__memb, __k); \
+		if (__iter == kh_end(__ds->__memb)) { \
+			AG_MutexUnlock(ds->mutex); \
+			return NULL; \
+		} \
+		__res = kh_value(__ds->__memb, __iter); \
+		AG_MutexUnlock(__ds->mutex); \
+		return __res; \
 	} while(0);
 
 char* nocviz_ds_get_kvp(nocviz_ds* ds, char* k) {
@@ -101,6 +116,7 @@ strvec* nocviz_ds_get_section(nocviz_ds* ds, char* k) {
 
 char* nocviz_ds_format(nocviz_ds* ds, char* k) {
 	char* result;
+
 	result = nocviz_ds_get_fmtcache(ds, k);
 
 	if (result == NULL) {
@@ -110,10 +126,12 @@ char* nocviz_ds_format(nocviz_ds* ds, char* k) {
 	if (result == NULL) {
 		result = "FORMAT ERROR";
 	}
+
 	return result;
 }
 
 int nocviz_ds_update_fmtcache(nocviz_ds* ds, char* k) {
+	
 
 	dbprintf("update format cache for %s\n", k);
 
@@ -157,14 +175,18 @@ int nocviz_ds_update_fmtcache(nocviz_ds* ds, char* k) {
 }
 
 #define setter_logic(__ds, __k, __v, __typ, __memb, __free, __del) do { \
+		AG_MutexLock(__ds->mutex); \
 		int __r; khint_t __iter; \
 		__iter = kh_get(__typ, __ds->__memb, __k); \
 		if (__iter != kh_end(__ds->__memb)) { /* key not present */ \
 			/* value already exists, needs to be freed */ \
+			AG_MutexUnlock(__ds->mutex); \
 			__free(__del(__ds, __k)); \
+			AG_MutexLock(__ds->mutex); \
 		} \
 		__iter = kh_put(__typ, __ds->__memb, strdup(__k), &__r); \
 		kh_val(__ds->__memb, __iter) = __v; \
+		AG_MutexUnlock(__ds->mutex); \
 	} while(0)
 
 void nocviz_ds_set_kvp(nocviz_ds* ds, char* k, char* v) {
@@ -188,6 +210,9 @@ void nocviz_ds_set_op(nocviz_ds* ds, char* k, nocviz_op* oper) {
 #undef setter_logic
 
 strvec* nocviz_ds_new_section(nocviz_ds* ds, char* section_name) {
+
+	AG_MutexLock(ds->mutex);
+
 	khint_t iter;
 	int r;
 	strvec* sec = noctools_malloc(sizeof(strvec));
@@ -195,24 +220,34 @@ strvec* nocviz_ds_new_section(nocviz_ds* ds, char* section_name) {
 	iter = kh_get(mstrvec, ds->sections, section_name);
 	if (iter != kh_end(ds->sections)) {
 		/* cannot create a section that already exists */
+		AG_MutexUnlock(ds->mutex);
 		return NULL;
 	}
 
 	iter = kh_put(mstrvec, ds->sections, strdup(section_name), &r);
 	vec_init(sec);
 	kh_val(ds->sections, iter) = sec;
+
+	AG_MutexUnlock(ds->mutex);
+
 	return sec;
 }
 
 #define del_logic(__ds, __k, __typ, __memb, __rettyp) do { \
-	__rettyp __val; \
-	khint_t __iter; \
-	__iter = kh_get(__typ, __ds->__memb, __k); \
-	if (__iter == kh_end(__ds->__memb)) { return NULL; } \
-	__val = kh_value(__ds->__memb, __iter); \
-	free((char*) kh_key(__ds->__memb, __iter)); \
-	kh_del(__typ, __ds->__memb, __iter); \
-	return __val; } while (0)
+		AG_MutexLock(__ds->mutex); \
+		__rettyp __val; \
+		khint_t __iter; \
+		__iter = kh_get(__typ, __ds->__memb, __k); \
+		if (__iter == kh_end(__ds->__memb)) { \
+			AG_MutexUnlock(__ds->mutex); \
+			return NULL; \
+		} \
+		__val = kh_value(__ds->__memb, __iter); \
+		free((char*) kh_key(__ds->__memb, __iter)); \
+		kh_del(__typ, __ds->__memb, __iter); \
+		AG_MutexUnlock(__ds->mutex); \
+		return __val; \
+	} while (0)
 
 char* nocviz_ds_del_kvp(nocviz_ds* ds, char* k) {
 	del_logic(ds, k, mstrstr, kvp, char*);

@@ -10,6 +10,8 @@
 
 #include <stdio.h>
 
+/* threading primitives */
+#include <agar/core.h>
 
 /******************************************************************************
  *
@@ -55,6 +57,7 @@ typedef struct nocviz_ds_t {
 	khash_t(mstrvec)* sections;
 	khash_t(mstrop)* ops;
 	Tcl_Interp* interp;
+	AG_Mutex* mutex;
 } nocviz_ds;
 
 /* initialization */
