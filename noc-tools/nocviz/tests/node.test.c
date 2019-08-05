@@ -104,7 +104,23 @@ int main() {
 
 	/* retrieve nonexistant value */
 	tcl_should_not_eval(interp, "%s", "nocviz::node data get test1 quux");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test1");
 
+
+	/* node data fmt subcommand */
+	tcl_should_eval(interp, "nocviz::node create %s", "test1");
+	n = nocviz_graph_get_node(g, "test1");
+	should_not_be_null(n);
+
+	/* set first time */
+	tcl_should_eval(interp, "%s", "nocviz::node data fmt test1 abc xyz");
+	should_not_be_null(nocviz_ds_get_fmt(n->ds, "abc"));
+	str_should_equal(nocviz_ds_get_fmt(n->ds, "abc"), "xyz");
+
+	/* overwrite */
+	tcl_should_eval(interp, "%s", "nocviz::node data fmt test1 abc def");
+	should_not_be_null(nocviz_ds_get_fmt(n->ds, "abc"));
+	str_should_equal(nocviz_ds_get_fmt(n->ds, "abc"), "def");
 
 	tcl_should_eval(interp, "nocviz::node destroy %s", "test1");
 

@@ -129,6 +129,9 @@ int nocviz_subcmd_node_data(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_
 	} else if (string_equals(subcmd, "get")) {
 		return nocviz_subcmd_node_data_get(cdata, interp, objc, objv);
 
+	} else if (string_equals(subcmd, "fmt")) {
+		return nocviz_subcmd_node_data_fmt(cdata, interp, objc, objv);
+
 	} else {
 		Tcl_SetResultf(interp, "no such node subcommand: %s", subcmd);
 		return TCL_ERROR;
@@ -189,6 +192,32 @@ int nocviz_subcmd_node_data_get(ClientData cdata, Tcl_Interp* interp, int objc, 
 
 	dbprintf("KVP of key %s at node %s is %s\n", key, id, res);
 	Tcl_SetObjResult(interp, Tcl_NewStringObj(res, strlen(res)));
+
+	return TCL_OK;
+}
+
+int nocviz_subcmd_node_data_fmt(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	char* id;
+	nocviz_node* n;
+	char* key;
+	char* res;
+	char* fmt;
+
+	Tcl_RequireArgs(interp, 6, "node data fmt ID KEY FMT");
+
+	id = Tcl_GetString(objv[3]);
+	key = Tcl_GetString(objv[4]);
+	fmt = Tcl_GetString(objv[5]);
+
+	n = nocviz_graph_get_node(g, id);
+
+	if (n == NULL) {
+		Tcl_SetResultf(interp, "no such node: %s", id);
+		return TCL_ERROR;
+	}
+
+	nocviz_ds_set_fmt(n->ds, key, strdup(fmt));
 
 	return TCL_OK;
 }
