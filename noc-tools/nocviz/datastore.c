@@ -77,9 +77,9 @@ void nocviz_ds_free(nocviz_ds* ds) {
 	free(ds);
 }
 
-#define getter_logic(__ds, __k, __typ, __memb) \
+#define getter_logic(__ds, __k, __typ, __rtype, __memb) \
 	do { \
-		char* __res; \
+		__rtype __res; \
 		AG_MutexLock(__ds->mutex); \
 		khint_t __iter; \
 		__iter = kh_get(__typ, __ds->__memb, __k); \
@@ -93,23 +93,23 @@ void nocviz_ds_free(nocviz_ds* ds) {
 	} while(0);
 
 char* nocviz_ds_get_kvp(nocviz_ds* ds, char* k) {
-	getter_logic(ds, k, mstrstr, kvp);
+	getter_logic(ds, k, mstrstr, char*, kvp);
 }
 
 char* nocviz_ds_get_fmt(nocviz_ds* ds, char* k) {
-	getter_logic(ds, k, mstrstr, fmt);
+	getter_logic(ds, k, mstrstr, char*, fmt);
 }
 
 char* nocviz_ds_get_fmtcache(nocviz_ds* ds, char* k) {
-	getter_logic(ds, k, mstrstr, fmtcache);
+	getter_logic(ds, k, mstrstr, char*, fmtcache);
 }
 
 nocviz_op* nocviz_ds_get_op(nocviz_ds* ds, char* k) {
-	getter_logic(ds, k, mstrop, ops);
+	getter_logic(ds, k, mstrop, nocviz_op*, ops);
 }
 
 strvec* nocviz_ds_get_section(nocviz_ds* ds, char* k) {
-	getter_logic(ds, k, mstrvec, sections);
+	getter_logic(ds, k, mstrvec, strvec*, sections);
 }
 
 #undef getter_logic
@@ -180,6 +180,7 @@ int nocviz_ds_update_fmtcache(nocviz_ds* ds, char* k) {
 		__iter = kh_get(__typ, __ds->__memb, __k); \
 		if (__iter != kh_end(__ds->__memb)) { /* key not present */ \
 			/* value already exists, needs to be freed */ \
+			/* XXX: possible race condition */ \
 			AG_MutexUnlock(__ds->mutex); \
 			__free(__del(__ds, __k)); \
 			AG_MutexLock(__ds->mutex); \

@@ -7,6 +7,7 @@
 #include "datastore.h"
 #include "../common/util.h"
 #include "graph.h"
+#include "gui.h"
 
 #include <tcl.h>
 #include <stdio.h>
@@ -29,5 +30,7 @@ int nocviz_subcmd_node_data_get(ClientData cdata, Tcl_Interp* interp, int objc, 
 int nocviz_subcmd_node_data_fmt(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_data_keys(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_data_show(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+
+int nocviz_command_launch_gui(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 
 #endif

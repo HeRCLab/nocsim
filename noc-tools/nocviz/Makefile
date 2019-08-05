@@ -4,7 +4,7 @@ include ${TOP}/Makefile.config
 LIB=		nocviz
 LIB_SHARED=	Yes
 
-SRCS=		${SRCS_NOCVIZ} nocviz.o datastore.c operations.c graph.c commands.c node_command.c
+SRCS=		${SRCS_NOCVIZ} nocviz.o datastore.c operations.c graph.c commands.c node_command.c gui.c ../3rdparty/vec.c
 
 # TCL wiki seems to suggest that -DUSE_TCL_STUBS and -ltclstubs8.6 are needed,
 # but that causes CreateInterp() within datastore to break

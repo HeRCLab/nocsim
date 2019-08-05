@@ -11,6 +11,7 @@
 
 #include "commands.h"
 #include "graph.h"
+#include "gui.h"
 
 int DLLEXPORT Nocviz_Init(Tcl_Interp *interp);
 

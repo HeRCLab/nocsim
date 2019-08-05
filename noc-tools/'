@@ -37,12 +37,6 @@ int nocviz_command_node(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj 
 }
 
 int nocviz_command_launch_gui(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
-	nocviz_gui_handle* h = cdata;
-
-	Tcl_RequireArgs(interp, 1, "launch_gui");
-
-	gui_init(h, interp, h->graph);
-
-	return TCL_OK;
-
+	UNUSED(cdata);
+	Tcl_RequireArgs(interp, 
 }
