@@ -13,6 +13,8 @@ int main() {
 	Tcl_Namespace* nsPtr;
 	nocviz_graph* g;
 	nocviz_node* n;
+	int status;
+	int result;
 
 	interp = Tcl_CreateInterp();
 	Nocviz_Init(interp);
@@ -123,6 +125,20 @@ int main() {
 	str_should_equal(nocviz_ds_get_fmt(n->ds, "abc"), "def");
 
 	tcl_should_eval(interp, "nocviz::node destroy %s", "test1");
+
+	/* node data keys subcommand */
+	tcl_should_eval(interp, "nocviz::node create %s", "test1");
+	tcl_should_eval(interp, "%s", "nocviz::node data set test1 aaa 1111");
+	tcl_should_eval(interp, "%s", "nocviz::node data set test1 bbb 2222");
+	tcl_should_eval(interp, "%s", "set keylist [nocviz::node data keys test1]");
+	tcl_should_eval(interp, "%s", "lsearch -exact $keylist aaa");
+	result = -1;
+	should_equal(Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &result), TCL_OK);
+	should_be_true(result >= 0);
+	tcl_should_eval(interp, "%s", "lsearch -exact $keylist bbb");
+	result = -1;
+	should_equal(Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &result), TCL_OK);
+	should_be_true(result >= 0);
 
 	Tcl_DeleteInterp(interp);
 

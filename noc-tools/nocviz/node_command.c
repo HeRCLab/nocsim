@@ -131,6 +131,9 @@ int nocviz_subcmd_node_data(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_
 
 	} else if (string_equals(subcmd, "fmt")) {
 		return nocviz_subcmd_node_data_fmt(cdata, interp, objc, objv);
+		
+	} else if (string_equals(subcmd, "keys")) {
+		return nocviz_subcmd_node_data_keys(cdata, interp, objc, objv);
 
 	} else {
 		Tcl_SetResultf(interp, "no such node subcommand: %s", subcmd);
@@ -201,7 +204,6 @@ int nocviz_subcmd_node_data_fmt(ClientData cdata, Tcl_Interp* interp, int objc, 
 	char* id;
 	nocviz_node* n;
 	char* key;
-	char* res;
 	char* fmt;
 
 	Tcl_RequireArgs(interp, 6, "node data fmt ID KEY FMT");
@@ -218,6 +220,36 @@ int nocviz_subcmd_node_data_fmt(ClientData cdata, Tcl_Interp* interp, int objc, 
 	}
 
 	nocviz_ds_set_fmt(n->ds, key, strdup(fmt));
+
+	return TCL_OK;
+}
+
+int nocviz_subcmd_node_data_keys(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	char* id;
+	nocviz_node* n;
+	char* key;
+	char* val;
+	Tcl_Obj* listPtr;
+
+	Tcl_RequireArgs(interp, 4, "node data keys ID");
+
+	id = Tcl_GetString(objv[3]);
+
+	n = nocviz_graph_get_node(g, id);
+
+	if (n == NULL) {
+		Tcl_SetResultf(interp, "no such node: %s", id);
+		return TCL_ERROR;
+	}
+
+	listPtr = Tcl_NewListObj(0, NULL);
+
+	nocviz_ds_foreach_kvp(n->ds, key, val,
+		Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewStringObj(key, strlen(key)))
+	);
+
+	Tcl_SetObjResult(interp, listPtr);
 
 	return TCL_OK;
 }

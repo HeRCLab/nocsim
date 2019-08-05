@@ -64,6 +64,14 @@
 	} \
 	int __evf_res = Tcl_Eval(interp, __evf_buf); \
 	free(__evf_buf); __evf_res; })
-	
+
+/* status should be an int* */
+#define Tcl_GetInt(__interp, __obj, __status) __extension__ ({ \
+	int __res = 0; \
+	int __status_i; \
+	if (Tcl_GetIntFromObj(__interp, __obj, &__res) != TCL_OK) { \
+		__onerr; \
+	} \
+	__res)}
 
 #endif /* NOCVIZ_UTIL_H */
