@@ -4,9 +4,13 @@ include ${TOP}/Makefile.config
 LIB=		nocviz
 LIB_SHARED=	Yes
 
-SRCS=		${SRCS_NOCVIZ} nocviz.c datastore.c operations.c graph.c nocviz_commands.c nocviz_node_command.c
+SRCS=		${SRCS_NOCVIZ} nocviz.o datastore.c operations.c graph.c commands.c node_command.c
 
-STUBS_CFLAGS?=	-DUSE_TCL_STUBS
+# TCL wiki seems to suggest that -DUSE_TCL_STUBS and -ltclstubs8.6 are needed,
+# but that causes CreateInterp() within datastore to break
+# STUBS_CFLAGS?=	-DUSE_TCL_STUBS
+STUBS_CFLAGS?=	
+
 CFLAGS+=	${TCL_CFLAGS} ${AGAR_CFLAGS} ${STUBS_CFLAGS} -D_GNU_SOURCE
 LIBS+=		${TCL_LIBS} ${AGAR_LIBS}
 
@@ -20,4 +24,3 @@ show_libs:
 
 show_cc:
 	@echo "${CC}"
-

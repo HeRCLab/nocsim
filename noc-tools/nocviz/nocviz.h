@@ -9,6 +9,9 @@
 
 #include <tcl.h>
 
-static int nocviz_command_node(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+#include "commands.h"
+#include "graph.h"
+
+int DLLEXPORT Nocviz_Init(Tcl_Interp *interp);
 
 #endif

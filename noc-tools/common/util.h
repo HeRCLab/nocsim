@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include <err.h>
 
+/*** GENERAL UTILITIES *******************************************************/
+
 #define noctools_malloc(size) \
 	__extension__ ({ \
 		void* __res = malloc(size); \
 		if (__res == NULL) { warn("malloc failed"); } \
 		__res;})
-
-#endif
 
 /* "raw" debug printf */
 #ifdef EBUG
@@ -34,3 +34,27 @@
 #endif
 
 #define UNUSED(x) (void)(x)
+
+#define string_equals(s1, s2) (strcmp(s1, s2) == 0)
+
+/*** TCL UTILITIES ***********************************************************/
+
+#define Tcl_RequireArgs(interp, n, msg) if (argc != n) { \
+	Tcl_WrongNumArgs(interp, 0, argv, msg); return TCL_ERROR; }
+
+#define Tcl_ObjToInt(interp, obj, ptr) if (Tcl_GetIntFromObj(interp, obj, ptr) != TCL_OK) \
+			{return TCL_ERROR;}
+
+#define Tcl_SetResultf(interp, fmt, ...) do { \
+		char* __msg; \
+		int __r; \
+		__r = asprintf(&__msg, fmt, __VA_ARGS__); \
+		if (__r < 0) { \
+			warn("asprintf(\"%p, %s, %s\") failed", (void*) &__msg, fmt, #__VA_ARGS__); \
+			break; \
+		} \
+		Tcl_SetResult(interp, __msg, NULL); \
+	} while(0)
+	
+
+#endif /* NOCVIZ_UTIL_H */

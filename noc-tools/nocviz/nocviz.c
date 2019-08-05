@@ -1,6 +1,8 @@
 #include "nocviz.h"
-#include "nocviz_commands.h"
-#include "graph.h"
+
+/* static int __nocviz_command_node(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) { */
+/*         return nocviz_command_node(cdata, interp, objc, objv); */
+/* } */
 
 /*
  * Hello_Init -- Called when Tcl loads your extension.

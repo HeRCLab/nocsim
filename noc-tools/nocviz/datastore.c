@@ -11,6 +11,13 @@ nocviz_ds* nocviz_ds_init(void) {
 	ds->sections = kh_init(mstrvec);
 	ds->ops = kh_init(mstrop);
 
+	/* not entirely clear if this is needed or not
+	 *
+	 * http://computer-programming-forum.com/57-tcl/7ca2e088c282c2c1.htm
+	 */
+	Tcl_FindExecutable(NULL);
+
+
 	ds->interp = Tcl_CreateInterp();
 
 	return ds;
