@@ -107,5 +107,21 @@ strvec* nocviz_ds_del_section(nocviz_ds* ds, char* section);
 #define nocviz_ds_foreach_section(ds, kvar, vvar, code) \
 	kh_foreach(ds->sections, kvar, vvar, code)
 
+/* internal (non-mutex protected) functions */
+char* __nocviz_ds_get_kvp(nocviz_ds* ds, char* k);
+char* __nocviz_ds_get_fmt(nocviz_ds* ds, char* k);
+char* __nocviz_ds_get_fmtcache(nocviz_ds* ds, char* k);
+nocviz_op* __nocviz_ds_get_op(nocviz_ds* ds, char* k);
+strvec* __nocviz_ds_get_section(nocviz_ds* ds, char* k);
+int __nocviz_ds_update_fmtcache(nocviz_ds* ds, char* k);
+void __nocviz_ds_set_kvp(nocviz_ds* ds, char* k, char* v);
+void __nocviz_ds_set_fmt(nocviz_ds* ds, char* k, char* v);
+void __nocviz_ds_set_fmtcache(nocviz_ds* ds, char* k, char* v);
+void __nocviz_ds_set_op(nocviz_ds* ds, char* k, nocviz_op* oper);
+char* __nocviz_ds_del_kvp(nocviz_ds* ds, char* k);
+char* __nocviz_ds_del_fmt(nocviz_ds* ds, char* k);
+char* __nocviz_ds_del_fmtcache(nocviz_ds* ds, char* k);
+nocviz_op* __nocviz_ds_del_op(nocviz_ds* ds, char* opid);
+strvec* __nocviz_ds_del_section(nocviz_ds* ds, char* section);
 
 #endif

@@ -37,6 +37,15 @@
 
 #define string_equals(s1, s2) (strcmp(s1, s2) == 0)
 
+#define noctools_mutex_lock(mut) \
+	dbprintf("locking mutex %p\n", (void*) mut); \
+	AG_MutexLock(mut); \
+	dbprintf("acquired lock for mutex %p\n", (void*) mut);
+
+#define noctools_mutex_unlock(mut) \
+	dbprintf("unlocking mutex %p\n", (void*) mut); \
+	AG_MutexUnlock(mut);
+
 /*** TCL UTILITIES ***********************************************************/
 
 #define Tcl_RequireArgs(interp, n, msg) if (objc != n) { \
