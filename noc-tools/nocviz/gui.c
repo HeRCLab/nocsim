@@ -168,8 +168,12 @@ void* gui_main(void* arg) {
 	/* AG_AddEvent(&g->wid.obj, "graph_update_event", update_graph_widget, "%p(gui_param)", p); */
 	/* AG_SchedEvent(&g->wid.obj, &g->wid.obj, 1000, "graph_update_event", "%p(gui_param)", p); */
 	/* AG_SchedEvent(&g->wid.obj, &g->wid.obj, 100, "graph_update_event", ""); */
-	AG_AddEvent(g, "graph_update_event", update_graph_widget, NULL);
-	AG_SchedEvent(win, g, 100, "graph_update_event", "%p,%s", g, "graph_update_event");
+	/* AG_AddEvent(g, "graph_update_event", update_graph_widget, NULL); */
+	/* AG_SchedEvent(win, g, 100, "graph_update_event", "%p,%s", g, "graph_update_event"); */
+	AG_SetUint(dri, "graph_updates", 0);
+	AG_Timer* to = noctools_malloc(sizeof(AG_Timer));
+	AG_InitTimer(to, "graph_update_event", AG_TIMER_AUTO_FREE);
+	AG_AddTimer(win, to, 100, graph_update_handler, "%p(gui_param)", p);
 
 	AG_EventLoop();
 

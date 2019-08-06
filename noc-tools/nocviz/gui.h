@@ -40,7 +40,9 @@ void gui_init(nocviz_gui_handle* h, Tcl_Interp* interp, nocviz_graph* graph);
 /* GUI main thread */
 void* gui_main(void* arg);
 
-void update_graph_widget(AG_Event* event);
+unsigned int graph_update_handler(AG_Timer* to, AG_Event* event);
+
+void graph_update(AG_Driver* dri, nocviz_graph* g_data);
 
 /* Helper macro for use within event handlers, traverses up the VFS tree to
  * grab the top-level driver object. This is needed since AG_ObjectRoot()

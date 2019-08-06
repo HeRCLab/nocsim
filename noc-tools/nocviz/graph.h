@@ -4,6 +4,8 @@
 /* threading primitives */
 #include <agar/core.h>
 
+#include <stdbool.h>
+
 #include "datastore.h"
 #include "../common/util.h"
 
@@ -29,6 +31,7 @@ typedef struct nocviz_graph_t {
 	khash_t(mstrnode)* nodes;
 	nocviz_ds* ds;
 	AG_Mutex* mutex;
+	bool dirty;
 } nocviz_graph;
 
 typedef enum nocviz_link_type_t {NOCVIZ_LINK_DIRECTED, NOCVIZ_LINK_UNDIRECTED} nocviz_link_type;
@@ -73,6 +76,12 @@ void nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node);
 
 /* destroy a link */
 void nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link);
+
+/* check if the graph is marked as dirty */
+bool nocviz_graph_is_dirty(nocviz_graph* g);
+
+/* update the graph's dirty state */
+void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty);
 
 /* iterators */
 

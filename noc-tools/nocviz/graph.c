@@ -9,6 +9,7 @@ nocviz_graph* nocviz_graph_init(void) {
 	g->ds = nocviz_ds_init();
 	g->mutex = noctools_malloc(sizeof(AG_Mutex));
 	AG_MutexInit(g->mutex);
+	g->dirty = true;
 
 	return g;
 }
@@ -54,6 +55,8 @@ nocviz_node* __nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	n->row = 0;
 	n->col = 0;
 
+	g->dirty = true;
+
 	iter = kh_put(mstrnode, g->nodes, n->id, &r);
 	kh_val(g->nodes, iter) = n;
 
@@ -90,6 +93,8 @@ nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocv
 
 	/* both endpoints must exist */
 	if ((from_node == NULL) || (to_node == NULL)) { return NULL; }
+
+	g->dirty = true;
 
 	/* create the link itself */
 	lnk = noctools_malloc(sizeof(nocviz_link));
@@ -150,6 +155,9 @@ nocviz_link* __nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2) {
 
 	if ((node1 == NULL) || (node2 == NULL)) { return NULL; }
 
+
+	g->dirty = true;
+
 	/* adjacent to node 1 */
 	iter = kh_get(mstrlink, node1->adjacent, id2);
 	if (iter != kh_end(node1->adjacent)) {
@@ -178,6 +186,8 @@ void __nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
 	khint_t iter;
 
 	dbprintf("freeing node %s (%p)\n", node->id, (void*) node);
+
+	g->dirty = true;
 
 	/* free all links, we have to iterate over every link and node because
 	 * there may be incoming links we don't have handles to from this node
@@ -237,4 +247,18 @@ void __nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link) {
 
 	nocviz_ds_free(link->ds);
 	free(link);
+}
+
+bool nocviz_graph_is_dirty(nocviz_graph* g) {
+	bool result;
+	noctools_mutex_lock(g->mutex);
+	result = g->dirty;
+	noctools_mutex_unlock(g->mutex);
+	return result;
+}
+
+void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty) {
+	noctools_mutex_lock(g->mutex);
+	g->dirty = dirty;
+	noctools_mutex_unlock(g->mutex);
 }

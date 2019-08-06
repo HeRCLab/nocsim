@@ -62,6 +62,7 @@ int nocviz_subcmd_node_row(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_O
 	}
 
 	n->row = row;
+	nocviz_graph_set_dirty(g, true);
 
 	return TCL_OK;
 }
@@ -85,6 +86,7 @@ int nocviz_subcmd_node_col(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_O
 	}
 
 	n->col = col;
+	nocviz_graph_set_dirty(g, true);
 
 	return TCL_OK;
 }
@@ -109,6 +111,7 @@ int nocviz_subcmd_node_title(ClientData cdata, Tcl_Interp* interp, int objc, Tcl
 
 	free(n->title);
 	n->title = strdup(title);
+	nocviz_graph_set_dirty(g, true);
 
 	return TCL_OK;
 }
