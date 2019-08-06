@@ -1,6 +1,9 @@
 #ifndef NOCVIZ_GRAPH_H
 #define NOCVIZ_GRAPH_H
 
+/* threading primitives */
+#include <agar/core.h>
+
 #include "datastore.h"
 #include "../common/util.h"
 
@@ -25,6 +28,7 @@ KHASH_MAP_INIT_STR(mstrlink, struct nocviz_link_t*)
 typedef struct nocviz_graph_t {
 	khash_t(mstrnode)* nodes;
 	nocviz_ds* ds;
+	AG_Mutex* mutex;
 } nocviz_graph;
 
 typedef enum nocviz_link_type_t {NOCVIZ_LINK_DIRECTED, NOCVIZ_LINK_UNDIRECTED} nocviz_link_type;
@@ -100,5 +104,13 @@ void nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link);
 		); \
 	} while(0)
 
+/* internal non-thread-safe functions */
+
+nocviz_node* __nocviz_graph_new_node(nocviz_graph* g, char* id);
+nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocviz_link_type type);
+nocviz_node* __nocviz_graph_get_node(nocviz_graph* g, char* id);
+nocviz_link* __nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2);
+void __nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node);
+void __nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link);
 
 #endif

@@ -7,6 +7,8 @@ nocviz_graph* nocviz_graph_init(void) {
 
 	g->nodes = kh_init(mstrnode);
 	g->ds = nocviz_ds_init();
+	g->mutex = noctools_malloc(sizeof(AG_Mutex));
+	AG_MutexInit(g->mutex);
 
 	return g;
 }
@@ -14,22 +16,35 @@ nocviz_graph* nocviz_graph_init(void) {
 void nocviz_graph_free(nocviz_graph* g) {
 	nocviz_node* node;
 
-	nocviz_graph_foreach_node(g, node, nocviz_graph_free_node(g, node));
+	noctools_mutex_lock(g->mutex);
+
+	nocviz_graph_foreach_node(g, node, __nocviz_graph_free_node(g, node));
 
 	kh_destroy(mstrnode, g->nodes);
 
 	nocviz_ds_free(g->ds);
 
+	noctools_mutex_unlock(g->mutex);
+	free(g->mutex);
+
 	free(g);
 }
 
-nocviz_node* nocviz_graph_new_node(nocviz_graph* g, char* id) {
+inline nocviz_node* nocviz_graph_new_node(nocviz_graph* g, char* id) {
+	nocviz_node* result;
+	noctools_mutex_lock(g->mutex);
+	result = __nocviz_graph_new_node(g, id);
+	noctools_mutex_unlock(g->mutex);
+	return result;
+}
+
+nocviz_node* __nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	nocviz_node* n;
 	khint_t iter;
 	int r;
 
 	/* cannot create a node over top of an existing node */
-	if (nocviz_graph_get_node(g, id) != NULL) { return NULL; }
+	if (__nocviz_graph_get_node(g, id) != NULL) { return NULL; }
 
 	n = noctools_malloc(sizeof(nocviz_node));
 	n->adjacent = kh_init(mstrlink);
@@ -45,20 +60,30 @@ nocviz_node* nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	return n;
 }
 
-nocviz_link* nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocviz_link_type type) {
+
+inline nocviz_link* nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocviz_link_type type) {
+	nocviz_link* result;
+	noctools_mutex_lock(g->mutex);
+	result = __nocviz_graph_new_link(g, from, to, type);
+	noctools_mutex_unlock(g->mutex);
+	return result;
+
+}
+
+nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocviz_link_type type) {
 	nocviz_node* from_node;
 	nocviz_node* to_node;
 	nocviz_link* lnk;
 	khint_t iter;
 	int r;
 
-	from_node = nocviz_graph_get_node(g, from);
-	to_node = nocviz_graph_get_node(g, to);
+	from_node = __nocviz_graph_get_node(g, from);
+	to_node = __nocviz_graph_get_node(g, to);
 
 	dbprintf("creating link from '%s' (%p) to '%s' (%p)\n",
 			from, (void*) from_node, to, (void*) to_node);
 
-	if (nocviz_graph_get_link(g, from_node->id, to_node->id) != NULL) {
+	if (__nocviz_graph_get_link(g, from_node->id, to_node->id) != NULL) {
 		dbprintf("\tduplicate link found, not proceeding\n");
 		return NULL;
 	}
@@ -86,7 +111,15 @@ nocviz_link* nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocviz
 	return lnk;
 }
 
-nocviz_node* nocviz_graph_get_node(nocviz_graph* g, char* id) {
+inline nocviz_node* nocviz_graph_get_node(nocviz_graph* g, char* id) {
+	nocviz_node* result;
+	noctools_mutex_lock(g->mutex);
+	result = __nocviz_graph_get_node(g, id);
+	noctools_mutex_unlock(g->mutex);
+	return result;
+}
+
+nocviz_node* __nocviz_graph_get_node(nocviz_graph* g, char* id) {
 	khint_t iter;
 
 	iter = kh_get(mstrnode, g->nodes, id);
@@ -97,13 +130,23 @@ nocviz_node* nocviz_graph_get_node(nocviz_graph* g, char* id) {
 	return kh_val(g->nodes, iter);
 }
 
-nocviz_link* nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2) {
+
+
+inline nocviz_link* nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2) {
+	nocviz_link* result;
+	noctools_mutex_lock(g->mutex);
+	result = __nocviz_graph_get_link(g, id1, id2);
+	noctools_mutex_unlock(g->mutex);
+	return result;
+}
+
+nocviz_link* __nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2) {
 	nocviz_node* node1;
 	nocviz_node* node2;
 	khint_t iter;
 
-	node1 = nocviz_graph_get_node(g, id1);
-	node2 = nocviz_graph_get_node(g, id2);
+	node1 = __nocviz_graph_get_node(g, id1);
+	node2 = __nocviz_graph_get_node(g, id2);
 
 	if ((node1 == NULL) || (node2 == NULL)) { return NULL; }
 
@@ -123,7 +166,13 @@ nocviz_link* nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2) {
 	return NULL;
 }
 
-void nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
+inline void nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
+	noctools_mutex_lock(g->mutex);
+	__nocviz_graph_free_node(g, node);
+	noctools_mutex_unlock(g->mutex);
+}
+
+void __nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
 	nocviz_link* link;
 	nocviz_node* n;
 	khint_t iter;
@@ -136,9 +185,9 @@ void nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
 	nocviz_graph_foreach_node(g, n,
 		nocviz_graph_node_foreach_link(n, link,
 			if (link->to == node) {
-				nocviz_graph_free_link(g, link);
+				__nocviz_graph_free_link(g, link);
 			} else if (link->from == node) {
-				nocviz_graph_free_link(g, link);
+				__nocviz_graph_free_link(g, link);
 			}
 		);
 	);
@@ -158,7 +207,13 @@ void nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
 
 }
 
-void nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link) {
+inline void nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link) {
+	noctools_mutex_lock(g->mutex);
+	__nocviz_graph_free_link(g, link);
+	noctools_mutex_unlock(g->mutex);
+}
+
+void __nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link) {
 	khint_t iter;
 
 	UNUSED(g);
