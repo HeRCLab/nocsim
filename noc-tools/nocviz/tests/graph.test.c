@@ -28,6 +28,18 @@ int main() {
 	nocviz_graph_free_node(g, n);
 	nocviz_graph_free(g);
 
+	/* should not be able to create duplicate nodes */
+	g = nocviz_graph_init();
+	n = nocviz_graph_new_node(g, "node1");
+	should_not_be_null(n);
+	should_equal(n, nocviz_graph_get_node(g, "node1"));
+	n2 = nocviz_graph_new_node(g, "node1");
+	should_be_null(n2);
+	should_not_equal(n2, nocviz_graph_get_node(g, "node1"));
+	should_equal(n, nocviz_graph_get_node(g, "node1"));
+	nocviz_graph_free(g);
+
+
 	/* create two nodes a and a link */
 	g = nocviz_graph_init();
 	n = nocviz_graph_new_node(g, "node1");

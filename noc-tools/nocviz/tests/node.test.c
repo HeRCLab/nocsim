@@ -2,6 +2,7 @@
 
 #include "../datastore.h"
 #include "../nocviz.h"
+#include "../gui.h"
 #include "test_util.h"
 #include "../../common/util.h"
 #include "../../3rdparty/vec.h"
@@ -13,6 +14,7 @@ int main() {
 	Tcl_Namespace* nsPtr;
 	nocviz_graph* g;
 	nocviz_node* n;
+	nocviz_gui_handle* h;
 	int status;
 	int result;
 
@@ -21,8 +23,8 @@ int main() {
 	nsPtr = Tcl_FindNamespace(interp, "nocviz", NULL, 0);
 	should_not_be_null(nsPtr);
 	should_not_be_null(nsPtr->clientData);
-	g = nsPtr->clientData;
-
+	h = nsPtr->clientData;
+	g = h->graph;
 
 	/* node command on it's own should error */
 	tcl_should_not_eval(interp, "%s", "nocviz::node");
