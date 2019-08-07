@@ -98,7 +98,7 @@ void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty);
 
 /* every link in the graph */
 #define nocviz_graph_foreach_link(g, linkvar, code) do { \
-		int __i; \
+		unsigned int __i; \
 		vec_foreach(g->links, linkvar, __i) { \
 			code \
 		} \

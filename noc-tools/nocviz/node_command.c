@@ -291,7 +291,7 @@ int nocviz_subcmd_node_data_show(ClientData cdata, Tcl_Interp* interp, int objc,
 	/* populate the section */
 	section = nocviz_ds_new_section(n->ds, section_name);
 	for (int i = 5 ; i < objc ; i++) {
-		vec_push(section, Tcl_GetString(objv[i]));
+		vec_push(section, strdup(Tcl_GetString(objv[i])));
 	}
 
 	return TCL_OK;

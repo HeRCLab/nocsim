@@ -91,6 +91,7 @@ void* gui_main(void* arg) {
 	AG_Box* box;
 	AG_Pane* inner_pane;
 	AG_Pane* infopane;
+	AG_Timer* to;
 
 	int show_node_labels = 1;
 	int show_edge_labels = 1;
@@ -142,13 +143,9 @@ void* gui_main(void* arg) {
 		/* AG_MenuAction(menu_view, "Toggle Node Labels", NULL, ToggleNodeLabels, "%p,%p", state, inner_pane->div[1]); */
 	}
 
-	/* split up node info view and simulation info view */
-	infopane = AG_PaneNewVert(inner_pane->div[0], AG_PANE_EXPAND);
-	AG_PaneMoveDividerPct(infopane, 50);
-
 	/* info view area */
 	box = AG_BoxNew(
-			AG_ScrollviewNew(infopane->div[0], AG_SCROLLVIEW_BY_MOUSE | AG_SCROLLVIEW_EXPAND),
+			AG_ScrollviewNew(inner_pane->div[0], AG_SCROLLVIEW_BY_MOUSE | AG_SCROLLVIEW_EXPAND),
 			AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", box);
 
@@ -156,20 +153,19 @@ void* gui_main(void* arg) {
 	/* AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL); */
 	/* AG_AddEvent(g, "graph-edge-selected", HandleEdgeSelection, "%p(state)", state); */
 
-	/* simulation info view */
-	box = AG_BoxNew(
-			AG_ScrollviewNew(infopane->div[1], AG_SCROLLVIEW_BY_MOUSE | AG_SCROLLVIEW_EXPAND),
-			AG_BOX_VERT, AG_BOX_EXPAND);
-	AG_SetPointer(dri, "siminfo_p", box);
-	/* simulation_update(state, dri); */
-
 	AG_WindowShow(win);
 
 	/* AG_AddEvent(&g->wid.obj, "graph_update_event", update_graph_widget, "%p(gui_param)", p); */
 	/* AG_SchedEvent(&g->wid.obj, &g->wid.obj, 1000, "graph_update_event", "%p(gui_param)", p); */
 	/* AG_SchedEvent(&g->wid.obj, &g->wid.obj, 100, "graph_update_event", ""); */
-	AG_AddEvent(g, "graph_update_event", graph_update_handler, NULL);
-	AG_SchedEvent(win, g, 100, "graph_update_event", "%p,%s", g, "graph_update_event");
+	/* AG_AddEvent(g, "graph_update_event", graph_update_handler, NULL); */
+	/* AG_SchedEvent(win, g, 100, "graph_update_event", "%p,%s", g, "graph_update_event"); */
+
+	to = noctools_malloc(sizeof(AG_Timer));
+	AG_InitTimer(to, "graph_update_event", AG_TIMER_AUTO_FREE);
+	AG_AddTimer(win, to, 100, graph_update_handler, "%p(gui_param)", p);
+
+	AG_SetPointer(dri, "selected_node", NULL);
 
 	AG_EventLoop();
 
