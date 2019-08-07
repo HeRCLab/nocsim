@@ -27,11 +27,15 @@ KHASH_MAP_INIT_STR(mstrnode, struct nocviz_node_t*)
 /* strings to links */
 KHASH_MAP_INIT_STR(mstrlink, struct nocviz_link_t*)
 
+/* list of links */
+typedef vec_t(struct nocviz_link_t*) linkvec;
+
 typedef struct nocviz_graph_t {
 	khash_t(mstrnode)* nodes;
 	nocviz_ds* ds;
 	AG_Mutex* mutex;
 	bool dirty;
+	linkvec* links;
 } nocviz_graph;
 
 typedef enum nocviz_link_type_t {NOCVIZ_LINK_DIRECTED, NOCVIZ_LINK_UNDIRECTED} nocviz_link_type;
@@ -91,6 +95,14 @@ void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty);
 		UNUSED(__k); \
 		kh_foreach(g->nodes, __k, nodevar, code); \
 	} while(0)
+
+/* every link in the graph */
+#define nocviz_graph_foreach_link(g, linkvar, code) do { \
+		int __i; \
+		vec_foreach(g->links, linkvar, __i) { \
+			code \
+		} \
+	} while(0) \
 
 /* every outgoing or undirected link originating at the given node */
 #define nocviz_graph_node_foreach_link(node, linkvar, code) do { \

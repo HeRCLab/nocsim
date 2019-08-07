@@ -8,6 +8,8 @@ int main() {
 	nocviz_node* n2;
 	nocviz_node* nv;
 	nocviz_link* l;
+	nocviz_link* l2;
+	int idx;
 
 	/* make sure we can allocate and free a graph */
 	g = nocviz_graph_init();
@@ -68,6 +70,9 @@ int main() {
 	should_equal(l->to, nocviz_graph_get_node(g, "node2"));
 	should_equal(l, nocviz_graph_get_link(g, "node1", "node2"));
 	should_equal(l, nocviz_graph_get_link(g, "node2", "node1"));
+	vec_find(g->links, l, idx);
+	should_not_equal(idx, -1);
+	nocviz_graph_foreach_link(g, l2, should_equal(l, l2););
 	nocviz_graph_free(g);
 
 	/* create two nodes a and a link, and free before global free */

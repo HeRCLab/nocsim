@@ -10,6 +10,8 @@ nocviz_graph* nocviz_graph_init(void) {
 	g->mutex = noctools_malloc(sizeof(AG_Mutex));
 	AG_MutexInit(g->mutex);
 	g->dirty = true;
+	g->links = noctools_malloc(sizeof(linkvec));
+	vec_init(g->links);
 
 	return g;
 }
@@ -27,6 +29,8 @@ void nocviz_graph_free(nocviz_graph* g) {
 
 	noctools_mutex_unlock(g->mutex);
 	free(g->mutex);
+	vec_deinit(g->links);
+	free(g->links);
 
 	free(g);
 }
@@ -112,6 +116,8 @@ nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocv
 	/* always adjacent to the from node */
 	iter = kh_put(mstrlink, from_node->adjacent, to_node->id, &r);
 	kh_val(from_node->adjacent, iter) = lnk;
+
+	vec_push(g->links, lnk);
 
 	return lnk;
 }
@@ -226,10 +232,10 @@ inline void nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link) {
 void __nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link) {
 	khint_t iter;
 
-	UNUSED(g);
-
 	dbprintf("freeing link %p from %s (%p) to %s (%p)\n",
 		(void*) link, link->from->id, (void*) link->from, link->to->id, (void*) link->to);
+
+	vec_remove(g->links, link);
 
 	/* remove link on from side */
 	iter = kh_get(mstrlink, link->from->adjacent, link->to->id);
