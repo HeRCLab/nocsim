@@ -38,6 +38,7 @@ Nocviz_Init(Tcl_Interp *interp)
 	}
 
 	Tcl_CreateObjCommand(interp, "nocviz::node", nocviz_command_node, g, NULL);
+	Tcl_CreateObjCommand(interp, "nocviz::link", nocviz_command_link, g, NULL);
 	Tcl_CreateObjCommand(interp, "nocviz::launch_gui", nocviz_command_launch_gui, h, NULL);
 	Tcl_PkgProvide(interp, "nocviz", "1.0");
 	return TCL_OK;

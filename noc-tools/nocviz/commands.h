@@ -18,6 +18,7 @@
  *
  *****************************************************************************/
 
+/* node commands */
 int nocviz_command_node(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_create(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_destroy(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
@@ -30,6 +31,22 @@ int nocviz_subcmd_node_data_get(ClientData cdata, Tcl_Interp* interp, int objc, 
 int nocviz_subcmd_node_data_fmt(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_data_keys(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_data_show(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_node_list(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_node_match(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_node_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+
+/* link commands */
+int nocviz_command_link(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_create(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_destroy(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_undirected(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_directed(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_direction(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_reverse(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_find(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_match(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_data(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 
 int nocviz_command_launch_gui(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 

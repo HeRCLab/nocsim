@@ -296,3 +296,41 @@ int nocviz_subcmd_node_data_show(ClientData cdata, Tcl_Interp* interp, int objc,
 
 	return TCL_OK;
 }
+
+int nocviz_subcmd_node_list(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	UNUSED(g);
+
+	Tcl_RequireArgs(interp, 2, "node list");
+
+	Tcl_SetResult(interp, "not yet implemented", NULL);
+
+	return TCL_ERROR;
+
+}
+
+int nocviz_subcmd_node_match(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	UNUSED(g);
+
+	Tcl_RequireArgs(interp, 4, "node match KEY PATTERN");
+
+	Tcl_SetResult(interp, "not yet implemented", NULL);
+
+	return TCL_ERROR;
+
+}
+
+int nocviz_subcmd_node_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	UNUSED(g);
+
+	if (objc < 3) {
+		Tcl_WrongNumArgs(interp, 0, objv, "node op subcmd...");
+		return TCL_ERROR;
+	}
+
+	Tcl_SetResult(interp, "not yet implemented", NULL);
+
+	return TCL_ERROR;
+}
