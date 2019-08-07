@@ -40,41 +40,39 @@ void LaunchDebugger(AG_Event *event) {
 }
 #endif
 
-/* void ToggleEdgeLabels(AG_Event* event) { */
-/*         AG_Driver* dri = get_dri(); */
-/*         nocsim_state* state = AG_PTR(1); */
-/*         AG_Box* box = AG_PTR(2); */
-/*  */
-/*         int* show_edge_labels; */
-/*         show_edge_labels = AG_GetPointer(dri, "show_edge_labels"); */
-/*  */
-/*         if (*show_edge_labels == 0) { */
-/*                 *show_edge_labels = 1; */
-/*         } else { */
-/*                 *show_edge_labels = 0; */
-/*         } */
-/*  */
-/*         graph_update(state, dri, box); */
-/*  */
-/* } */
-/*  */
-/* void ToggleNodeLabels(AG_Event* event) { */
-/*         AG_Driver* dri = get_dri(); */
-/*         nocsim_state* state = AG_PTR(1); */
-/*         AG_Box* box = AG_PTR(2); */
-/*  */
-/*         int* show_node_labels; */
-/*         show_node_labels = AG_GetPointer(dri, "show_node_labels"); */
-/*  */
-/*         if (*show_node_labels == 0) { */
-/*                 *show_node_labels = 1; */
-/*         } else { */
-/*                 *show_node_labels = 0; */
-/*         } */
-/*  */
-/*         graph_update(state, dri, box); */
-/*  */
-/* } */
+void ToggleEdgeLabels(AG_Event* event) {
+	AG_Driver* dri = get_dri();
+	nocviz_graph* g_data = AG_PTR_NAMED("g_data");
+
+	int* show_edge_labels;
+	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
+
+	if (*show_edge_labels == 0) {
+		*show_edge_labels = 1;
+	} else {
+		*show_edge_labels = 0;
+	}
+
+	graph_update(dri, g_data);
+
+}
+
+void ToggleNodeLabels(AG_Event* event) {
+	AG_Driver* dri = get_dri();
+	nocviz_graph* g_data = AG_PTR_NAMED("g_data");
+
+	int* show_node_labels;
+	show_node_labels = AG_GetPointer(dri, "show_node_labels");
+
+	if (*show_node_labels == 0) {
+		*show_node_labels = 1;
+	} else {
+		*show_node_labels = 0;
+	}
+
+	graph_update(dri, g_data);
+
+}
 
 
 void* gui_main(void* arg) {
@@ -83,14 +81,9 @@ void* gui_main(void* arg) {
 	AG_Window *win;
 	AG_Graph* g;
 	AG_Driver* dri;
-	AG_MenuItem* temp;
 	AG_Menu* menu;
-	AG_Console* cons;
-	AG_Button *btn;
-	AG_Textbox *tb;
 	AG_Box* box;
 	AG_Pane* inner_pane;
-	AG_Pane* infopane;
 	AG_Timer* to;
 
 	int show_node_labels = 1;
@@ -115,12 +108,16 @@ void* gui_main(void* arg) {
 
 	/* instantiate the graph */
 	g = AG_GraphNew(inner_pane->div[1], AG_GRAPH_EXPAND);
-	AG_GraphSizeHint(g, 800, 600);
+	AG_GraphSizeHint(g, NOCVIZ_GUI_GRAPH_DEFAULT_WIDTH,
+			NOCVIZ_GUI_GRAPH_DEFAULT_HEIGHT);
 	AG_SetPointer(dri, "graph_p", g);
 
 	/* global flags for edge/node labels */
 	AG_SetPointer(dri, "show_node_labels", &show_node_labels);
 	AG_SetPointer(dri, "show_edge_labels", &show_edge_labels);
+
+	/* global to track currently selected node */
+	AG_SetPointer(dri, "selected_node", NULL);
 
 	/* instantiate the "File" menu dropdown */
 	AG_MenuItem* menu_file = AG_MenuNode(menu->root, "File", NULL);
@@ -139,8 +136,8 @@ void* gui_main(void* arg) {
 	AG_MenuItem* menu_view = AG_MenuNode(menu->root, "View", NULL);
 
 	{
-		/* AG_MenuAction(menu_view, "Toggle Edge Labels", NULL, ToggleEdgeLabels, "%p,%p", state, inner_pane->div[1]); */
-		/* AG_MenuAction(menu_view, "Toggle Node Labels", NULL, ToggleNodeLabels, "%p,%p", state, inner_pane->div[1]); */
+		AG_MenuAction(menu_view, "Toggle Edge Labels", NULL, ToggleEdgeLabels, "%p(g_data)", p->graph);
+		AG_MenuAction(menu_view, "Toggle Node Labels", NULL, ToggleNodeLabels, "%p(g_data)", p->graph);
 	}
 
 	/* info view area */
@@ -149,23 +146,16 @@ void* gui_main(void* arg) {
 			AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", box);
 
-	/* this function will populate the info box */
-	/* AG_AddEvent(g, "graph-vertex-selected", HandleVertexSelection, NULL); */
-	/* AG_AddEvent(g, "graph-edge-selected", HandleEdgeSelection, "%p(state)", state); */
-
 	AG_WindowShow(win);
 
-	/* AG_AddEvent(&g->wid.obj, "graph_update_event", update_graph_widget, "%p(gui_param)", p); */
-	/* AG_SchedEvent(&g->wid.obj, &g->wid.obj, 1000, "graph_update_event", "%p(gui_param)", p); */
-	/* AG_SchedEvent(&g->wid.obj, &g->wid.obj, 100, "graph_update_event", ""); */
-	/* AG_AddEvent(g, "graph_update_event", graph_update_handler, NULL); */
-	/* AG_SchedEvent(win, g, 100, "graph_update_event", "%p,%s", g, "graph_update_event"); */
 
+	/* set up a timer to keep the graph updating */
 	to = noctools_malloc(sizeof(AG_Timer));
 	AG_InitTimer(to, "graph_update_event", AG_TIMER_AUTO_FREE);
-	AG_AddTimer(win, to, 100, graph_update_handler, "%p(gui_param)", p);
+	AG_AddTimer(win, to, NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL, graph_update_handler, "%p(gui_param)", p);
 
-	AG_SetPointer(dri, "selected_node", NULL);
+	/* custom automatically polling text widget */
+	AG_RegisterClass(&NV_TextWidgetClass);
 
 	AG_EventLoop();
 
