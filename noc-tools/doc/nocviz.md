@@ -155,6 +155,12 @@ When executed within the context of a node operation, this procedure will
 return the ID of the node being operated on. Otherwise, it will raise an
 exception.
 
+### `node color ID R G B` / `node color ID R G B A`
+
+Set the node to the specified RGB or RGBA color. If the alpha channel is
+omitted, a value of 255 will be assumed. All values will be truncated to fit in
+0...255.
+
 ## Link Procedures
 
 Each link represents a connection between two nodes. Links may be either
@@ -260,3 +266,9 @@ Remove a previously defined node operation.
 When executed within the context of a link operation, this procedure will
 return a list of the two endpoint nodes of the link being operated on.
 Otherwise, it will raise an exception.
+
+### `link color ID1 ID2 R G B` / `link color ID1 ID2 R G B A`
+
+Set the link to the specified RGB or RGBA color. If the alpha channel is
+omitted, a value of 255 will be assumed. All values will be truncated to fit in
+0...255.

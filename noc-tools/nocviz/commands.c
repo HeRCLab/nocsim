@@ -39,7 +39,8 @@ int nocviz_command_node(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj 
 	} else if (string_equals(subcmd, "op")) {
 		return nocviz_subcmd_node_op(cdata, interp, objc, objv);
 
-
+	} else if (string_equals(subcmd, "color")) {
+		return nocviz_subcmd_node_color(cdata, interp, objc, objv);
 
 	} else {
 		Tcl_SetResultf(interp, "no such subcommand: %s", subcmd);
@@ -86,6 +87,9 @@ int nocviz_command_link(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj 
 
 	} else if (string_equals(subcmd, "title")) {
 		return nocviz_subcmd_link_title(cdata, interp, objc, objv);
+
+	} else if (string_equals(subcmd, "color")) {
+		return nocviz_subcmd_link_color(cdata, interp, objc, objv);
 
 	} else {
 		Tcl_SetResultf(interp, "no such subcommand: %s", subcmd);

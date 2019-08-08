@@ -125,7 +125,7 @@ int nocviz_subcmd_node_data(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_
 	}
 
 	subcmd = Tcl_GetString(objv[2]);
-	
+
 	if (string_equals(subcmd, "set")) {
 		return nocviz_subcmd_node_data_set(cdata, interp, objc, objv);
 
@@ -134,7 +134,7 @@ int nocviz_subcmd_node_data(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_
 
 	} else if (string_equals(subcmd, "fmt")) {
 		return nocviz_subcmd_node_data_fmt(cdata, interp, objc, objv);
-		
+
 	} else if (string_equals(subcmd, "keys")) {
 		return nocviz_subcmd_node_data_keys(cdata, interp, objc, objv);
 
@@ -362,4 +362,30 @@ int nocviz_subcmd_node_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Ob
 	Tcl_SetResult(interp, "not yet implemented", NULL);
 
 	return TCL_ERROR;
+}
+
+int nocviz_subcmd_node_color(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	nocviz_node* n;
+	int r, gr, b, a;
+
+	if ((objc != 6) && (objc != 7)) {
+		Tcl_WrongNumArgs(interp, 0, objv, "node color ID R G B / node color ID R G B A");
+		return TCL_ERROR;
+	}
+
+	n = get_node_from_obj(interp, g, objv[2]);
+	r = get_int_from_obj(interp, objv[3]);
+	gr = get_int_from_obj(interp, objv[4]);
+	b = get_int_from_obj(interp, objv[5]);
+
+	a = 255;
+	if (objc == 7) {
+		a = get_int_from_obj(interp, objv[6]);
+	}
+
+	AG_ColorRGBA_8(&n->c, r,gr,b, a);
+	nocviz_graph_color_set_dirty(g, true);
+
+	return TCL_OK;
 }

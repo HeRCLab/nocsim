@@ -90,6 +90,8 @@ unsigned int graph_update_handler(AG_Timer* to, AG_Event* event);
 
 void graph_update(AG_Driver* dri, nocviz_graph* g_data);
 
+void graph_color_update(AG_Driver* dri, nocviz_graph* g_data);
+
 size_t PrintFmtHandle(AG_FmtString* fs, char* dst, size_t dstSize);
 
 void handle_vertex_selection(AG_Event* event);

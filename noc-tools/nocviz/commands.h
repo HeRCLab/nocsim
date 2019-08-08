@@ -37,6 +37,7 @@ int nocviz_subcmd_node_data_show(ClientData cdata, Tcl_Interp* interp, int objc,
 int nocviz_subcmd_node_list(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_match(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_node_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_node_color(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 
 /* link commands */
 int nocviz_command_link(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
@@ -56,6 +57,7 @@ int nocviz_subcmd_link_data_keys(ClientData cdata, Tcl_Interp* interp, int objc,
 int nocviz_subcmd_link_data_show(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_link_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_link_title(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_color(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 
 int nocviz_command_launch_gui(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 
@@ -113,6 +115,15 @@ int nocviz_command_launch_gui(ClientData cdata, Tcl_Interp* interp, int objc, Tc
 		} \
 		__res = (__int_res == 1); \
 		__res; \
+	})
+
+/* get the int or fail with an error */
+#define get_int_from_obj(__interp, __obj) __extension__ ({ \
+		int __res; \
+		if (Tcl_GetIntFromObj(__interp, __obj, &__res) != TCL_OK) { \
+			return TCL_ERROR; \
+		} \
+		__res;\
 	})
 
 

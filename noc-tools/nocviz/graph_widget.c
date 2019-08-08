@@ -16,6 +16,10 @@ unsigned int graph_update_handler(AG_Timer* to, AG_Event* event) {
 		graph_update(dri, g_data);
 	}
 
+	if (nocviz_graph_color_is_dirty(g_data)) {
+		graph_color_update(dri, g_data);
+	}
+
 	/* instantiate a new timer and start it running so it will call us
 	 * later. */
 	new_to = noctools_malloc(sizeof(AG_Timer));
@@ -273,5 +277,40 @@ void graph_update(AG_Driver* dri, nocviz_graph* g_data) {
 
 	dbprintf("graph update completed.\n");
 
+}
+
+void graph_color_update(AG_Driver* dri, nocviz_graph* g_data) {
+	AG_Graph* g_wid = AG_GetPointer(dri, "graph_p");
+	AG_GraphVertex* vtx;
+	nocviz_node* n;
+	nocviz_link* l;
+	AG_GraphEdge* edge;
+
+	nocviz_graph_color_set_dirty(g_data, false);
+
+	/* color all nodes */
+	nocviz_graph_foreach_node(g_data, n,
+		vtx = AG_GraphVertexFind(g_wid, n);
+		if (vtx != NULL) {
+			AG_ObjectLock(vtx->graph);
+			vtx->bgColor = n->c;
+			AG_ObjectUnlock(vtx->graph);
+			AG_Redraw(g_wid);
+		}
+	);
+
+	/* color all links */
+	nocviz_graph_foreach_link(g_data, l,
+		edge = AG_GraphEdgeFind(g_wid, l);
+		if (edge != NULL) {
+			AG_ObjectLock(edge->graph);
+			edge->edgeColor = l->c;
+			AG_ObjectUnlock(edge->graph);
+			AG_Redraw(g_wid);
+		}
+	);
+
+	AG_WidgetHide(g_wid);
+	AG_WidgetShow(g_wid);
 
 }

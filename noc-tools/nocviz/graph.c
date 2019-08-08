@@ -10,6 +10,7 @@ nocviz_graph* nocviz_graph_init(void) {
 	g->mutex = noctools_malloc(sizeof(AG_Mutex));
 	AG_MutexInit(g->mutex);
 	g->dirty = true;
+	g->color_dirty = false;
 	g->links = noctools_malloc(sizeof(linkvec));
 	vec_init(g->links);
 
@@ -58,6 +59,7 @@ nocviz_node* __nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	n->title = strdup(id);
 	n->row = 0;
 	n->col = 0;
+	AG_ColorRGBA_8(&n->c, 255,255,255, 128);
 
 	g->dirty = true;
 
@@ -107,6 +109,7 @@ nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocv
 	if (asprintf(&(link->title), "%s -> %s", from, to) < 0) {
 		warn("asprintf failure!");
 	}
+	AG_ColorRGBA_8(&link->c, 0,0,0, 0);
 
 	__nocviz_graph_fix_link_adjacency(g, link);
 
@@ -305,3 +308,18 @@ void __nocviz_graph_fix_link_adjacency(nocviz_graph* g, nocviz_link* link) {
 	}
 
 }
+
+bool nocviz_graph_color_is_dirty(nocviz_graph* g) {
+	bool result;
+	noctools_mutex_lock(g->mutex);
+	result = g->color_dirty;
+	noctools_mutex_unlock(g->mutex);
+	return result;
+}
+
+void nocviz_graph_color_set_dirty(nocviz_graph* g, bool dirty) {
+	noctools_mutex_lock(g->mutex);
+	g->color_dirty = dirty;
+	noctools_mutex_unlock(g->mutex);
+}
+

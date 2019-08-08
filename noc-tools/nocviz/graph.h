@@ -3,6 +3,7 @@
 
 /* threading primitives */
 #include <agar/core.h>
+#include <agar/gui.h>
 
 #include <stdbool.h>
 
@@ -35,6 +36,7 @@ typedef struct nocviz_graph_t {
 	nocviz_ds* ds;
 	AG_Mutex* mutex;
 	bool dirty;
+	bool color_dirty;
 	linkvec* links;
 } nocviz_graph;
 
@@ -46,6 +48,7 @@ typedef struct nocviz_link_t {
 	nocviz_link_type type;
 	nocviz_ds* ds;
 	char* title;
+	AG_Color c;
 } nocviz_link;
 
 typedef struct nocviz_node_t {
@@ -56,6 +59,7 @@ typedef struct nocviz_node_t {
 	int row;
 	int col;
 	nocviz_ds* ds;
+	AG_Color c;
 } nocviz_node;
 
 /* create a new graph */
@@ -90,6 +94,10 @@ bool nocviz_graph_is_dirty(nocviz_graph* g);
 
 /* update the graph's dirty state */
 void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty);
+
+bool nocviz_graph_color_is_dirty(nocviz_graph* g);
+
+void nocviz_graph_color_set_dirty(nocviz_graph* g, bool dirty);
 
 /* ensure that the adjacency tables on either end of the link are setup
  * correctly */

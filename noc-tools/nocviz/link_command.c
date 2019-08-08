@@ -358,3 +358,28 @@ int nocviz_subcmd_link_title(ClientData cdata, Tcl_Interp* interp, int objc, Tcl
 	return TCL_OK;
 }
 
+int nocviz_subcmd_link_color(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	nocviz_link* l;
+	int r, gr, b, a;
+
+	if ((objc != 7) && (objc != 8)) {
+		Tcl_WrongNumArgs(interp, 0, objv, "link color ID1 ID2 R G B / node color ID1 ID2 R G B A");
+		return TCL_ERROR;
+	}
+
+	l = get_link_from_objs(interp, g, objv[2], objv[3]);
+	r = get_int_from_obj(interp, objv[4]);
+	gr = get_int_from_obj(interp, objv[5]);
+	b = get_int_from_obj(interp, objv[6]);
+
+	a = 255;
+	if (objc == 8) {
+		a = get_int_from_obj(interp, objv[7]);
+	}
+
+	AG_ColorRGBA_8(&l->c, r,gr,b, a);
+	nocviz_graph_color_set_dirty(g, true);
+
+	return TCL_OK;
+}
