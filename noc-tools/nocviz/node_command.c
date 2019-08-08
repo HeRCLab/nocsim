@@ -320,13 +320,33 @@ int nocviz_subcmd_node_list(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_
 
 int nocviz_subcmd_node_match(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
 	nocviz_graph* g = cdata;
-	UNUSED(g);
+	nocviz_node* node;
+	Tcl_Obj* listPtr;
+	char* val;
+	char* key;
+	char* pattern;
 
 	Tcl_RequireArgs(interp, 4, "node match KEY PATTERN");
 
-	Tcl_SetResult(interp, "not yet implemented", NULL);
+	key = Tcl_GetString(objv[2]);
+	pattern = Tcl_GetString(objv[3]);
 
-	return TCL_ERROR;
+	listPtr = Tcl_NewListObj(0, NULL);
+
+	nocviz_graph_foreach_node(g, node,
+		val = nocviz_ds_get_kvp(node->ds, key);
+		if (val == NULL) {continue;}
+		dbprintf("checking match for key=%s val=%s\n", key, val);
+		if (tcl_regex_matches(interp, pattern, val)) {
+			dbprintf("\tmatched %s\n", pattern);
+			Tcl_ListObjAppendElement(interp, listPtr,
+				Tcl_NewStringObj(node->id, strlen(node->id)));
+		}
+	);
+
+	Tcl_SetObjResult(interp, listPtr);
+
+	return TCL_OK;
 
 }
 

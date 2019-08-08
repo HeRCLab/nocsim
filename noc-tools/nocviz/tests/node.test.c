@@ -143,6 +143,26 @@ int main() {
 	tcl_result_list_should_contain(interp, "test1", "%s", "nocviz::node list");
 	tcl_result_list_should_contain(interp, "test2", "%s", "nocviz::node list");
 	tcl_result_list_should_contain(interp, "test3", "%s", "nocviz::node list");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test1");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test2");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test3");
+
+	/* node match command */
+	tcl_should_eval(interp, "nocviz::node create %s", "test1");
+	tcl_should_eval(interp, "nocviz::node create %s", "test2");
+	tcl_should_eval(interp, "nocviz::node create %s", "test3");
+	tcl_should_eval(interp, "%s", "nocviz::node data set test1 foo bar");
+	tcl_should_eval(interp, "%s", "nocviz::node data set test2 foo baz");
+	tcl_result_list_should_contain(interp, "test1", "%s", "nocviz::node match foo bar");
+	tcl_result_list_should_not_contain(interp, "test2", "%s", "nocviz::node match foo bar");
+	tcl_result_list_should_not_contain(interp, "test3", "%s", "nocviz::node match foo bar");
+	tcl_result_list_should_contain(interp, "test1", "%s", "nocviz::node match foo ba.*");
+	tcl_result_list_should_contain(interp, "test2", "%s", "nocviz::node match foo ba.*");
+	tcl_result_list_should_not_contain(interp, "test3", "%s", "nocviz::node match foo ba.*");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test1");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test2");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test3");
+
 
 	Tcl_DeleteInterp(interp);
 

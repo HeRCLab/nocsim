@@ -34,7 +34,7 @@ int nocviz_command_node(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj 
 		return nocviz_subcmd_node_list(cdata, interp, objc, objv);
 
 	} else if (string_equals(subcmd, "match")) {
-		return nocviz_subcmd_node_list(cdata, interp, objc, objv);
+		return nocviz_subcmd_node_match(cdata, interp, objc, objv);
 
 	} else if (string_equals(subcmd, "op")) {
 		return nocviz_subcmd_node_op(cdata, interp, objc, objv);
