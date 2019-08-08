@@ -104,6 +104,9 @@ nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocv
 	link->to = to_node;
 	link->type = type;
 	link->ds = nocviz_ds_init();
+	if (asprintf(&(link->title), "%s -> %s", from, to) < 0) {
+		warn("asprintf failure!");
+	}
 
 	__nocviz_graph_fix_link_adjacency(g, link);
 
@@ -150,9 +153,6 @@ nocviz_link* __nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2) {
 	node2 = __nocviz_graph_get_node(g, id2);
 
 	if ((node1 == NULL) || (node2 == NULL)) { return NULL; }
-
-
-	g->dirty = true;
 
 	/* adjacent to node 1 */
 	iter = kh_get(mstrlink, node1->adjacent, id2);

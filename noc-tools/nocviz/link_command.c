@@ -340,3 +340,21 @@ int nocviz_subcmd_link_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Ob
 
 	return TCL_ERROR;
 }
+
+int nocviz_subcmd_link_title(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	nocviz_link* link;
+	char* title;
+
+	Tcl_RequireArgs(interp, 5, "link title ID1 ID2 TITLE");
+
+	link = get_link_from_objs(interp, g, objv[2], objv[3]);
+	title = Tcl_GetString(objv[4]);
+
+	free(link->title);
+	link->title = strdup(title);
+	nocviz_graph_set_dirty(g, true);
+
+	return TCL_OK;
+}
+

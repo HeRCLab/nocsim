@@ -31,6 +31,7 @@ unsigned int graph_update_handler(AG_Timer* to, AG_Event* event) {
  *
  * XXX: it is possible that if a node is deleted while this function is
  * executing, it may attempt to read from unallocated memory.
+ *
  * */
 void handle_vertex_selection(AG_Event* event) {
 	/* AddEvent appends automatic arguments to the end */
@@ -56,6 +57,8 @@ void handle_vertex_selection(AG_Event* event) {
 
 	/* vtx->userPtr should be safe now */
 	AG_SetPointer(dri, "selected_node", vtx->userPtr);
+	/* invalidate */
+	AG_SetPointer(dri, "selected_link", NULL);
 
 	/* delete the existing info box and create a new one */
 	infobox = AG_GetPointer(dri, "infobox_p");
@@ -78,7 +81,7 @@ void handle_vertex_selection(AG_Event* event) {
 		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
 		AG_BoxSetLabel(sectionbox, "%s", sectionname);
 		vec_foreach(section, key, i) {
-			/* NV_TextWidget comes from text_widget.{c,h}, and 
+			/* NV_TextWidget comes from text_widget.{c,h}, and
 			 * will automatically keep polling the given node ID
 			 * on it's own */
 			NV_TextWidgetNew(sectionbox, key, g_data, n->id, key);
@@ -91,29 +94,102 @@ void handle_vertex_selection(AG_Event* event) {
 
 }
 
-/* actually do the work of updating the graph widget to reflect the contents of 
- * the graph data structure */
+void handle_link_selection(AG_Event* event) {
+	/* AddEvent appends automatic arguments to the end */
+	AG_GraphEdge* edge = AG_PTR(2);
+	nocviz_graph* g_data = AG_PTR_NAMED("nocviz_graph");
+	AG_Driver* dri = get_dri();
+	AG_Box* infobox;
+	AG_Box* sectionbox;
+	strvec* section;
+	const char* sectionname;
+	AG_Object* parent;
+	nocviz_link* link = edge->userPtr;
+	char* key;
+	unsigned int i;
+
+	/* if a node was deleted from the underlying data structure before
+	 * graph_update was called via it's handler, then vtx->userPtr will
+	 * point to un-allocated memory. This guarantees that cannot happen.
+	 */
+	if (nocviz_graph_is_dirty(g_data)) {
+		graph_update(dri, g_data);
+	}
+
+	/* link->userPtr should be safe now */
+	AG_SetPointer(dri, "selected_link", edge->userPtr);
+
+	/* invalidate */
+	AG_SetPointer(dri, "selected_node", NULL);
+
+	/* delete the existing info box and create a new one */
+	infobox = AG_GetPointer(dri, "infobox_p");
+	parent = AG_ObjectParent(AGOBJECT(infobox));
+	AG_ObjectDelete(infobox);
+	infobox = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
+	AG_SetPointer(dri, "infobox_p", infobox);
+
+#ifdef EBUG
+	sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
+	AG_BoxSetLabelS(sectionbox, "DEBUG DEBUG DEBUG");
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "parent=%p", (void*) parent);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "infobox_p=%p", (void*) infobox);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "selected_link=%p", (void*) link);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "link title=%s", link->title);
+#endif
+
+	/* generate the info panel contents */
+	nocviz_ds_foreach_section(link->ds, sectionname, section,
+		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
+		AG_BoxSetLabel(sectionbox, "%s", sectionname);
+		vec_foreach(section, key, i) {
+			/* NV_TextWidget comes from text_widget.{c,h}, and
+			 * will automatically keep polling the given node ID
+			 * on it's own */
+			NV_TextWidgetNew(sectionbox,
+					key,
+					g_data,
+					link->from->id,
+					key)->id2 = strdup(link->to->id);
+			/* ->id2 is how NV_TextWidget knows we are referring
+			 * to a link rather than a node */
+
+		}
+	);
+
+	/* workaround to force the widget to redraw immediately */
+	AG_WidgetHide(infobox);
+	AG_WidgetShow(infobox);
+
+}
+
+
+/* actually do the work of updating the graph widget to reflect the contents of
+ * the graph data structure
+ *
+ * XXX: handling of link/node titles may not be thread safe */
 void graph_update(AG_Driver* dri, nocviz_graph* g_data) {
 	AG_Graph* g_wid = AG_GetPointer(dri, "graph_p");
 	AG_Object* g_parent;
 	AG_GraphVertex* vtx;
 	nocviz_node* n;
 	nocviz_link* l;
+	AG_GraphEdge* edge;
 
 	/* if a node with this userPtr still exists after we re-generate the
 	 * graph widget, we will re-select it */
-	nocviz_node* selected = AG_GetPointer(dri, "selected_node");
+	nocviz_node* selected_node = AG_GetPointer(dri, "selected_node");
+	nocviz_link* selected_link = AG_GetPointer(dri, "selected_link");
 	int xOffs;
 	int yOffs;
 
 	/* configure if node/edge labels should be shown
-	 * 
+	 *
 	 * XXX: currently, there are no edge labels */
 	int* show_edge_labels;
 	int* show_node_labels;
 	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
 	show_node_labels = AG_GetPointer(dri, "show_node_labels");
-	UNUSED(show_edge_labels);
 
 	dbprintf("dirty graph! performing update... \n");
 
@@ -145,39 +221,57 @@ void graph_update(AG_Driver* dri, nocviz_graph* g_data) {
 		if (*show_node_labels == 1) {
 			AG_GraphVertexLabel(vtx, "%s", n->title);
 		}
-		AG_GraphVertexPosition(vtx, n->row * 50, n->col * 50);
+		AG_GraphVertexPosition(vtx, n->col* 50, n->row* 50);
 	);
 
 	/* create all links */
 	nocviz_graph_foreach_link(g_data, l,
 		if (l->type == NOCVIZ_LINK_UNDIRECTED) {
-			AG_GraphEdgeNew(g_wid,
+			edge = AG_GraphEdgeNew(g_wid,
 					AG_GraphVertexFind(g_wid, l->from),
 					AG_GraphVertexFind(g_wid, l->to),
-					NULL);
+					l);
 		} else {
-			AG_DirectedGraphEdgeNew(g_wid,
+			edge = AG_DirectedGraphEdgeNew(g_wid,
 					AG_GraphVertexFind(g_wid, l->from),
 					AG_GraphVertexFind(g_wid, l->to),
-					NULL);
+					l);
+		}
+		if (*show_edge_labels == 1) {
+			AG_GraphEdgeLabel(edge, "%s", l->title);
 		}
 	);
 
 	/* re-select the previously selected vertex, if it still exists */
-	if (selected != NULL) {
-		vtx = AG_GraphVertexFind(g_wid, selected);
-		if (vtx == NULL) {
-			vtx->flags = AG_GRAPH_SELECTED;
+	if (selected_node != NULL) {
+		vtx = AG_GraphVertexFind(g_wid, selected_node);
+		if (vtx != NULL) {
+			vtx->flags |= AG_GRAPH_SELECTED;
+		} else {
+			AG_SetPointer(dri, "selected_node", NULL);
+		}
+	}
+
+	if (selected_link != NULL) {
+		edge = AG_GraphEdgeFind(g_wid, selected_link);
+		if (edge != NULL) {
+			edge->flags |= AG_GRAPH_SELECTED;
+		} else {
+			AG_SetPointer(dri, "selected_link", NULL);
 		}
 	}
 
 	/* re-register the event handler */
 	AG_AddEvent(g_wid, "graph-vertex-selected",
 			handle_vertex_selection, "%p(nocviz_graph)", g_data);
+	AG_AddEvent(g_wid, "graph-edge-selected",
+			handle_link_selection, "%p(nocviz_graph)", g_data);
 
 	/* workaround to force the widget to redraw immediately */
 	AG_WidgetHide(g_wid);
 	AG_WidgetShow(g_wid);
+
+	dbprintf("graph update completed.\n");
 
 
 }

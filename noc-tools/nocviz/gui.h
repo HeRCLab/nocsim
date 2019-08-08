@@ -29,6 +29,11 @@
  *                      no vertex is found in graph_p, this node has been
  *                      deleted and selected_node should be cleared to NULL.
  *
+ * selected_link  . . . Currently selected nocviz_link*. May not always be,
+ *                      valid; this can be checked by using AG_GraphEdgeFind.
+ *                      If no edge is found in graph_p, this node has been
+ *                      deleted and selected_link should be cleared to NULL.
+ *
  * infobox_p  . . . . . Pointer to the top-level AG_Box of the info pane.
  *
  *
@@ -52,7 +57,7 @@
 
 #define NOCVIZ_GUI_GRAPH_DEFAULT_WIDTH 800
 #define NOCVIZ_GUI_GRAPH_DEFAULT_HEIGHT 600
-#define NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL 100
+#define NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL 50
 
 /*** TYPES *******************************************************************/
 
@@ -85,8 +90,11 @@ unsigned int graph_update_handler(AG_Timer* to, AG_Event* event);
 
 void graph_update(AG_Driver* dri, nocviz_graph* g_data);
 
-
 size_t PrintFmtHandle(AG_FmtString* fs, char* dst, size_t dstSize);
+
+void handle_vertex_selection(AG_Event* event);
+
+void handle_link_selection(AG_Event* event);
 
 /*** UTILITIES ***************************************************************/
 

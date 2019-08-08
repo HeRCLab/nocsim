@@ -193,6 +193,11 @@ Destroy the link between the given nodes.
 
 Reverses the direction the link is pointing.
 
+### `link title ID1 ID2 TITLE`
+
+Specify the title of the given link. If not provided, the link title will be
+`ID1 -> ID2`.
+
 ### `link direction ID1 ID2`
 
 Returns a list of `SRC_ID` and `DEST_ID` for the given link, in that order.

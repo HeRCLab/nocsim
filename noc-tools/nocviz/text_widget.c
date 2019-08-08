@@ -12,6 +12,7 @@ NV_TextWidget* NV_TextWidgetNew(void* parent, char* label, nocviz_graph* g, char
 	tw->label_text = strdup(label);
 	tw->key = strdup(key);
 	tw->id = strdup(id);
+	tw->id2 = NULL;
 
 	tw->g = g;
 
@@ -59,19 +60,36 @@ static int SizeAllocate(void* p, const AG_SizeAlloc* a) {
 static void Draw(void* p) {
 	NV_TextWidget* this = p;
 	nocviz_node* n;
+	nocviz_link* l;
+	nocviz_ds* ds;
 
-	n = nocviz_graph_get_node(this->g, (char*) this->id);
+	if (this->id2 == NULL) {
+		/* this refers to a node */
+		n = nocviz_graph_get_node(this->g, (char*) this->id);
+		ds = n->ds;
+	} else {
+		/* this refers to a link */
+		l = nocviz_graph_get_link(this->g, (char*) this->id, (char*) this->id2);
+		ds = l->ds;
+	}
 
 	char* msg;
 
 	/* allocate an appropriate message based on weather or not the node was
 	 * found */
-	if (n == NULL) {
-		if (asprintf(&msg, "ERROR: node node '%s'", this->id) < 0) {
-			return;
+	if (ds == NULL) {
+		if (this->id2 == NULL) {
+			if (asprintf(&msg, "ERROR: no such node '%s'", this->id) < 0) {
+				return;
+			}
+		} else {
+			if (asprintf(&msg, "ERROR: no such link '%s' -> '%s'", this->id, this->id2) < 0) {
+				return;
+			}
 		}
+
 	} else {
-		if (asprintf(&msg, "%s", nocviz_ds_format(n->ds, (char*) this->key)) < 0) {
+		if (asprintf(&msg, "%s", nocviz_ds_format(ds, (char*) this->key)) < 0) {
 			return;
 		}
 	}
@@ -111,6 +129,10 @@ static void Free(void* obj) {
 	free(this->label_text);
 	free(this->id);
 	free(this->key);
+
+	if (this->id2 != NULL) {
+		free(this->id2);
+	}
 
 	/* this->tb will be deallocated by it's own Free */
 }

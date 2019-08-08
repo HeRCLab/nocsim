@@ -45,6 +45,7 @@ typedef struct nocviz_link_t {
 	struct nocviz_node_t* to;
 	nocviz_link_type type;
 	nocviz_ds* ds;
+	char* title;
 } nocviz_link;
 
 typedef struct nocviz_node_t {

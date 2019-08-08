@@ -55,6 +55,7 @@ int nocviz_subcmd_link_data_fmt(ClientData cdata, Tcl_Interp* interp, int objc, 
 int nocviz_subcmd_link_data_keys(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_link_data_show(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 int nocviz_subcmd_link_op(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
+int nocviz_subcmd_link_title(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 
 int nocviz_command_launch_gui(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]);
 

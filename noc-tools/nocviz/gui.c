@@ -118,6 +118,7 @@ void* gui_main(void* arg) {
 
 	/* global to track currently selected node */
 	AG_SetPointer(dri, "selected_node", NULL);
+	AG_SetPointer(dri, "selected_link", NULL);
 
 	/* instantiate the "File" menu dropdown */
 	AG_MenuItem* menu_file = AG_MenuNode(menu->root, "File", NULL);

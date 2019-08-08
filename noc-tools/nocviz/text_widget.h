@@ -13,6 +13,9 @@ typedef struct nocviz_text_widget {
 	nocviz_graph* g;
 	char* key;
 	char* id;
+	/* for text widgets that correspond to links, id2 will be non-null
+	 * and identifies the other end of the link */
+	char* id2;
 	AG_Textbox* tb;
 } NV_TextWidget;
 
