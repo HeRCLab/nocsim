@@ -66,4 +66,40 @@
 		} \
 	} while(0)
 
+/* may use __result as an int in __expr */
+#define tcl_int_result_expr_should_be_true(__interp, __expr, __fmt, ...) do { \
+		int __result = -1; \
+		tcl_should_eval(__interp, __fmt, __VA_ARGS__); \
+		should_equal(Tcl_GetIntFromObj(__interp, \
+				Tcl_GetObjResult(__interp), \
+				&__result), TCL_OK); \
+		should_be_true(__expr); \
+	} while(0);
+
+#define tcl_str_result_should_equal(__interp, __expected, __fmt, ...) do { \
+		char* __result = NULL; \
+		tcl_should_eval(__interp, __fmt, __VA_ARGS__); \
+		__result = Tcl_GetString(Tcl_GetObjResult(__interp)); \
+		str_should_equal(__expected, __result); \
+	} while(0);
+
+#define tcl_result_list_should_contain(__interp, __expected, __fmt, ...) do { \
+		char* __lcmd = NULL; \
+		should_be_true( (asprintf(&__lcmd, __fmt, __VA_ARGS__) > 0) ); \
+		tcl_int_result_expr_should_be_true(__interp, \
+			(__result >= 0), \
+			"lsearch -exact [%s] {%s}", __lcmd, __expected); \
+		free (__lcmd); \
+	}  while(0);
+
+#define tcl_result_list_should_not_contain(__interp, __expected, __fmt, ...) do { \
+		char* __lcmd = NULL; \
+		should_be_true( (asprintf(&__lcmd, __fmt, __VA_ARGS__) > 0) ); \
+		tcl_int_result_expr_should_be_true(__interp, \
+			(__result < 0), \
+			"lsearch -exact [%s] {%s}", __lcmd, __expected); \
+		free (__lcmd); \
+	}  while(0);
+
+
 #endif

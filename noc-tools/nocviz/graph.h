@@ -90,6 +90,10 @@ bool nocviz_graph_is_dirty(nocviz_graph* g);
 /* update the graph's dirty state */
 void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty);
 
+/* ensure that the adjacency tables on either end of the link are setup
+ * correctly */
+void nocviz_graph_fix_link_adjacency(nocviz_graph* g, nocviz_link* link);
+
 /* iterators */
 
 /* every node in the graph */
@@ -136,5 +140,6 @@ nocviz_node* __nocviz_graph_get_node(nocviz_graph* g, char* id);
 nocviz_link* __nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2);
 void __nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node);
 void __nocviz_graph_free_link(nocviz_graph* g, nocviz_link* link);
+void __nocviz_graph_fix_link_adjacency(nocviz_graph* g, nocviz_link* link);
 
 #endif

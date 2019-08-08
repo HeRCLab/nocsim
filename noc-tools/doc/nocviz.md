@@ -199,7 +199,8 @@ Returns a list of `SRC_ID` and `DEST_ID` for the given link, in that order.
 
 ### `link find ID`
 
-Return a list of all links where either end is a node with the given ID.
+Return a list of undirected links where either end is a node with the given ID,
+or directed links where the origin node matches the given ID.
 
 ### `link find ID1 ID2`
 

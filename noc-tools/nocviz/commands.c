@@ -69,6 +69,9 @@ int nocviz_command_link(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj 
 	} else if (string_equals(subcmd, "directed")) {
 		return nocviz_subcmd_link_directed(cdata, interp, objc, objv);
 
+	} else if (string_equals(subcmd, "direction")) {
+		return nocviz_subcmd_link_direction(cdata, interp, objc, objv);
+
 	} else if (string_equals(subcmd, "reverse")) {
 		return nocviz_subcmd_link_reverse(cdata, interp, objc, objv);
 

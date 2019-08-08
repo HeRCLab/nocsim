@@ -132,15 +132,8 @@ int main() {
 	tcl_should_eval(interp, "nocviz::node create %s", "test1");
 	tcl_should_eval(interp, "%s", "nocviz::node data set test1 aaa 1111");
 	tcl_should_eval(interp, "%s", "nocviz::node data set test1 bbb 2222");
-	tcl_should_eval(interp, "%s", "set keylist [nocviz::node data keys test1]");
-	tcl_should_eval(interp, "%s", "lsearch -exact $keylist aaa");
-	result = -1;
-	should_equal(Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &result), TCL_OK);
-	should_be_true(result >= 0);
-	tcl_should_eval(interp, "%s", "lsearch -exact $keylist bbb");
-	result = -1;
-	should_equal(Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &result), TCL_OK);
-	should_be_true(result >= 0);
+	tcl_result_list_should_contain(interp, "aaa", "%s", "nocviz::node data keys test1");
+	tcl_result_list_should_contain(interp, "bbb", "%s", "nocviz::node data keys test1");
 
 	Tcl_DeleteInterp(interp);
 

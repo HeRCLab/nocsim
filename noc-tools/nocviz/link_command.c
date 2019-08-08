@@ -48,6 +48,7 @@ int nocviz_subcmd_link_undirected(ClientData cdata, Tcl_Interp* interp, int objc
 	link = get_link_from_objs(interp, g, objv[2], objv[3]);
 
 	link->type = NOCVIZ_LINK_UNDIRECTED;
+	nocviz_graph_fix_link_adjacency(g, link);
 
 	return TCL_OK;
 }
@@ -61,6 +62,7 @@ int nocviz_subcmd_link_directed(ClientData cdata, Tcl_Interp* interp, int objc, 
 	link = get_link_from_objs(interp, g, objv[2], objv[3]);
 
 	link->type = NOCVIZ_LINK_DIRECTED;
+	nocviz_graph_fix_link_adjacency(g, link);
 
 	return TCL_OK;
 
@@ -166,15 +168,21 @@ int nocviz_subcmd_link_match(ClientData cdata, Tcl_Interp* interp, int objc, Tcl
 	nocviz_graph_foreach_link(g, link,
 		val = nocviz_ds_get_kvp(link->ds, key);
 		if (val == NULL) { continue; }
+		dbprintf("checking match for key=%s val=%s\n", key, val);
 		if (tcl_regex_matches(interp, pattern, val)) {
+			dbprintf("\tmatched %s\n", pattern);
 			Tcl_ListObjAppendElement(interp, listPtr,
 				Tcl_NewStringObj(link->from->id, strlen(link->from->id)));
 			Tcl_ListObjAppendElement(interp, listPtr,
 				Tcl_NewStringObj(link->to->id, strlen(link->to->id)));
+		} else {
+			dbprintf("\tdid not match %s\n", pattern);
 		}
 	);
 
-	return TCL_ERROR;
+	Tcl_SetObjResult(interp, listPtr);
+
+	return TCL_OK;
 }
 
 int nocviz_subcmd_link_data(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {

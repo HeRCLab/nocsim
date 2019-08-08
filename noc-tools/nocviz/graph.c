@@ -80,9 +80,7 @@ inline nocviz_link* nocviz_graph_new_link(nocviz_graph* g, char* from, char* to,
 nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocviz_link_type type) {
 	nocviz_node* from_node;
 	nocviz_node* to_node;
-	nocviz_link* lnk;
-	khint_t iter;
-	int r;
+	nocviz_link* link;
 
 	from_node = __nocviz_graph_get_node(g, from);
 	to_node = __nocviz_graph_get_node(g, to);
@@ -101,25 +99,17 @@ nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocv
 	g->dirty = true;
 
 	/* create the link itself */
-	lnk = noctools_malloc(sizeof(nocviz_link));
-	lnk->from = from_node;
-	lnk->to = to_node;
-	lnk->type = type;
-	lnk->ds = nocviz_ds_init();
+	link = noctools_malloc(sizeof(nocviz_link));
+	link->from = from_node;
+	link->to = to_node;
+	link->type = type;
+	link->ds = nocviz_ds_init();
 
-	/* if the link is undirected, we are adjacent to the to node */
-	if (type != NOCVIZ_LINK_DIRECTED) {
-		iter = kh_put(mstrlink, to_node->adjacent, from_node->id, &r);
-		kh_val(to_node->adjacent, iter) = lnk;
-	}
+	__nocviz_graph_fix_link_adjacency(g, link);
 
-	/* always adjacent to the from node */
-	iter = kh_put(mstrlink, from_node->adjacent, to_node->id, &r);
-	kh_val(from_node->adjacent, iter) = lnk;
+	vec_push(g->links, link);
 
-	vec_push(g->links, lnk);
-
-	return lnk;
+	return link;
 }
 
 inline nocviz_node* nocviz_graph_get_node(nocviz_graph* g, char* id) {
@@ -270,10 +260,48 @@ void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty) {
 }
 
 void nocviz_graph_reverse_link(nocviz_graph* g, nocviz_link* link) {
+
 	noctools_mutex_lock(g->mutex);
+
+	/* swap to and from */
 	nocviz_node* from = link->from;
 	nocviz_node* to = link->to;
 	link->from = to;
 	link->to = from;
+
+	/* make sure the adjacent tables are accurate */
+	__nocviz_graph_fix_link_adjacency(g, link);
+
 	noctools_mutex_unlock(g->mutex);
+}
+
+inline void nocviz_graph_fix_link_adjacency(nocviz_graph* g, nocviz_link* link) {
+	noctools_mutex_lock(g->mutex);
+	__nocviz_graph_fix_link_adjacency(g, link);
+	noctools_mutex_unlock(g->mutex);
+}
+
+void __nocviz_graph_fix_link_adjacency(nocviz_graph* g, nocviz_link* link) {
+	khint_t iter;
+	int r;
+	nocviz_node* from = link->from;
+	nocviz_node* to= link->to;
+	UNUSED(g);
+
+	/* should always have a link in the from node */
+	iter = kh_put(mstrlink, from->adjacent, to->id, &r);
+	kh_val(from->adjacent, iter) = link;
+
+	if (link->type != NOCVIZ_LINK_DIRECTED) {
+		/* directed links will have a link in the to node also */
+		iter = kh_put(mstrlink, to->adjacent, from->id, &r);
+		kh_val(to->adjacent, iter) = link;
+	} else {
+		/* undirected links should not */
+		iter = kh_get(mstrlink, to->adjacent, from->id);
+		if (iter != kh_end(to->adjacent)) {
+			kh_del(mstrlink, to->adjacent, iter);
+		}
+	}
+
 }
