@@ -299,13 +299,22 @@ int nocviz_subcmd_node_data_show(ClientData cdata, Tcl_Interp* interp, int objc,
 
 int nocviz_subcmd_node_list(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
 	nocviz_graph* g = cdata;
-	UNUSED(g);
+	nocviz_node* node;
+	Tcl_Obj* listPtr;
 
 	Tcl_RequireArgs(interp, 2, "node list");
 
-	Tcl_SetResult(interp, "not yet implemented", NULL);
+	listPtr = Tcl_NewListObj(0, NULL);
 
-	return TCL_ERROR;
+	nocviz_graph_foreach_node(g, node,
+		Tcl_ListObjAppendElement(interp, listPtr,
+				Tcl_NewStringObj(node->id, strlen(node->id)));
+	);
+
+	Tcl_SetObjResult(interp, listPtr);
+
+	return TCL_OK;
+
 
 }
 

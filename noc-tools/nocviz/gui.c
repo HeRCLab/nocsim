@@ -91,7 +91,7 @@ void* gui_main(void* arg) {
 
 	/* Initialize LibAgar */
 	if (AG_InitCore(NULL, 0) == -1 ||
-			AG_InitGraphics(0) == -1)
+			AG_InitGraphics(NULL) == -1)
 		return NULL;
 	win = AG_WindowNew(0);
 	AG_WindowSetCaptionS (win, "nocviz-gui");

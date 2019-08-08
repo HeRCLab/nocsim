@@ -134,6 +134,15 @@ int main() {
 	tcl_should_eval(interp, "%s", "nocviz::node data set test1 bbb 2222");
 	tcl_result_list_should_contain(interp, "aaa", "%s", "nocviz::node data keys test1");
 	tcl_result_list_should_contain(interp, "bbb", "%s", "nocviz::node data keys test1");
+	tcl_should_eval(interp, "nocviz::node destroy %s", "test1");
+
+	/* node list command */
+	tcl_should_eval(interp, "nocviz::node create %s", "test1");
+	tcl_should_eval(interp, "nocviz::node create %s", "test2");
+	tcl_should_eval(interp, "nocviz::node create %s", "test3");
+	tcl_result_list_should_contain(interp, "test1", "%s", "nocviz::node list");
+	tcl_result_list_should_contain(interp, "test2", "%s", "nocviz::node list");
+	tcl_result_list_should_contain(interp, "test3", "%s", "nocviz::node list");
 
 	Tcl_DeleteInterp(interp);
 
