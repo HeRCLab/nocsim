@@ -204,8 +204,8 @@ echo "LIBS=$LIBS"
 echo "CC=$CC"
 
 # re-compile with stubs disabled
-show_on_err make -C ../../ STUBS_CFLAGS="" clean
-if ! show_on_err make -C ../../ STUBS_CFLAGS="" ; then
+show_on_err make -j -C ../../ STUBS_CFLAGS="" clean
+if ! show_on_err make -j -C ../../ STUBS_CFLAGS="" ; then
 	exit 1
 fi
 
@@ -218,7 +218,7 @@ for f in *.test.c ; do
 done
 
 # clean, that way we don't run make later without stubs enabled
-make -C ../../ clean > /dev/null 2>&1
+make -j -C ../../ clean > /dev/null 2>&1
 
 echo "$TEST_FAILURES tests failed"
 

@@ -131,4 +131,20 @@ int main() {
 	should_be_null(nocviz_graph_new_link(g, "node1", "node2", NOCVIZ_LINK_UNDIRECTED));
 	nocviz_graph_free(g);
 
+	/* test reversing a link in place */
+	g = nocviz_graph_init();
+	n = nocviz_graph_new_node(g, "node1");
+	n2 = nocviz_graph_new_node(g, "node2");
+	should_not_be_null(g);
+	should_not_be_null(n);
+	should_not_be_null(n2);
+	l = nocviz_graph_new_link(g, "node1", "node2", NOCVIZ_LINK_UNDIRECTED);
+	should_not_be_null(l);
+	should_equal(l->from, nocviz_graph_get_node(g, "node1"));
+	should_equal(l->to, nocviz_graph_get_node(g, "node2"));
+	nocviz_graph_reverse_link(g, l);
+	should_equal(l->from, nocviz_graph_get_node(g, "node2"));
+	should_equal(l->to, nocviz_graph_get_node(g, "node1"));
+	nocviz_graph_free(g);
+
 }

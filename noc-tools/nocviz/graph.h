@@ -75,6 +75,9 @@ nocviz_node* nocviz_graph_get_node(nocviz_graph* g, char* id);
 /* retrieve a link by it's endpoints */
 nocviz_link* nocviz_graph_get_link(nocviz_graph* g, char* id1, char* id2);
 
+/* reverse the src and dest of a link */
+void nocviz_graph_reverse_link(nocviz_graph* g, nocviz_link* link);
+
 /* Destroy a node, and any links attached to it.*/
 void nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node);
 

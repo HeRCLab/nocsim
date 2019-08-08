@@ -268,3 +268,12 @@ void nocviz_graph_set_dirty(nocviz_graph* g, bool dirty) {
 	g->dirty = dirty;
 	noctools_mutex_unlock(g->mutex);
 }
+
+void nocviz_graph_reverse_link(nocviz_graph* g, nocviz_link* link) {
+	noctools_mutex_lock(g->mutex);
+	nocviz_node* from = link->from;
+	nocviz_node* to = link->to;
+	link->from = to;
+	link->to = from;
+	noctools_mutex_unlock(g->mutex);
+}
