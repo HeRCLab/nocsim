@@ -99,6 +99,9 @@ static void Init(void * obj) {
 			AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, this->label_text);
 	this->tb->ed->flags |= AG_EDITABLE_HFILL;
 
+	/* redraw at ~60FPS */
+	AG_RedrawOnTick(this, 1000/60);
+
 }
 
 static void Free(void* obj) {
