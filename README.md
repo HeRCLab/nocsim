@@ -1,5 +1,7 @@
 # noc-tools
 
+[![CircleCI](https://circleci.com/gh/HeRCLab/nocsim.svg?style=svg)](https://circleci.com/gh/HeRCLab/nocsim)
+
 noc-tools is a collection of network-on-chip oriented tools written by the
 University of South Carolina Heterogeneous and Reconfigurable Computing
 research group.

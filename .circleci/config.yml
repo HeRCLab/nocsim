@@ -13,6 +13,8 @@ jobs:
       - image: herc/nocsim_ci:latest
     steps:
       - checkout
+      - run: make cleandir
+      - run: sh ./configure --enable-debugger --enable-devmode --with-tcl=/usr/include/tcl8.6/
       - run: sh ./nocsim/tests/run_tests.sh
 
   nocviz:
@@ -20,5 +22,7 @@ jobs:
       - image: herc/nocsim_ci:latest
     steps:
       - checkout
+      - run: make cleandir
+      - run: sh ./configure --enable-debugger --enable-devmode --with-tcl=/usr/include/tcl8.6/
       - run: sh ./nocviz/tests/run_tests.sh
 

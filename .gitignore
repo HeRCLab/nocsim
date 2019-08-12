@@ -88,6 +88,6 @@ config/
 *.so*
 *.la
 *.gch
-Makefile.config
 configure.lua
 pkgIndex.tcl
+Makefile.config
