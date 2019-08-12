@@ -10,7 +10,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -102,8 +102,9 @@ SRCS?=
 SRCS_GENERATED?=
 SHOBJS?=
 WINRES?=
+EXTRA_TARGETS?=
 
-all: all-subdir lib${LIB}.a lib${LIB}.so lib${LIB}.la
+all: all-subdir lib${LIB}.a lib${LIB}.so lib${LIB}.la ${EXTRA_TARGETS}
 install: install-lib install-subdir
 deinstall: deinstall-lib deinstall-subdir
 clean: clean-lib clean-subdir
@@ -186,7 +187,7 @@ configure: configure-lib
 	@_cflags=""; \
 	if [ "${LIB_SHARED}" = "Yes" ]; then _cflags="${PICFLAGS}"; fi; \
 	if [ "${LIB_PROFILE}" = "Yes" ]; then _cflags="$$_cflags -pg -DPROF"; fi; \
-	echo "${CC} ${CFLAGS} $$_cflags ${CPPFLAGS} ${LDFLAGS} -o $@ $@.yy.c ${LIBL} ${LIBS}"; 
+	echo "${CC} ${CFLAGS} $$_cflags ${CPPFLAGS} ${LDFLAGS} -o $@ $@.yy.c ${LIBL} ${LIBS}";
 	${CC} ${CFLAGS} $$_cflags ${CPPFLAGS} ${LDFLAGS} -o $@ $@.yy.c ${LIBL} ${LIBS}
 	@rm -f $@.yy.c
 .l.o:

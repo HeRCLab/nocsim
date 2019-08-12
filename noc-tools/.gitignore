@@ -11,3 +11,4 @@ config/
 *.gch
 Makefile.config
 configure.lua
+pkgIndex.tcl

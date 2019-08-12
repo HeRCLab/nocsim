@@ -13,6 +13,8 @@
 #include "graph.h"
 #include "gui.h"
 
+#include "../common/constants.h"
+
 int DLLEXPORT Nocviz_Init(Tcl_Interp *interp);
 
 #endif

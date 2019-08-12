@@ -1,10 +1,10 @@
 TOP=..
 include ${TOP}/Makefile.config
 
-LIB=		nocviz
+LIB=		nocsim
 LIB_SHARED=	Yes
 
-SRCS=		${SRCS_NOCVIZ} nocviz.o datastore.c operations.c graph.c commands.c node_command.c gui.c ../3rdparty/vec.c graph_widget.c text_widget.c link_command.c
+SRCS=		${SRCS_NOCVIZ} nocsim.o grid.c interp.c simulation.c util.c ../3rdparty/vec.c
 
 # TCL wiki seems to suggest that -DUSE_TCL_STUBS and -ltclstubs8.6 are needed,
 # but that causes CreateInterp() within datastore to break
@@ -28,5 +28,5 @@ show_libs:
 show_cc:
 	@echo "${CC}"
 
-pkgIndex.tcl: libnocviz.so
+pkgIndex.tcl: libnocsim.so
 	printf "pkg_mkIndex -verbose . $(echo *.tcl *.so)\n" | tclsh
