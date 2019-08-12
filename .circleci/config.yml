@@ -4,60 +4,21 @@ workflows:
   version: 2
   build:
     jobs:
-      - build
-      - lint
-      - sample
-      - valgrind
-      - complexity
-      - unittest
-      - version
+      - nocsim
+      - nocviz
 
 jobs:
-  build:
+  nocsim:
     docker:
       - image: herc/nocsim_ci:latest
     steps:
       - checkout
-      - run: sh ./scripts/ci/build.sh
+      - run: sh ./nocsim/tests/run_tests.sh
 
-  lint:
+  nocviz:
     docker:
       - image: herc/nocsim_ci:latest
     steps:
       - checkout
-      - run: sh ./scripts/ci/lint.sh
+      - run: sh ./nocviz/tests/run_tests.sh
 
-  sample:
-    docker:
-      - image: herc/nocsim_ci:latest
-    steps:
-      - checkout
-      - run: sh ./scripts/ci/sample.sh
-
-  unittest:
-    docker:
-      - image: herc/nocsim_ci:latest
-    steps:
-      - checkout
-      - run: sh ./scripts/ci/unittest.sh
-
-  version:
-    docker:
-      - image: herc/nocsim_ci:latest
-    steps:
-      - checkout
-      - run: sh ./scripts/ci/version.sh
-
-  valgrind:
-    docker:
-      - image: herc/nocsim_ci:latest
-    steps:
-      - checkout
-      - run: sh ./scripts/ci/valgrind.sh
-
-  complexity:
-    docker:
-      - image: herc/nocsim_ci:latest
-    steps:
-      - checkout
-      - run: sh ./scripts/ci/complexity.sh
