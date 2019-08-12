@@ -1,4 +1,9 @@
-# 1.0.1
+# 2.0.0
+
+* Rename the project to noc-tools
+* Deprecate nocsim GUI
+* Add nocviz visualization tools
+* Convert nocsim to a TCL package
 
 # 1.0.0
 
@@ -9,3 +14,4 @@
   more flexible reporting and analysis
 * Add `nocsim-gui`, a graphical visualization tool for `nocsim`
 * Many bug fixes and performance enhancements
+
