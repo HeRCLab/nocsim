@@ -1051,7 +1051,6 @@ void nocsim_create_state(Tcl_Interp* interp, nocsim_state* state) {
 	defcmd(nocsim_incoming_command, "nocsim::incoming");
 	defcmd(nocsim_allincoming_command, "nocsim::allincoming");
 	defcmd(nocsim_drop_command, "nocsim::drop");
-	defcmd(nocsim_nodecolor_command, "nocsim::nodecolor");
 	defcmd(nocsim_allnodes_command, "nocsim::allnodes");
 
 #undef defcmd
