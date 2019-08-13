@@ -25,6 +25,19 @@ void nocsim_grid_create_router(nocsim_state* state, char* id, unsigned int row, 
 
 	vec_push(state->nodes, router);
 	ez_kv_insert(state->node_map, id, router);
+
+	if (state->instruments[INSTRUMENT_NODE] != NULL) {
+		if (Tcl_Evalf(state->interp, "%s {%s} {%u} {%u} {%u} {%s}",
+					state->instruments[INSTRUMENT_NODE],
+					router->id,
+					router->type,
+					router->row,
+					router->col,
+					router->behavior)) {
+			print_tcl_error(state->interp);
+			err(1, "unable to proceed, exiting with failure state");
+		}
+	}
 }
 
 /* note that the caller must verify that the ID is unique */
@@ -49,6 +62,19 @@ void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsi
 
 	vec_push(state->nodes, PE);
 	ez_kv_insert(state->node_map, id, PE);
+
+	if (state->instruments[INSTRUMENT_NODE] != NULL) {
+		if (Tcl_Evalf(state->interp, "%s {%s} {%u} {%u} {%u} {%s}",
+					state->instruments[INSTRUMENT_NODE],
+					PE->id,
+					PE->type,
+					PE->row,
+					PE->col,
+					PE->behavior)) {
+			print_tcl_error(state->interp);
+			err(1, "unable to proceed, exiting with failure state");
+		}
+	}
 }
 
 nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id, nocsim_direction from_dir, nocsim_direction to_dir) {
@@ -59,6 +85,12 @@ nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* 
 	nocsim_node* from;
 	nocsim_node* to;
 	nocsim_link* link;
+	int bidir;
+
+	if (state->instruments[INSTRUMENT_LINK] != NULL) {
+		bidir = ((nocsim_link_by_nodes(state, from_id, to_id) != NULL) ||
+				(nocsim_link_by_nodes(state, to_id, from_id) != NULL));
+	}
 
 	alloc(sizeof(nocsim_link), link);
 
@@ -160,6 +192,18 @@ nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* 
 	}
 
 	vec_push(state->links, link);
+
+	if (state->instruments[INSTRUMENT_LINK] != NULL) {
+		if (Tcl_Evalf(state->interp, "%s {%s} {%s} {%i}",
+					state->instruments[INSTRUMENT_LINK],
+					link->from->id,
+					link->to->id,
+					bidir)) {
+			print_tcl_error(state->interp);
+			nocsim_return_error(state, "error while evaluating link instrument '%s'",
+				state->instruments[INSTRUMENT_LINK]);
+		}
+	}
 
 	return NOCSIM_RESULT_OK;
 

@@ -69,6 +69,8 @@ typedef enum nocsim_instrument_t {
 	INSTRUMENT_TICK,
 	INSTRUMENT_INJECT,
 	INSTRUMENT_DEQUEUE,
+	INSTRUMENT_NODE,
+	INSTRUMENT_LINK,
 	ENUMSIZE_INSTRUMENT
 } nocsim_instrument;
 
@@ -79,6 +81,8 @@ typedef enum nocsim_instrument_t {
 	(ins == INSTRUMENT_BACKROUTE) ? "backroute" : \
 	(ins == INSTRUMENT_INJECT) ? "inject" : \
 	(ins == INSTRUMENT_DEQUEUE) ? "dequeue" : \
+	(ins == INSTRUMENT_NODE) ? "node" : \
+	(ins == INSTRUMENT_LINK) ? "link" : \
 	(ins == INSTRUMENT_TICK) ? "tick" : "INSTRUMENT UNDEFINED"
 
 #define NOCSIM_STR_TO_INSTRUMENT(s) \
@@ -89,6 +93,8 @@ typedef enum nocsim_instrument_t {
 	(!strncasecmp(s, "backroute", 32)) ? INSTRUMENT_BACKROUTE : \
 	(!strncasecmp(s, "tick", 32)) ? INSTRUMENT_TICK : \
 	(!strncasecmp(s, "dequeue", 32)) ? INSTRUMENT_DEQUEUE: \
+	(!strncasecmp(s, "node", 32)) ? INSTRUMENT_NODE: \
+	(!strncasecmp(s, "link", 32)) ? INSTRUMENT_LINK: \
 	INSTRUMENT_UNDEFINED
 
 typedef enum nocsim_result_t {

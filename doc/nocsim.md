@@ -579,6 +579,30 @@ Executes at the beginning of each new tick. No special parameters are passed to
 this instrument. This instrument is mostly useful for performing cleanup or
 initialization between ticks.
 
+### `node`
+
+Executes any time a node is created.
+
+Parameters:
+
+* node ID
+* type (integer encoded PE or router type)
+* row
+* column
+* behavior
+
+### `link`
+
+Executes any time a link is created.
+
+Parameters:
+
+* origin node ID
+* destination node ID
+* 1 if there is already a link with both the origin and destination as
+  endpoint, or 0 otherwise (i.e. 1 if the link has just been converted to
+  bidirectional)
+
 ## Terminology
 
 * **origin node** -- in the context of a flit, the node at which was flit was
