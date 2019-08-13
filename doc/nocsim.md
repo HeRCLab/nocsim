@@ -1,4 +1,4 @@
-# `nocsim` TCL Scripting Manual
+# nocsim TCL Package Documentation
 
 `nocsim` implements a simple DSL (domain-specific language) for performing NoC
 simulations, based around TCL. Your system's standard TCL interpreter is used
@@ -7,109 +7,13 @@ simulation state are exposed for use from TCL script files. Several functions
 are exposed also via TCL to make it easy to manage the simulation state, and
 collect statistical information about the simulation's results.
 
-## Programming Model
-
-A single invocation of `nocsim`, the corresponding script file, and the
-parameters given to it constitute a single *simulation run*. Each simulation run
-is independent from each other simulation run, and is fully synchronous,
-single-threaded, and independent from every other simulation run. This approach
-was selected because in most uses for `nocsim`, dozens or hundreds of different
-parameters need to be evaluated for performance, so it is simpler for each
-simulation to be single threaded and simply run many simulations in parallel
-with a tool such as GNU parallel.
-
-A useful strategy can be to generate one line of tab-separated values from each
-simulation run such that all lines from all simulation runs may be concatenated
-together at a later time, and thereby produce a valid TSV file that can be used
-in conjunction with any standard statistics or plotting tools.
-
-When `nocsim` is compiled without debugging enabled, the only output on
-standard out originates from the TCL script file, and several convenient hooks
-are provided for the programmer to create callbacks that enable performance
-counters to be implemented. Some performance counters are implemented in the
-underlying simulation engine and exposed as magic variables.
-
-It is suggested that the programmer should implement any statistical analysis
-directly in TCL, by calling utility programs from TCL, or by using the TCL
-script file to generate output that is convenient to parse via an external
-tool.
-
-Implementation details such as these are beyond the scope of this document,
-however the programmer should be advised that TCL includes a robust statistics
-library [(documented
-here)](https://tools.ietf.org/doc/tcllib/html/statistics.html) in the form of
-`math::statistics` which may be of value both for data generation, and for
-analysis.
-
-## TCL Environment
-
-`nocsim` requires at least TCL version 8.5, so any script files may assume at
-least this version. `nocsim` will correctly populate `$argv0`, `$argc`, and
-`$argv` for the script file's use, and further `$tcl_library` is extracted from
-the system copy of `tclsh` (or the first occurrence of such in `$PATH`). The
-system `init.tcl` file is sourced from the detect `$tcl_library`.
-
-This means that any TCL libraries installed at a system level should be
-available for use from within `nocsim` script files.
-
-## Debugging Methodology
-
-TCL has had a variety of debuggers and debugging approaches over it's long
-life. Any debugging approach that works within an embedded TCL instance should
-work correctly with `nocsim`. However, for your convenience, an approach to TCL
-script debugging is discussed and documented here.
-
-TclPro was once a popular distribution of TCL and associated tools which
-retailed for a hefty price tag. It was eventually open sourced, but waned in
-popularity and languished in obscurity for some time. Eventually, the TclPro
-debugger was forked by [FlightAware,
-LLC](https://github.com/flightaware/TclProDebug) and updated for TCL 8.5 and
-higher. This updated version of TclProDebug is recommended for use with
-`nocsim`, and compatibility is specifically tested as it is used as part of the
-`nocsim` development process.
-
-For the purposes of this document, it is assumed that TclProDebug is installed
-in `/opt/TclProDebug`. You may need to adjust some steps according to it's
-actual install location on your system.
-
-First, you should start a debugging session by running
-`/opt/TclProDebug/bin/prodebug`, selecting *File->New Project*. Make sure to
-select "Remote Debugging" in the dialog window, then click "Apply".
-
-Next up, you will want to wrap your TCL code you would like to debug in a
-`debugger_eval` block. Consider this example file:
-
-```tcl
-source /opt/TclProDebug/lib/tcldebugger/initdebug.tcl
-debugger_init
-debugger_eval {
-	debugger_break
-	set x 5
-	set y 10
-	set z 11
-	puts "value of z is $z"
-}
-debugger_break
-```
-
-If you save this file and `source` it from within a `nocsim` interpreter, it
-should automatically connect to your running instance of TclProDebug, and you
-should see the code appear in your TclProDebug window. It should look something
-like this:
-
-![Example of a running TclProDebug session](./../assets/TclProDebug.png)
-
-You can now inspect variables via the interactive inspection tool, and single
-step your code or allow it to run until it hits a breakpoint.
-
-**TIP** you can leave your debugging code in even after development has
-completed -- if TclProDebug is not running on your system, `debugger_break`
-does nothing, and `debugger_eval` acts like `eval`.
-
-For more information, you may wish to consult [the TclPro User's
-Guide](https://www.tcl.tk/software/tclpro/doc/TclProUsersGuide12.pdf).
-
 ## Magic Variables
+
+When `nocsim` was a standalone program which implemented a TCL scripting
+interface, rather than a TCL module, information was presented using "magic
+variables" injected into the TCL interpreter. To preserve compatibility, this
+is still done, although all magic variables are now placed within the `nocsim`
+namespace.
 
 Note that additional magic variables are available during callback execution
 and are documented in the *Callbacks* section later in this document. The magic
@@ -139,6 +43,8 @@ should respect them or risk causing undefined behavior.
 | `nocsim_arrived` | r | total number of flits which have arrived so far |
 
 ## Simulation Procedures
+
+All simulation procedures are made available under the `nocsim` namespace.
 
 ### `router ID ROW COL BEHAVIOR`
 
@@ -283,17 +189,19 @@ See the *Instrumentation* section below for more information.
 
 ### `conswrite STR`
 
-Write a specified string either to standard output, or to the GUI console,
-depending on how `nocsim` is being executed.
+Write a specified string standard output.
+
+As of noc-tools 2.0.0, `conswrite` is deprecated and should not be used for new
+code. In previous versions, this was used to interface with the GUI text
+console, which no longer exists.
 
 ### `errwrite STR`
 
-Write a specified string either to standard error, or to the GUI console
-depending on how `nocsim` is being executed. Text displayed in the GUI console
-will be colored red.
+Write a specified string to standard error.
 
-Aside from targeting either stderr or coloring the text red, this command
-behaves identically to conswrite.
+As of noc-tools 2.0.0, `errwrite` is deprecated and should not be used for new
+code. In previous versions, this was used to interface with the GUI text
+console, which no longer exists.
 
 ### `route FROM TO` (routing behaviors only)
 
@@ -488,25 +396,6 @@ all instantiated routers will have the specified `ROUTE_BEHAVIOR`. Nodes will
 have automatically generated IDs.
 
 Returns a list of node IDs that were generated.
-
-## Visualization Procedures
-
-**NOTE**: These procedures are intended to help build visualizations using
-`nocsim-gui`. They may be called in the CLI version of nocsim, but will have no
-effect. In other words, it is safe to include these commands in a script that
-runs in the CLI version of nocsim, as they will simply be ignored.
-
-### `nodecolor ID R G B A`
-
-Render the node specified by `ID` with the given RGBA color tuple. Note that
-all color channels are cast to unsigned 8 bit integers before being used.
-
-### `mapcolor R1 G1 B1 A1 R2 G2 B2 A2 LOWER UPPER VAL`
-
-Given a pair of colors by their RGBA color tuples, and an upper and lower
-bound, map a given value `VAL` to an RGBA color tuple. For example, `VAL` being
-exactly half way between `LOWER` and `UPPER`, should result in a returned color
-exactly between the two given colors.
 
 ## Behavior Callbacks
 

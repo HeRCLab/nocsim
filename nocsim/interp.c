@@ -922,15 +922,8 @@ interp_command(nocsim_conswrite) {
 
 		str = Tcl_GetStringFromObj(argv[1], NULL);
 
-#ifdef NOCSIM_GUI
-		nocsim_state* state = (nocsim_state*) data;
-		AG_Color white;
-		AG_ColorRGB_8(&white, 255, 255, 255);
-		nocsim_console_writelines(state->cons, str, &white);
-#else
 		UNUSED(data);
 		printf("%s\n", str);
-#endif
 	}
 
 	return TCL_OK;
@@ -951,54 +944,12 @@ interp_command(nocsim_errwrite) {
 
 		str = Tcl_GetStringFromObj(argv[1], NULL);
 
-#ifdef NOCSIM_GUI
-		nocsim_state* state = (nocsim_state*) data;
-		AG_Color red;
-		AG_ColorRGB_8(&red, 255, 16, 16);
-		nocsim_console_writelines(state->cons, str, &red);
-#else
 		UNUSED(data);
 		fprintf(stderr, "%s\n", str);
-#endif
 	}
 
 
 	return TCL_OK;
-}
-
-/*** nodecolor ID R G B A ****************************************************/
-interp_command(nocsim_nodecolor_command) {
-	nocsim_state* state = (nocsim_state*) data;
-	int r, g, b, a;
-	char* id;
-	nocsim_node *n;
-#ifdef NOCSIM_GUI
-	AG_Color c;
-#endif
-
-	req_args(6, "nodecolor ID R G B A");
-
-	id = Tcl_GetStringFromObj(argv[1], NULL);
-
-	get_int(interp, argv[2],  &r);
-	get_int(interp, argv[3],  &g);
-	get_int(interp, argv[4],  &b);
-	get_int(interp, argv[5],  &a);
-
-	n = nocsim_node_by_id(state, id);
-
-	if (n == NULL) {
-		Tcl_SetResult(interp, "no node found with requested id", NULL);
-		return TCL_ERROR;
-	}
-
-# ifdef NOCSIM_GUI
-	AG_ColorRGBA_8(&c, r, g, b, a);
-	n->c = c;
-#endif
-
-	return TCL_OK;
-
 }
 
 /*** allnodes ****************************************************************/
