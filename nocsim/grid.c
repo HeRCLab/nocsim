@@ -79,6 +79,8 @@ void nocsim_grid_create_PE(nocsim_state* state, char* id, unsigned int row, unsi
 
 nocsim_result nocsim_grid_create_link(nocsim_state* state, char* from_id, char* to_id, nocsim_direction from_dir, nocsim_direction to_dir) {
 
+	// #lizard forgives the complexity
+
 	/* if d is DIR_UNDEF, infer the direction, otherwise it is assume
 	 * that d is the direction the link is pointing */
 
