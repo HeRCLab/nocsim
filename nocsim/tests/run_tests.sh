@@ -172,7 +172,7 @@ run_test() {
 
 		# the suppression's file is needed because of how TCL allocates
 		# memory internally
-		if ! show_on_err valgrind --suppressions=./tcl.supp --error-exitcode=1 --leak-check=full tclsh < "$f" ; then
+		if ! show_on_err valgrind --suppressions=../../etc/tcl.supp --error-exitcode=1 --leak-check=full tclsh < "$f" ; then
 			test_failed=1
 		fi
 	fi
