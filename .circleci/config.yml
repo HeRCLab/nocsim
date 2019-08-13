@@ -15,6 +15,7 @@ jobs:
       - checkout
       - run: /usr/local/bin/agar-config --version
       - run: sh ./configure --enable-devmode --with-tcl=/usr/include/tcl8.6/ --with-agar=/usr/local/
+      - run: echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib" >> "$BASH_ENV"
       - run: sh ./nocsim/tests/run_tests.sh
 
   nocviz:
@@ -24,5 +25,6 @@ jobs:
       - checkout
       - run: /usr/local/bin/agar-config --version
       - run: sh ./configure --enable-devmode --with-tcl=/usr/include/tcl8.6/ --with-agar=/usr/local/
+      - run: echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib" >> "$BASH_ENV"
       - run: sh ./nocviz/tests/run_tests.sh
 
