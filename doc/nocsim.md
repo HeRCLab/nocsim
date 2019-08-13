@@ -111,6 +111,11 @@ doing.
 
 Returns the node ID for which the behavior callback is currently executing.
 
+**NOTE**: this method may also be called during the following instruments:
+
+* route
+* inject
+
 ### `step` / `step N`
 
 Advances the simulation by `N` ticks, or by 1 tick if `N` is not provided.

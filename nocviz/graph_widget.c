@@ -230,6 +230,16 @@ void graph_update(AG_Driver* dri, nocviz_graph* g_data) {
 
 	/* create all links */
 	nocviz_graph_foreach_link(g_data, l,
+		if ((l->from == NULL) || (l->to == NULL)) {
+			err(1, "link %s not connected at both endpoints", l->title);
+		}
+
+		if ((AG_GraphVertexFind(g_wid, l->from) == NULL) ||
+			(AG_GraphVertexFind(g_wid, l->to) == NULL)) {
+			/* the corresponding graph nodes have not been created
+			 * yet */
+			continue;
+		}
 		if (l->type == NOCVIZ_LINK_UNDIRECTED) {
 			edge = AG_GraphEdgeNew(g_wid,
 					AG_GraphVertexFind(g_wid, l->from),

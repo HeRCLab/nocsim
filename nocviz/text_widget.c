@@ -79,17 +79,17 @@ static void Draw(void* p) {
 	 * found */
 	if (ds == NULL) {
 		if (this->id2 == NULL) {
-			if (asprintf(&msg, "ERROR: no such node '%s'", this->id) < 0) {
+			if (asprintf(&msg, "ERROR: no such node '%s'   ", this->id) < 0) {
 				return;
 			}
 		} else {
-			if (asprintf(&msg, "ERROR: no such link '%s' -> '%s'", this->id, this->id2) < 0) {
+			if (asprintf(&msg, "ERROR: no such link '%s' -> '%s'   ", this->id, this->id2) < 0) {
 				return;
 			}
 		}
 
 	} else {
-		if (asprintf(&msg, "%s", nocviz_ds_format(ds, (char*) this->key)) < 0) {
+		if (asprintf(&msg, "%s   ", nocviz_ds_format(ds, (char*) this->key)) < 0) {
 			return;
 		}
 	}

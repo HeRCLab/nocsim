@@ -59,15 +59,12 @@ proc simpleinject {} {
 }
 
 proc on_arrive {origin dest flitno hops spawned_at injected_at} {
-	upvar #0 age_on_arrive age_on_arrive
-	upvar #0 nocsim_tick nocsim_tick
-	lappend age_on_arrive [expr $nocsim_tick - $spawned_at]
+	lappend age_on_arrive [expr $::nocsim::nocsim_tick - $spawned_at]
 }
 
 proc on_route {origin dest flitno spawnedat injectedat hops fromnode tonode} {
-	upvar #0 nocsim_tick nocsim_tick
 	if {$flitno == 37} {
-		conswrite "(tick=$nocsim_tick) flitno $flitno routed from $fromnode to $tonode"
+		conswrite "(tick=$::nocsim::nocsim_tick) flitno $flitno routed from $fromnode to $tonode"
 	}
 }
 
@@ -80,11 +77,11 @@ set age_on_arrive {}
 
 step 500
 
-conswrite "routed $nocsim_routed flits"
-conswrite "$nocsim_arrived flits arrived"
-conswrite "$nocsim_spawned flits spawned"
-conswrite "$nocsim_injected flits injected"
-conswrite "throughput = [expr (1.0 * $nocsim_routed /  $nocsim_num_PE) / $nocsim_tick ] flits per PE per cycle"
+conswrite "routed $::nocsim::nocsim_routed flits"
+conswrite "$::nocsim::nocsim_arrived flits arrived"
+conswrite "$::nocsim::nocsim_spawned flits spawned"
+conswrite "$::nocsim::nocsim_injected flits injected"
+conswrite "throughput = [expr (1.0 * $::nocsim::nocsim_routed /  $::nocsim::nocsim_num_PE) / $::nocsim::nocsim_tick ] flits per PE per cycle"
 conswrite "age on arrival... "
 conswrite "\tmean    : [::math::statistics::mean $age_on_arrive]"
 conswrite "\tmedian  : [::math::statistics::median $age_on_arrive]"

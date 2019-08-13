@@ -87,7 +87,7 @@ void* gui_main(void* arg) {
 	AG_Timer* to;
 
 	int show_node_labels = 1;
-	int show_edge_labels = 1;
+	int show_edge_labels = 0;
 
 	/* Initialize LibAgar */
 	if (AG_InitCore(NULL, 0) == -1 ||
