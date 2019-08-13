@@ -38,4 +38,4 @@ jobs:
       - run: sh ./configure --enable-werror --enable-devmode --with-tcl=/usr/include/tcl8.6/ --with-agar=/usr/local/
       - run: echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib" >> "$BASH_ENV"
       - run: make
-      - run: lizard -T nocsim/ nocviz/ common/
+      - run: lizard nocsim/ nocviz/ common/
