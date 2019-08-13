@@ -272,3 +272,39 @@ Otherwise, it will raise an exception.
 Set the link to the specified RGB or RGBA color. If the alpha channel is
 omitted, a value of 255 will be assumed. All values will be truncated to fit in
 0...255.
+
+## Utility procedures
+
+### `rgb_interp FRAC R1 G1 B1 R2 G2 B2`
+
+Uses HSL interpolation to generate an RGB color tuple determined to be `FRAC`
+percent of the way between the given color tuples.
+
+For example:
+
+```tcl
+source scripts/noc_tools_load.tcl
+set start [list 25 46 97]
+set end [list 243 212 234]
+for {set frac 0} {$frac <= 1.0} {set frac [expr $frac + 0.1]} {
+	set c [nocviz::rgb_interp $frac {*}$start {*}$end]
+	puts "[format "%1.2f" $frac] -> $c"
+}
+```
+
+would output
+
+```
+0.00 -> 25 45 96
+0.10 -> 32 44 123
+0.20 -> 41 39 149
+0.30 -> 69 46 175
+0.40 -> 104 53 201
+0.50 -> 144 80 208
+0.60 -> 177 106 214
+0.70 -> 205 133 221
+0.80 -> 226 159 228
+0.90 -> 235 185 229
+1.00 -> 242 211 233
+```
+
