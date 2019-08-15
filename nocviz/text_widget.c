@@ -11,7 +11,11 @@ NV_TextWidget* NV_TextWidgetNew(void* parent, char* label, nocviz_graph* g, char
 	 * we identify our node by ID, rather than by it's address */
 	tw->label_text = strdup(label);
 	tw->key = strdup(key);
-	tw->id = strdup(id);
+	if (id != NULL) {
+		tw->id = strdup(id);
+	} else {
+		tw->id = NULL;
+	}
 	tw->id2 = NULL;
 
 	tw->g = g;
@@ -63,7 +67,10 @@ static void Draw(void* p) {
 	nocviz_link* l;
 	nocviz_ds* ds;
 
-	if (this->id2 == NULL) {
+	if (this->id2 == NULL && this->id == NULL) {
+		/* global view */
+		ds = this->g->ds;
+	} else if (this->id2 == NULL) {
 		/* this refers to a node */
 		n = nocviz_graph_get_node(this->g, (char*) this->id);
 		ds = n->ds;

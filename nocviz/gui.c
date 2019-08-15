@@ -74,6 +74,68 @@ void ToggleNodeLabels(AG_Event* event) {
 
 }
 
+/* handler where we no longer have a vertex or edge selected */
+void handle_deselection(nocviz_graph* g_data, AG_Driver* dri) {
+	AG_Box* infobox;
+	AG_Box* sectionbox;
+	strvec* section;
+	const char* sectionname;
+	AG_Object* parent;
+	char* key;
+	unsigned int i;
+
+	/* if a node was deleted from the underlying data structure before
+	 * graph_update was called via it's handler, then vtx->userPtr will
+	 * point to un-allocated memory. This guarantees that cannot happen.
+	 */
+	if (nocviz_graph_is_dirty(g_data)) {
+		graph_update(dri, g_data);
+	}
+
+	/* vtx->userPtr should be safe now */
+	AG_SetPointer(dri, "selected_node", NULL);
+	/* invalidate */
+	AG_SetPointer(dri, "selected_link", NULL);
+
+	/* delete the existing info box and create a new one */
+	infobox = AG_GetPointer(dri, "infobox_p");
+	parent = AG_ObjectParent(AGOBJECT(infobox));
+	AG_ObjectDelete(infobox);
+	infobox = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
+	AG_SetPointer(dri, "infobox_p", infobox);
+
+#ifdef EBUG
+	sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
+	AG_BoxSetLabelS(sectionbox, "DEBUG DEBUG DEBUG");
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "parent=%p", (void*) parent);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "infobox_p=%p", (void*) infobox);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "graph=%p", (void*) g_data);
+#endif
+
+	/* generate the info panel contents */
+	nocviz_ds_foreach_section(g_data->ds, sectionname, section,
+		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
+		AG_BoxSetLabel(sectionbox, "%s", sectionname);
+		vec_foreach(section, key, i) {
+			/* NV_TextWidget comes from text_widget.{c,h}, and
+			 * will automatically keep polling the given node ID
+			 * on it's own */
+			NV_TextWidgetNew(sectionbox, key, g_data, NULL, key);
+		}
+	);
+
+	/* workaround to force the widget to redraw immediately */
+	AG_WidgetHide(infobox);
+	AG_WidgetShow(infobox);
+}
+
+void clear_selection_button_handler(AG_Event* event) {
+	AG_Driver* dri = get_dri();
+	nocviz_graph* g_data = AG_PTR_NAMED("g_data");
+
+	handle_deselection(g_data, dri);
+}
+
 
 void* gui_main(void* arg) {
 	nocviz_gui_params* p = arg;
@@ -85,6 +147,7 @@ void* gui_main(void* arg) {
 	AG_Box* box;
 	AG_Pane* inner_pane;
 	AG_Timer* to;
+	AG_Toolbar* tb;
 
 	int show_node_labels = 1;
 	int show_edge_labels = 0;
@@ -105,6 +168,11 @@ void* gui_main(void* arg) {
 	menu = AG_MenuNew(win, 0);
 
 	inner_pane = AG_PaneNewHoriz(win, AG_PANE_DIV1FILL | AG_PANE_EXPAND);
+
+	/* setup the toolbar for global ops */
+	tb = AG_ToolbarNew(inner_pane->div[1], AG_TOOLBAR_HORIZ, 1, AG_TOOLBAR_HFILL);
+	AG_ToolbarButton(tb, "clear selection", 1,
+			clear_selection_button_handler, "%p(g_data)", p->graph);
 
 	/* instantiate the graph */
 	g = AG_GraphNew(inner_pane->div[1], AG_GRAPH_EXPAND);
@@ -147,9 +215,6 @@ void* gui_main(void* arg) {
 			AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", box);
 
-	AG_WindowShow(win);
-
-
 	/* set up a timer to keep the graph updating */
 	to = noctools_malloc(sizeof(AG_Timer));
 	AG_InitTimer(to, "graph_update_event", AG_TIMER_AUTO_FREE);
@@ -157,6 +222,11 @@ void* gui_main(void* arg) {
 
 	/* custom automatically polling text widget */
 	AG_RegisterClass(&NV_TextWidgetClass);
+
+	/* show the deselected view by default */
+	handle_deselection(p->graph, dri);
+
+	AG_WindowShow(win);
 
 	AG_EventLoop();
 
