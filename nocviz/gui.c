@@ -136,6 +136,58 @@ void clear_selection_button_handler(AG_Event* event) {
 	handle_deselection(g_data, dri);
 }
 
+void run_tcl_callback(AG_Event* event) {
+	char* code = AG_PTR_NAMED("code");
+	Tcl_Interp* interp = AG_PTR_NAMED("interp");
+
+	Tcl_Eval(interp, code);
+}
+
+unsigned int toolbar_update_handler(AG_Timer* to, AG_Event* event) {
+	UNUSED(to);
+	AG_Driver* dri = get_dri();
+	AG_Window* win = AG_GetPointer(dri, "main_window");
+	AG_Toolbar* tb = AG_PTR_NAMED("toolbar");
+	AG_Timer* new_to;
+	AG_Object* parent;
+	nocviz_op* o;
+	const char* opname;
+	UNUSED(opname);
+
+	nocviz_gui_params* p = AG_PTR_NAMED("gui_param");
+	nocviz_graph* g = p->graph;
+
+	parent = AG_ObjectParent(AGOBJECT(tb));
+
+	/* avoid deleting the toolbar while it is being constructed 
+	 *
+	 * XXX: accessing ->pvt is not safe*/
+	if (AG_MutexTryLock(&(AGOBJECT(tb)->pvt.lock)) != 0) {
+		goto setup_timer_and_return;
+	}
+	AG_MutexUnlock(&(AGOBJECT(tb)->pvt.lock));
+	AG_ObjectDelete(tb);
+
+	tb = AG_ToolbarNew(parent, AG_TOOLBAR_HORIZ, 1, AG_TOOLBAR_HFILL);
+
+	AG_ToolbarButton(tb, "clear selection", 1,
+			clear_selection_button_handler, "%p(g_data)", p->graph);
+
+	nocviz_ds_foreach_op(g->ds, opname, o,
+		AG_ToolbarButton(tb, o->description, 1,
+				run_tcl_callback, "%p(code),%p(interp)",
+				o->script, p->interp);
+		);
+
+setup_timer_and_return:
+	new_to = noctools_malloc(sizeof(AG_Timer));
+	AG_InitTimer(new_to, "toolbar_update_event", AG_TIMER_AUTO_FREE);
+	AG_AddTimer(win, new_to, NOCVIZ_GUI_TOOLBAR_UPDATE_INTERVAL,
+			toolbar_update_handler, "%p(toolbar),%p(gui_param)", tb, p);
+
+	return 0;
+}
+
 
 void* gui_main(void* arg) {
 	nocviz_gui_params* p = arg;
@@ -216,9 +268,13 @@ void* gui_main(void* arg) {
 	AG_SetPointer(dri, "infobox_p", box);
 
 	/* set up a timer to keep the graph updating */
+	/* to = noctools_malloc(sizeof(AG_Timer)); */
+	/* AG_InitTimer(to, "graph_update_event", AG_TIMER_AUTO_FREE); */
+	/* AG_AddTimer(win, to, NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL, graph_update_handler, "%p(gui_param)", p); */
+
 	to = noctools_malloc(sizeof(AG_Timer));
-	AG_InitTimer(to, "graph_update_event", AG_TIMER_AUTO_FREE);
-	AG_AddTimer(win, to, NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL, graph_update_handler, "%p(gui_param)", p);
+	AG_InitTimer(to, "toolbar_update_event", AG_TIMER_AUTO_FREE);
+	AG_AddTimer(win, to, NOCVIZ_GUI_TOOLBAR_UPDATE_INTERVAL+10000, toolbar_update_handler, "%p(toolbar),%p(gui_param)", tb, p);
 
 	/* custom automatically polling text widget */
 	AG_RegisterClass(&NV_TextWidgetClass);

@@ -58,6 +58,7 @@
 #define NOCVIZ_GUI_GRAPH_DEFAULT_WIDTH 800
 #define NOCVIZ_GUI_GRAPH_DEFAULT_HEIGHT 600
 #define NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL 50
+#define NOCVIZ_GUI_TOOLBAR_UPDATE_INTERVAL 200
 
 /*** TYPES *******************************************************************/
 
