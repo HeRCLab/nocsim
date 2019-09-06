@@ -9,10 +9,10 @@ SRCS=		${SRCS_NOCVIZ} nocsim.o grid.c interp.c simulation.c util.c ../3rdparty/v
 # TCL wiki seems to suggest that -DUSE_TCL_STUBS and -ltclstubs8.6 are needed,
 # but that causes CreateInterp() within datastore to break
 # STUBS_CFLAGS?=	-DUSE_TCL_STUBS
-STUBS_CFLAGS?=	
+STUBS_CFLAGS?=
 
-CFLAGS+=	${TCL_CFLAGS} ${AGAR_CFLAGS} ${STUBS_CFLAGS} -D_GNU_SOURCE
-LIBS+=		${TCL_LIBS} ${AGAR_LIBS}
+CFLAGS+=	${TCL_CFLAGS} ${STUBS_CFLAGS} -D_GNU_SOURCE
+LIBS+=		${TCL_LIBS}
 
 EXTRA_TARGETS+=	pkgIndex.tcl
 CLEANFILES+=	pkgIndex.tcl
