@@ -16,11 +16,34 @@
 	Tcl_WrongNumArgs(interp, 0, argv, msg); return TCL_ERROR; }
 
 #define validate_direction(dir) do { \
-		if (dir < 0 || dir > P) { \
-			Tcl_SetResult(interp, "value provided for" #dir "is out of bounds", NULL); \
+		if (dir < 0 || (dir > P && dir != BACKLOG)) { \
+			Tcl_SetResult(interp, "value provided for " #dir " is out of bounds", NULL); \
 			return TCL_ERROR; \
 		} \
 	} while (0)
+
+
+#define validate_incoming_link_exists(state, direction) __extension__ ({ \
+	if (state->current->incoming[direction] == NULL) { \
+		Tcl_SetResult(interp, "no incoming link from specified direction", NULL); \
+		return TCL_ERROR; \
+	} \
+})
+
+#define validate_outgoing_link_exists(state, direction) __extension__ ({ \
+	if (state->current->outgoing[direction] == NULL) { \
+		Tcl_SetResult(interp, "no outgoing link from specified direction", NULL); \
+		return TCL_ERROR; \
+	} \
+})
+
+#define validate_outgoing_link_open(state, direction) __extension__ ({ \
+	/* each link can accept only one flit per cycle */ \
+	if (state->current->outgoing[direction]->flit_next != NULL) { \
+		Tcl_SetResult(interp, "cannot route multiple flits through the same outgoing link", NULL); \
+		return TCL_ERROR; \
+	} \
+})
 
 
 /*** router ID ROW COL behavior **********************************************/
@@ -489,6 +512,8 @@ interp_command(nocsim_route_command) {
 	nocsim_flit* flit;
 	nocsim_node* from_node;
 	nocsim_node* to_node;
+	const nocsim_node* router = state->current;
+	unsigned char backlog_usage = 0; /* bitflags */
 
 	req_args(3, "route FROM TO");
 
@@ -497,6 +522,10 @@ interp_command(nocsim_route_command) {
 
 	validate_direction(from);
 	validate_direction(to);
+
+	/* backlog_usage bit flags: [from-buffer?, to-buffer?] */
+	backlog_usage |= ((from == BACKLOG) ? 1 : 0) << 1;
+	backlog_usage |= (to == BACKLOG) ? 1 : 0;
 
 	/* must be called during a behavior */
 	if (state->current == NULL) {
@@ -510,31 +539,61 @@ interp_command(nocsim_route_command) {
 		return TCL_ERROR;
 	}
 
-	/* make sure the relevant links exist */
-	if (state->current->incoming[from] == NULL) {
-		Tcl_SetResult(interp, "no incoming link from specified direction", NULL);
-		return TCL_ERROR;
-	}
+	switch (backlog_usage) {
+		case 0x0: /* dir,    dir */
+			validate_incoming_link_exists(state, from);
+			validate_outgoing_link_exists(state, to);
+			validate_outgoing_link_open(state, to);
 
-	if (state->current->outgoing[to] == NULL) {
-		Tcl_SetResult(interp, "no outgoing link to specified direction", NULL);
-		return TCL_ERROR;
-	}
+			flit      = router->incoming[from]->flit;
+			from_node = router->incoming[from]->from;
+			to_node   = router->outgoing[to]->to;
 
-	/* each link can accept only one flit per cycle */
-	if (state->current->outgoing[to]->flit_next != NULL) {
-		Tcl_SetResult(interp, "cannot route multiple flits through the same outgoing link", NULL);
-		return TCL_ERROR;
+			/* move flit to next state */
+			router->outgoing[to]->flit_next = router->incoming[from]->flit;
+			router->incoming[from]->flit = NULL;
+			/* TODO: incr perf counters on flit */
+			break;
+		case 0x1: /* dir,    buffer */
+			validate_incoming_link_exists(state, from);
+			/* buffer is assumed to exist */
+
+			flit      = state->current->incoming[from]->flit;
+			from_node = state->current->incoming[from]->from;
+			to_node   = state->current;
+			/* put flit at back of backlog FIFO queue */
+			vec_push(router->pending, flit);
+			router->incoming[from]->flit = NULL;
+			break;
+		case 0x2: /* buffer, dir */
+			/* buffer is assumed to exist. */
+			validate_outgoing_link_exists(state, to);
+			validate_outgoing_link_open(state, to);
+
+			flit      = vec_dequeue(router->pending);
+			from_node = (nocsim_node*)router; /* discard const qualifier on this ptr copy */
+			to_node   = router->outgoing[to]->to;
+			/* move flit to next state */
+			router->outgoing[to]->flit_next = flit;
+			//router->incoming[from]->flit = NULL;
+			break;
+		case 0x3: /* buffer, buffer */
+			/* buffer is assumed to exist */
+
+			flit      = vec_dequeue(router->pending);
+			from_node = state->current;
+			to_node   = state->current;
+			/* put flit at back of backlog FIFO queue */
+			vec_push(router->pending, flit);
+			//router->incoming[from]->flit = NULL;
+			break;
 	}
 
 	/* TODO: should probably have a nocsim_route function in simulation.c
 	 * */
 
 	/* route callback */
-	flit = state->current->incoming[from]->flit;
-	from_node = state->current->incoming[from]->from;
-	to_node = state->current->outgoing[to]->to;
-
+	/* note: we do not distinguish between backlog and normal routing yet */
 	state->routed ++;
 	if (state->instruments[INSTRUMENT_ROUTE] != NULL) {
 		if (Tcl_Evalf(state->interp, "%s \"%s\" \"%s\" %lu %lu %lu %lu \"%s\" \"%s\"",
@@ -570,14 +629,13 @@ interp_command(nocsim_route_command) {
 	}
 
 	/* performance counters */
-	state->current->routed ++;
-	state->current->outgoing[to]->load ++;
-	flit->hops ++;
-
-	/* move flit to next state */
-	state->current->outgoing[to]->flit_next = \
-		state->current->incoming[from]->flit;
-	state->current->incoming[from]->flit = NULL;
+	/* note: only bump counters when flit leaves on a link.
+	 *   We can tell when this happens by using masking to get the 'to' bit. */
+	if (!(backlog_usage & 0x01)) {
+		state->current->routed ++;
+		state->current->outgoing[to]->load ++;
+		flit->hops ++;
+	}
 
 	return TCL_OK;
 }
@@ -605,15 +663,26 @@ interp_command(nocsim_drop_command) {
 		return TCL_ERROR;
 	}
 
-	/* make sure the relevant links exist */
-	if (state->current->incoming[from] == NULL) {
-		Tcl_SetResult(interp, "no incoming link from specified direction", NULL);
-		return TCL_ERROR;
-	}
+	if (from <= P) {
+		/* make sure the relevant links exist */
+		if (state->current->incoming[from] == NULL) {
+			Tcl_SetResult(interp, "no incoming link from specified direction", NULL);
+			return TCL_ERROR;
+		}
 
-	/* drop the flit */
-	free(state->current->incoming[from]->flit);
-	state->current->incoming[from]->flit = NULL;
+		/* drop the flit */
+		free(state->current->incoming[from]->flit);
+		state->current->incoming[from]->flit = NULL;
+	} else {
+		/* make sure there's a flit to drop */
+		if (state->current->pending->length < 1) {
+			Tcl_SetResult(interp, "backlog has no flits available", NULL);
+			return TCL_ERROR;
+		}
+
+		/* drop the flit from the backlog */
+		free(vec_dequeue(state->current->pending));
+	}
 
 	return TCL_OK;
 }
@@ -622,6 +691,7 @@ interp_command(nocsim_drop_command) {
 interp_command(nocsim_peek_command) {
 	nocsim_state* state = (nocsim_state*) data;
 	nocsim_direction dir;
+	nocsim_flit* flit;
 	char* attr;
 	int length;
 
@@ -642,46 +712,60 @@ interp_command(nocsim_peek_command) {
 		return TCL_ERROR;
 	}
 
-	if (state->current->incoming[dir] == NULL) {
-		Tcl_SetResult(interp, "no link in specified direction", NULL);
-		return TCL_ERROR;
-	}
+	/* ensure flit exists, either on a link, or the backlog */
+  if (dir <= P) {
+		if (state->current->incoming[dir] == NULL) {
+			Tcl_SetResult(interp, "no link in specified direction", NULL);
+			return TCL_ERROR;
+		}
 
-	if (state->current->incoming[dir]->flit == NULL) {
-		Tcl_SetResult(interp, "no flit incoming from specified direction", NULL);
-		return TCL_ERROR;
+		if (state->current->incoming[dir]->flit == NULL) {
+			Tcl_SetResult(interp, "no flit incoming from specified direction", NULL);
+			return TCL_ERROR;
+		}
+
+		/* get a pointer to the flit for the query */
+		flit = state->current->incoming[dir]->flit;
+	} else {
+		if (state->current->pending->length < 1) {
+			Tcl_SetResult(interp, "backlog has no flits available", NULL);
+			return TCL_ERROR;
+		}
+
+		/* get a pointer to the flit for the query */
+		flit = vec_first(state->current->pending);
 	}
 
 	if (!strncmp(attr, "from", length)) {
-		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->flit->from->id));
+		Tcl_SetObjResult(interp, str2obj(flit->from->id));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "to", length)) {
-		Tcl_SetObjResult(interp, str2obj(state->current->incoming[dir]->flit->to->id));
+		Tcl_SetObjResult(interp, str2obj(flit->to->id));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "from_row", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->from->row));
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(flit->from->row));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "from_col", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->from->col));
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(flit->from->col));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "to_row", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->to->row));
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(flit->to->row));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "to_col", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->to->col));
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(flit->to->col));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "spawned_at", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->spawned_at));
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(flit->spawned_at));
 		return TCL_OK;
 
 	} else if (!strncmp(attr, "injected_at", length)) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(state->current->incoming[dir]->flit->injected_at));
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(flit->injected_at));
 		return TCL_OK;
 
 	} else {
@@ -694,6 +778,7 @@ interp_command(nocsim_peek_command) {
 interp_command(nocsim_incoming_command) {
 	nocsim_state* state = (nocsim_state*) data;
 	nocsim_direction dir;
+	unsigned int result;
 
 	/* just check one direction */
 	req_args(2, "incoming DIR");
@@ -710,16 +795,19 @@ interp_command(nocsim_incoming_command) {
 		return TCL_ERROR;
 	}
 
-	if (state->current->incoming[dir] != NULL) {
-		if (state->current->incoming[dir]->flit != NULL) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
-		} else {
-			goto none_incoming;
-		}
+	/* different checks required for backlog vs link directions */
+	if (dir == BACKLOG) {
+		/* flit available / no flit available */
+		result = (state->current->pending->length > 0) ? 1 : 0;
+	} else if (state->current->incoming[dir] != NULL) {
+		/* flit available / no flit available */
+		result = (state->current->incoming[dir]->flit != NULL) ? 1 : 0;
 	} else {
-none_incoming:
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+		/* no such link */
+		result = 2;
 	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
 
 	return TCL_OK;
 
@@ -808,7 +896,7 @@ interp_command(nocsim_dir2int) {
 
 	result = NOCSIM_STR_TO_DIRECTION(dir);
 
-	if (result <= P) {
+	if (result <= P || result == BACKLOG) {
 		Tcl_SetObjResult(interp, Tcl_NewIntObj((int) result));
 		return TCL_OK;
 	} else {
@@ -831,7 +919,7 @@ interp_command(nocsim_int2dir) {
 
 	result = NOCSIM_DIRECTION_TO_STR(dir);
 
-	if (dir <= P) {
+	if (dir <= P || dir == BACKLOG) {
 		Tcl_SetObjResult(interp, str2obj(result));
 		return TCL_OK;
 	} else {
