@@ -42,11 +42,11 @@ proc DORfrom {dir} {
 }
 
 proc simpleDOR {} {
-	if {[incoming [dir2int north]]} {DORfrom [dir2int north]}
-	if {[incoming [dir2int south]]} {DORfrom [dir2int south]}
-	if {[incoming [dir2int east]]}  {DORfrom [dir2int east]}
-	if {[incoming [dir2int west]]}  {DORfrom [dir2int west]}
-	if {[incoming [dir2int PE]]}    {DORfrom [dir2int PE]}
+	if {[incoming [dir2int north]] == 1} {DORfrom [dir2int north]}
+	if {[incoming [dir2int south]] == 1} {DORfrom [dir2int south]}
+	if {[incoming [dir2int east]] == 1}  {DORfrom [dir2int east]}
+	if {[incoming [dir2int west]] == 1}  {DORfrom [dir2int west]}
+	if {[incoming [dir2int PE]] == 1}    {DORfrom [dir2int PE]}
 
 }
 
