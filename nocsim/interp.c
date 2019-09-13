@@ -506,6 +506,7 @@ interp_command(nocsim_spawn_command) {
 
 /*** route FROM TO ***********************************************************/
 interp_command(nocsim_route_command) {
+	// #lizard forgives the complexity
 	nocsim_state* state = (nocsim_state*) data;
 	nocsim_direction from;
 	nocsim_direction to;
