@@ -509,9 +509,9 @@ interp_command(nocsim_route_command) {
 	nocsim_state* state = (nocsim_state*) data;
 	nocsim_direction from;
 	nocsim_direction to;
-	nocsim_flit* flit;
-	nocsim_node* from_node;
-	nocsim_node* to_node;
+	nocsim_flit* flit = NULL;
+	nocsim_node* from_node = NULL;
+	nocsim_node* to_node = NULL;
 	const nocsim_node* router = state->current;
 	unsigned char backlog_usage = 0; /* bitflags */
 
