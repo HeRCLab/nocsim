@@ -269,11 +269,19 @@ the `dir_*` magic variables). Returns one of the following values:
 
 ### `incoming DIR` (routing behaviors only)
 
-`DIR` should be specified as an integer in `nocsim`'s internal format.
+Considers the incoming link `DIR` for the current node (where `DIR` is one of
+the `dir_*` magic variables). Returns one of the following values:
+
+| return value | meaning |
+|-|-|
+| 0 | link is empty |
+| 1 | link has a flit available |
+| 2 | no such link |
 
 Returns 1 if there is a flit incoming from the specified direction, and 0
-otherwise (including if the link in that direction does not exist). Note that
-routing a flit removes it from the relevant incoming link;
+otherwise (including if the link in that direction does not exist).
+
+Note that routing a flit removes it from the relevant incoming link.
 
 ### `allincoming` (routing behaviors only)
 
@@ -315,6 +323,8 @@ by `nocsim`. Valid direction strings include:
 * `left`
 * `p`
 * `pe`
+* `b`
+* `backlog`
 
 **NOTE** direction strings are case insensitive.
 
@@ -336,7 +346,7 @@ may be of use to you.
 
 Converts an integer direction (`DIR`) in `nocsim`'s internal representation to
 to a string representation. The generated string representation will always be
-in the abbreviated `n`/`s`/`e`/`w`/`pe` style.
+in the abbreviated `n`/`s`/`e`/`w`/`pe`/`b` style.
 
 ### `type2int TYPE`
 
