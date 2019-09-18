@@ -173,7 +173,6 @@ static void Init(void* obj) {
 
 	AGWIDGET(gw)->flags |= AG_WIDGET_FOCUSABLE;
 
-
 	gw->xOffs = 0;
 	gw->yOffs = 0;
 	gw->hPre = 0;
@@ -213,8 +212,7 @@ static int SizeAllocate(void* obj, const AG_SizeAlloc *a) {
 	gw->r.w = a->w;
 	gw->r.h = a->h;
 
-	gw->xOffs = -64;
-	gw->yOffs = -64;
+	/* TODO: handle keeping nodes on screen with x/y Offs */
 
 	return 0;
 }
