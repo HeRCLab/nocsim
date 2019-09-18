@@ -44,7 +44,7 @@ unsigned int graph_update_handler(AG_Timer* to, AG_Event* event) {
  * */
 void handle_vertex_selection(AG_Event* event) {
 	/* AddEvent appends automatic arguments to the end */
-	AG_GraphVertex* vtx = AG_PTR(2);
+	nocviz_node* vtx = AG_PTR(2);
 	nocviz_graph* g_data = AG_PTR_NAMED("nocviz_graph");
 	AG_Driver* dri = get_dri();
 	AG_Box* infobox;
@@ -52,7 +52,6 @@ void handle_vertex_selection(AG_Event* event) {
 	strvec* section;
 	const char* sectionname;
 	AG_Object* parent;
-	nocviz_node* n = vtx->userPtr;
 	char* key;
 	unsigned int i;
 
@@ -60,12 +59,12 @@ void handle_vertex_selection(AG_Event* event) {
 	 * graph_update was called via it's handler, then vtx->userPtr will
 	 * point to un-allocated memory. This guarantees that cannot happen.
 	 */
-	if (nocviz_graph_is_dirty(g_data)) {
-		graph_update(dri, g_data);
-	}
+	/* if (nocviz_graph_is_dirty(g_data)) { */
+		/* graph_update(dri, g_data); */
+	/* } */
 
 	/* vtx->userPtr should be safe now */
-	AG_SetPointer(dri, "selected_node", vtx->userPtr);
+	AG_SetPointer(dri, "selected_node", vtx);
 	/* invalidate */
 	AG_SetPointer(dri, "selected_link", NULL);
 
@@ -81,19 +80,19 @@ void handle_vertex_selection(AG_Event* event) {
 	AG_BoxSetLabelS(sectionbox, "DEBUG DEBUG DEBUG");
 	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "parent=%p", (void*) parent);
 	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "infobox_p=%p", (void*) infobox);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "selected_node=%p", (void*) n);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "node title=%s", n->title);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "selected_node=%p", (void*) vtx);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "node title=%s", vtx->title);
 #endif
 
 	/* generate the info panel contents */
-	nocviz_ds_foreach_section(n->ds, sectionname, section,
+	nocviz_ds_foreach_section(vtx->ds, sectionname, section,
 		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
 		AG_BoxSetLabel(sectionbox, "%s", sectionname);
 		vec_foreach(section, key, i) {
 			/* NV_TextWidget comes from text_widget.{c,h}, and
 			 * will automatically keep polling the given node ID
 			 * on it's own */
-			NV_TextWidgetNew(sectionbox, key, g_data, n->id, key);
+			NV_TextWidgetNew(sectionbox, key, g_data, vtx->id, key);
 		}
 	);
 

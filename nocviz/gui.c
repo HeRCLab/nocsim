@@ -182,7 +182,11 @@ void* gui_main(void* arg) {
 	gw = NV_GraphWidgetNew(inner_pane->div[1], p->graph);
 	NV_GraphSizeHint(gw, NOCVIZ_GUI_GRAPH_DEFAULT_WIDTH,
 			NOCVIZ_GUI_GRAPH_DEFAULT_HEIGHT);
-	AG_RedrawOnTick(gw, 250);
+	AG_RedrawOnTick(gw, 50);
+	AG_AddEvent(gw, "graph-vertex-selected",
+			handle_vertex_selection, "%p(nocviz_graph)", gw->g);
+	AG_AddEvent(gw, "graph-edge-selected",
+			handle_link_selection, "%p(nocviz_graph)", gw->g);
 
 	AG_SetPointer(dri, "graph_p", gw);
 
