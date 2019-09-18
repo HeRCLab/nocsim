@@ -155,10 +155,12 @@ static void MouseButtonUp(AG_Event *event)
 
 static void MouseMotion(AG_Event *event) {
 	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
-	/* const int x = AG_INT(1); */
-	/* const int y = AG_INT(2); */
+	const int x = AG_INT(1);
+	const int y = AG_INT(2);
 	const int dx = AG_INT(3);
 	const int dy = AG_INT(4);
+
+	nocviz_node* vtx;
 
 	if (gw->flags & NV_GRAPH_PANNING) {
 		gw->xOffs -= dx;
@@ -166,6 +168,14 @@ static void MouseMotion(AG_Event *event) {
 		AG_Redraw(gw);
 		return;
 	}
+
+	nocviz_graph_foreach_node(gw->g, vtx,
+		if (MouseOverVertex(vtx, gw, x, y)) {
+			vtx->flags |= NOCVIZ_NODE_HOVER;
+		} else {
+			vtx->flags &= ~(NOCVIZ_NODE_HOVER);
+		}
+	);
 }
 
 static void Init(void* obj) {
@@ -223,6 +233,7 @@ static void Draw(void* obj) {
 	nocviz_link* edge;
 	AG_Rect r;
 	AG_Color c;
+	AG_Color outline_c;
 	int xOffs = gw->xOffs;
 	int yOffs = gw->yOffs;
 
@@ -234,6 +245,8 @@ static void Draw(void* obj) {
 
 	AG_ColorBlack(&c);
 	AG_TextColor(&c);
+
+	AG_ColorRGB_8(&outline_c, 128, 255, 128);
 
 	/* draw the links */
 	nocviz_graph_foreach_link(gw->g, edge,
@@ -278,6 +291,10 @@ static void Draw(void* obj) {
 		AG_DrawRect(gw, &r, &vtx->c);
 		if (vtx->label_surface >= 0) {
 			AG_WidgetUnmapSurface(gw, vtx->label_surface);
+		}
+		if (vtx->flags & NOCVIZ_NODE_HOVER) {
+			AG_DrawRectOutline(gw, &r, &outline_c);
+
 		}
 		vtx->label_surface = AG_WidgetMapSurface(gw,
 			AG_TextRender(vtx->title));

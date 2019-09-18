@@ -75,6 +75,7 @@ typedef struct nocviz_node_t {
 	int w;
 	unsigned int flags;
 #define NOCVIZ_NODE_SELECTED 0x1
+#define NOCVIZ_NODE_HOVER 0x2
 	int label_surface;
 } nocviz_node;
 
