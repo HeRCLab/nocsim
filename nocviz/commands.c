@@ -91,6 +91,9 @@ int nocviz_command_link(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj 
 	} else if (string_equals(subcmd, "color")) {
 		return nocviz_subcmd_link_color(cdata, interp, objc, objv);
 
+	} else if (string_equals(subcmd, "curve")) {
+		return nocviz_subcmd_link_curve(cdata, interp, objc, objv);
+
 	} else {
 		Tcl_SetResultf(interp, "no such subcommand: %s", subcmd);
 		return TCL_ERROR;

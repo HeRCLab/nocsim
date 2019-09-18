@@ -88,9 +88,9 @@ void handle_deselection(nocviz_graph* g_data, AG_Driver* dri) {
 	 * graph_update was called via it's handler, then vtx->userPtr will
 	 * point to un-allocated memory. This guarantees that cannot happen.
 	 */
-	if (nocviz_graph_is_dirty(g_data)) {
-		graph_update(dri, g_data);
-	}
+	/* if (nocviz_graph_is_dirty(g_data)) { */
+	/*         graph_update(dri, g_data); */
+	/* } */
 
 	/* vtx->userPtr should be safe now */
 	AG_SetPointer(dri, "selected_node", NULL);
@@ -141,14 +141,14 @@ void* gui_main(void* arg) {
 	nocviz_gui_params* p = arg;
 
 	AG_Window *win;
-	AG_Graph* g;
+	NV_GraphWidget* gw;
 	AG_Driver* dri;
 	AG_Menu* menu;
 	AG_Box* box;
 	AG_Pane* inner_pane;
-	AG_Timer* to;
 	AG_Toolbar* tb;
 
+	/* setup custom widgets */
 	int show_node_labels = 1;
 	int show_edge_labels = 0;
 
@@ -163,6 +163,10 @@ void* gui_main(void* arg) {
 	/* setup the state handler and edge creation vertex variables */
 	dri = (AG_Driver*) AG_ObjectRoot(win);
 
+	AG_RegisterClass(&NV_TextWidgetClass);
+	AG_RegisterClass(&NV_GraphWidgetClass);
+
+
 	AG_SetPointer(dri, "main_window", win);
 
 	menu = AG_MenuNew(win, 0);
@@ -175,10 +179,12 @@ void* gui_main(void* arg) {
 			clear_selection_button_handler, "%p(g_data)", p->graph);
 
 	/* instantiate the graph */
-	g = AG_GraphNew(inner_pane->div[1], AG_GRAPH_EXPAND);
-	AG_GraphSizeHint(g, NOCVIZ_GUI_GRAPH_DEFAULT_WIDTH,
+	gw = NV_GraphWidgetNew(inner_pane->div[1], p->graph);
+	NV_GraphSizeHint(gw, NOCVIZ_GUI_GRAPH_DEFAULT_WIDTH,
 			NOCVIZ_GUI_GRAPH_DEFAULT_HEIGHT);
-	AG_SetPointer(dri, "graph_p", g);
+	AG_RedrawOnTick(gw, 250);
+
+	AG_SetPointer(dri, "graph_p", gw);
 
 	/* global flags for edge/node labels */
 	AG_SetPointer(dri, "show_node_labels", &show_node_labels);
@@ -214,14 +220,6 @@ void* gui_main(void* arg) {
 			AG_ScrollviewNew(inner_pane->div[0], AG_SCROLLVIEW_BY_MOUSE | AG_SCROLLVIEW_EXPAND),
 			AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", box);
-
-	/* set up a timer to keep the graph updating */
-	to = noctools_malloc(sizeof(AG_Timer));
-	AG_InitTimer(to, "graph_update_event", AG_TIMER_AUTO_FREE);
-	AG_AddTimer(win, to, NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL, graph_update_handler, "%p(gui_param)", p);
-
-	/* custom automatically polling text widget */
-	AG_RegisterClass(&NV_TextWidgetClass);
 
 	/* show the deselected view by default */
 	handle_deselection(p->graph, dri);

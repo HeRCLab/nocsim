@@ -124,6 +124,8 @@ static void Init(void * obj) {
 			AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, this->label_text);
 	this->tb->ed->flags |= AG_EDITABLE_HFILL;
 
+	AGWIDGET(this)->flags |= AG_WIDGET_FOCUSABLE;
+
 	/* redraw at ~60FPS */
 	AG_RedrawOnTick(this, 1000/60);
 

@@ -273,6 +273,15 @@ Set the link to the specified RGB or RGBA color. If the alpha channel is
 omitted, a value of 255 will be assumed. All values will be truncated to fit in
 0...255.
 
+### `link curve ID1 ID2 CURVE`
+
+Specify a "curve" value. This affects how the link is displayed, causing it to
+curve either up or down depending on the sign of `CURVE` (which corresponds to
+positive and negative depends on the direction of the link). A value of about
+50 will give a mild curve.
+
+Internally, this value uses pixels as it's units.
+
 ## Utility procedures
 
 ### `rgb_interp FRAC R1 G1 B1 R2 G2 B2`

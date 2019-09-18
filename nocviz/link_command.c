@@ -68,6 +68,20 @@ int nocviz_subcmd_link_directed(ClientData cdata, Tcl_Interp* interp, int objc, 
 
 }
 
+int nocviz_subcmd_link_curve(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
+	nocviz_graph* g = cdata;
+	nocviz_link* link;
+
+	Tcl_RequireArgs(interp, 5, "link curve ID1 ID2 CURVE");
+
+	link = get_link_from_objs(interp, g, objv[2], objv[3]);
+
+	link->curve = get_int_from_obj(interp, objv[4]);
+
+	return TCL_OK;
+
+}
+
 int nocviz_subcmd_link_reverse(ClientData cdata, Tcl_Interp* interp, int objc, Tcl_Obj *const objv[]) {
 	nocviz_graph* g = cdata;
 	nocviz_link* link;

@@ -1,326 +1,312 @@
-#include "gui.h"
+/* This module contains considerable code derived from AG_Graph, which
+ * is distributed under the following license:
+ *
+ * Copyright (c) 2007-2019 Julien Nadeau Carriere <vedge@csoft.net>,
+ * 2019 Charles A. Daniels, <charles@cdaniels.net>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Modifications made to this code are covered by the nocviz/nocsim project
+ * license.
+ */
 
-/* update the graph widget to be consistent with the underlying nocviz graph
- * state */
-unsigned int graph_update_handler(AG_Timer* to, AG_Event* event) {
-	UNUSED(to);
-	AG_Driver* dri = get_dri();
-	AG_Window* win = AG_GetPointer(dri, "main_window");
-	AG_Timer* new_to;
+#include "graph_widget.h"
 
-	nocviz_gui_params* p = AG_PTR_NAMED("gui_param");
-	nocviz_graph* g_data = p->graph;
+NV_GraphWidget* NV_GraphWidgetNew(void* parent, nocviz_graph* g) {
+	NV_GraphWidget* gw;
 
-	/* update only if the graph is marked dirty */
-	if (nocviz_graph_is_dirty(g_data)) {
-		graph_update(dri, g_data);
+	gw = noctools_malloc(sizeof(NV_GraphWidget));
+
+	gw->g = g;
+
+	AG_ObjectInit(gw, &NV_GraphWidgetClass);
+
+	AG_ExpandHoriz(gw);
+	AG_ExpandVert(gw);
+
+	AG_ObjectAttach(parent, gw);
+
+	return gw;
+}
+
+static int MouseOverVertex(nocviz_node *vtx, NV_GraphWidget* gw, int x, int y) {
+	return (abs(x - vtx->x + gw->xOffs) <= (vtx->w >> 1) &&
+	        abs(y - vtx->y + gw->yOffs) <= (vtx->h >> 1));
+}
+
+
+static void KeyDown(AG_Event *event) {
+	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
+	const int keysym = AG_INT(1);
+	const int scrollIncr = 10;
+
+	switch (keysym) {
+	case AG_KEY_LEFT:
+		gw->xOffs -= scrollIncr;
+		break;
+	case AG_KEY_RIGHT:
+		gw->xOffs += scrollIncr;
+		break;
+	case AG_KEY_UP:
+		gw->yOffs -= scrollIncr;
+		break;
+	case AG_KEY_DOWN:
+		gw->yOffs += scrollIncr;
+		break;
+	case AG_KEY_0:
+		gw->xOffs = 0;
+		gw->yOffs = 0;
+		break;
 	}
+	AG_Redraw(gw);
+}
 
-	if (nocviz_graph_color_is_dirty(g_data)) {
-		graph_color_update(dri, g_data);
+static void SelectVertex(NV_GraphWidget *gw, nocviz_node* vtx) {
+	vtx->flags |= NOCVIZ_NODE_SELECTED;
+	AG_PostEvent(gw, "graph-vertex-selected", "%p", vtx);
+	AG_Redraw(gw);
+}
+
+static void UnselectVertex(NV_GraphWidget *gw, nocviz_node* vtx) {
+	vtx->flags &= ~(NOCVIZ_NODE_SELECTED);
+	AG_PostEvent(gw, "graph-vertex-unselected", "%p", vtx);
+	AG_Redraw(gw);
+}
+
+
+static void MouseButtonDown(AG_Event *event) {
+	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
+	const int button = AG_INT(1);
+	const int x = AG_INT(2);
+	const int y = AG_INT(3);
+	const AG_KeyMod kmod = AG_GetModState(gw);
+	nocviz_node *vtx;
+
+	if (!AG_WidgetIsFocused(gw))
+		AG_WidgetFocus(gw);
+
+	switch (button) {
+	case AG_MOUSE_MIDDLE:
+		gw->flags |= NV_GRAPH_PANNING;
+		break;
+	case AG_MOUSE_LEFT:
+		if (kmod & (AG_KEYMOD_CTRL | AG_KEYMOD_SHIFT)) {
+
+			/* TODO: handle edge multi selection */
+
+			nocviz_graph_foreach_node(gw->g, vtx,
+				if (!MouseOverVertex(vtx, gw, x,y)) {
+					continue;
+				}
+				if (vtx->flags & AG_GRAPH_SELECTED) {
+					UnselectVertex(gw, vtx);
+				} else {
+					SelectVertex(gw, vtx);
+				}
+				);
+		} else {
+
+			/* TODO: handle edge single selection */
+
+			nocviz_graph_foreach_node(gw->g, vtx,
+				if (MouseOverVertex(vtx, gw, x, y)) {
+					SelectVertex(gw, vtx);
+				} else {
+					UnselectVertex(gw, vtx);
+				}
+			);
+		}
+	/* case AG_MOUSE_RIGHT: */
+		/* handle right click menus */
 	}
+}
 
-	/* instantiate a new timer and start it running so it will call us
-	 * later. */
-	new_to = noctools_malloc(sizeof(AG_Timer));
-	AG_InitTimer(new_to, "graph_update_event", AG_TIMER_AUTO_FREE);
-	AG_AddTimer(win, new_to, NOCVIZ_GUI_GRAPH_UPDATE_INTERVAL,
-			graph_update_handler, "%p(gui_param)", p);
+
+static void MouseButtonUp(AG_Event *event)
+{
+	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
+	const int button = AG_INT(1);
+
+	switch (button) {
+		case AG_MOUSE_MIDDLE:
+			gw->flags &= ~(NV_GRAPH_PANNING);
+			break;
+	}
+}
+
+static void MouseMotion(AG_Event *event) {
+	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
+	/* const int x = AG_INT(1); */
+	/* const int y = AG_INT(2); */
+	const int dx = AG_INT(3);
+	const int dy = AG_INT(4);
+
+	if (gw->flags & NV_GRAPH_PANNING) {
+		gw->xOffs -= dx;
+		gw->yOffs -= dy;
+		AG_Redraw(gw);
+		return;
+	}
+}
+
+static void Init(void* obj) {
+	NV_GraphWidget* gw = obj;
+
+	AGWIDGET(gw)->flags |= AG_WIDGET_FOCUSABLE;
+
+
+	gw->xOffs = 0;
+	gw->yOffs = 0;
+	gw->hPre = 0;
+	gw->wPre = 0;
+	gw->flags = 0;
+	gw->g->gw = gw;
+
+	AG_SetEvent(gw, "key-down", KeyDown, NULL);
+	AG_SetEvent(gw, "mouse-button-down", MouseButtonDown, NULL);
+	AG_SetEvent(gw, "mouse-button-up", MouseButtonUp, NULL);
+	AG_SetEvent(gw, "mouse-motion", MouseMotion, NULL);
+
+}
+
+static void Destroy(void *p) {
+	NV_GraphWidget* gw = p;
+	gw->g->gw = NULL;
+	free(gw);
+}
+
+void NV_GraphSizeHint(NV_GraphWidget* gw, int w, int h) {
+	gw->wPre = w;
+	gw->hPre = h;
+}
+
+static void SizeRequest(void* obj, AG_SizeReq* r) {
+	NV_GraphWidget* gw = obj;
+	r->w = gw->wPre;
+	r->h = gw->hPre;
+}
+
+static int SizeAllocate(void* obj, const AG_SizeAlloc *a) {
+	NV_GraphWidget* gw = obj;
+
+	gw->r.x = 0;
+	gw->r.y = 0;
+	gw->r.w = a->w;
+	gw->r.h = a->h;
+
+	gw->xOffs = -64;
+	gw->yOffs = -64;
 
 	return 0;
 }
 
-/* handle the user selecting a vertex, remember that the userPtr field of
- * the vertices is a pointer to the corresponding nocviz_node.
- *
- * XXX: it is possible that if a node is deleted while this function is
- * executing, it may attempt to read from unallocated memory.
- *
- * */
-void handle_vertex_selection(AG_Event* event) {
-	/* AddEvent appends automatic arguments to the end */
-	AG_GraphVertex* vtx = AG_PTR(2);
-	nocviz_graph* g_data = AG_PTR_NAMED("nocviz_graph");
-	AG_Driver* dri = get_dri();
-	AG_Box* infobox;
-	AG_Box* sectionbox;
-	strvec* section;
-	const char* sectionname;
-	AG_Object* parent;
-	nocviz_node* n = vtx->userPtr;
-	char* key;
-	unsigned int i;
+static void Draw(void* obj) {
+	NV_GraphWidget* gw = obj;
+	nocviz_node* vtx;
+	nocviz_link* edge;
+	AG_Rect r;
+	AG_Color c;
+	int xOffs = gw->xOffs;
+	int yOffs = gw->yOffs;
 
-	/* if a node was deleted from the underlying data structure before
-	 * graph_update was called via it's handler, then vtx->userPtr will
-	 * point to un-allocated memory. This guarantees that cannot happen.
-	 */
-	if (nocviz_graph_is_dirty(g_data)) {
-		graph_update(dri, g_data);
-	}
+	AG_PushClipRect(gw, &gw->r);
 
-	/* vtx->userPtr should be safe now */
-	AG_SetPointer(dri, "selected_node", vtx->userPtr);
-	/* invalidate */
-	AG_SetPointer(dri, "selected_link", NULL);
+	/* Draw the bounding box */
+	AG_ColorRGB_8(&c, 128,128,128);
+	AG_DrawRectOutline(gw, &gw->r, &c);
 
-	/* delete the existing info box and create a new one */
-	infobox = AG_GetPointer(dri, "infobox_p");
-	parent = AG_ObjectParent(AGOBJECT(infobox));
-	AG_ObjectDelete(infobox);
-	infobox = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
-	AG_SetPointer(dri, "infobox_p", infobox);
+	AG_ColorBlack(&c);
+	AG_TextColor(&c);
 
-#ifdef EBUG
-	sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
-	AG_BoxSetLabelS(sectionbox, "DEBUG DEBUG DEBUG");
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "parent=%p", (void*) parent);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "infobox_p=%p", (void*) infobox);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "selected_node=%p", (void*) n);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "node title=%s", n->title);
-#endif
+	/* draw the links */
+	nocviz_graph_foreach_link(gw->g, edge,
 
-	/* generate the info panel contents */
-	nocviz_ds_foreach_section(n->ds, sectionname, section,
-		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
-		AG_BoxSetLabel(sectionbox, "%s", sectionname);
-		vec_foreach(section, key, i) {
-			/* NV_TextWidget comes from text_widget.{c,h}, and
-			 * will automatically keep polling the given node ID
-			 * on it's own */
-			NV_TextWidgetNew(sectionbox, key, g_data, n->id, key);
-		}
-	);
+		int curve = edge->curve;
 
-	/* workaround to force the widget to redraw immediately */
-	AG_WidgetHide(infobox);
-	AG_WidgetShow(infobox);
-
-}
-
-void handle_link_selection(AG_Event* event) {
-	/* AddEvent appends automatic arguments to the end */
-	AG_GraphEdge* edge = AG_PTR(2);
-	nocviz_graph* g_data = AG_PTR_NAMED("nocviz_graph");
-	AG_Driver* dri = get_dri();
-	AG_Box* infobox;
-	AG_Box* sectionbox;
-	strvec* section;
-	const char* sectionname;
-	AG_Object* parent;
-	nocviz_link* link = edge->userPtr;
-	char* key;
-	unsigned int i;
-
-	/* if a node was deleted from the underlying data structure before
-	 * graph_update was called via it's handler, then vtx->userPtr will
-	 * point to un-allocated memory. This guarantees that cannot happen.
-	 */
-	if (nocviz_graph_is_dirty(g_data)) {
-		graph_update(dri, g_data);
-	}
-
-	/* link->userPtr should be safe now */
-	AG_SetPointer(dri, "selected_link", edge->userPtr);
-
-	/* invalidate */
-	AG_SetPointer(dri, "selected_node", NULL);
-
-	/* delete the existing info box and create a new one */
-	infobox = AG_GetPointer(dri, "infobox_p");
-	parent = AG_ObjectParent(AGOBJECT(infobox));
-	AG_ObjectDelete(infobox);
-	infobox = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
-	AG_SetPointer(dri, "infobox_p", infobox);
-
-#ifdef EBUG
-	sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
-	AG_BoxSetLabelS(sectionbox, "DEBUG DEBUG DEBUG");
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "parent=%p", (void*) parent);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "infobox_p=%p", (void*) infobox);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "selected_link=%p", (void*) link);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "link title=%s", link->title);
-#endif
-
-	/* generate the info panel contents */
-	nocviz_ds_foreach_section(link->ds, sectionname, section,
-		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
-		AG_BoxSetLabel(sectionbox, "%s", sectionname);
-		vec_foreach(section, key, i) {
-			/* NV_TextWidget comes from text_widget.{c,h}, and
-			 * will automatically keep polling the given node ID
-			 * on it's own */
-			NV_TextWidgetNew(sectionbox,
-					key,
-					g_data,
-					link->from->id,
-					key)->id2 = strdup(link->to->id);
-			/* ->id2 is how NV_TextWidget knows we are referring
-			 * to a link rather than a node */
-
-		}
-	);
-
-	/* workaround to force the widget to redraw immediately */
-	AG_WidgetHide(infobox);
-	AG_WidgetShow(infobox);
-
-}
-
-
-/* actually do the work of updating the graph widget to reflect the contents of
- * the graph data structure
- *
- * XXX: handling of link/node titles may not be thread safe */
-void graph_update(AG_Driver* dri, nocviz_graph* g_data) {
-	AG_Graph* g_wid = AG_GetPointer(dri, "graph_p");
-	AG_Object* g_parent;
-	AG_GraphVertex* vtx;
-	nocviz_node* n;
-	nocviz_link* l;
-	AG_GraphEdge* edge;
-
-	/* if a node with this userPtr still exists after we re-generate the
-	 * graph widget, we will re-select it */
-	nocviz_node* selected_node = AG_GetPointer(dri, "selected_node");
-	nocviz_link* selected_link = AG_GetPointer(dri, "selected_link");
-	int xOffs;
-	int yOffs;
-
-	/* configure if node/edge labels should be shown
-	 *
-	 * XXX: currently, there are no edge labels */
-	int* show_edge_labels;
-	int* show_node_labels;
-	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
-	show_node_labels = AG_GetPointer(dri, "show_node_labels");
-
-	dbprintf("dirty graph! performing update... \n");
-
-	/* mark as clean */
-	nocviz_graph_set_dirty(g_data, false);
-
-	/* save the current offset so it can be re-applied later */
-	xOffs = g_wid->xOffs;
-	yOffs = g_wid->yOffs;
-
-	/* save the widget's parent so we know where to put the new one */
-	g_parent = AG_ObjectParent(AGOBJECT(g_wid));
-
-	AG_ObjectDelete(g_wid);
-
-	/* setup the new widget */
-	g_wid = AG_GraphNew(g_parent, AG_GRAPH_EXPAND);
-	AG_SetPointer(dri, "graph_p", g_wid);
-	AG_GraphSizeHint(g_wid, NOCVIZ_GUI_GRAPH_DEFAULT_WIDTH,
-			NOCVIZ_GUI_GRAPH_DEFAULT_HEIGHT);
-
-	/* update it's x/y offset to the saved copy */
-	g_wid->xOffs = xOffs;
-	g_wid->yOffs = yOffs;
-
-	/* create all nodes */
-	nocviz_graph_foreach_node(g_data, n,
-		vtx = AG_GraphVertexNew(g_wid, n);
-		if (*show_node_labels == 1) {
-			AG_GraphVertexLabel(vtx, "%s", n->title);
-		}
-		AG_GraphVertexPosition(vtx, n->col* 50, n->row* 50);
-	);
-
-	/* create all links */
-	nocviz_graph_foreach_link(g_data, l,
-		if ((l->from == NULL) || (l->to == NULL)) {
-			err(1, "link %s not connected at both endpoints", l->title);
-		}
-
-		if ((AG_GraphVertexFind(g_wid, l->from) == NULL) ||
-			(AG_GraphVertexFind(g_wid, l->to) == NULL)) {
-			/* the corresponding graph nodes have not been created
-			 * yet */
-			continue;
-		}
-		if (l->type == NOCVIZ_LINK_UNDIRECTED) {
-			edge = AG_GraphEdgeNew(g_wid,
-					AG_GraphVertexFind(g_wid, l->from),
-					AG_GraphVertexFind(g_wid, l->to),
-					l);
+		if (curve == 0) {
+			AG_DrawLine(gw,
+				edge->from->x - xOffs,
+				edge->from->y - yOffs,
+				edge->to->x - xOffs,
+				edge->to->y - yOffs,
+				&edge->c);
 		} else {
-			edge = AG_DirectedGraphEdgeNew(g_wid,
-					AG_GraphVertexFind(g_wid, l->from),
-					AG_GraphVertexFind(g_wid, l->to),
-					l);
-		}
-		if (*show_edge_labels == 1) {
-			AG_GraphEdgeLabel(edge, "%s", l->title);
+
+			double xv = edge->from->x - edge->to->x;
+			double yv = edge->from->y - edge->to->y;
+			double v_length = sqrt(xv * xv + yv * yv);
+
+			int xc1 = (int) ((yv / v_length) * (float) curve + (float) edge->from->x);
+			int yc1 = (int) ((-xv / v_length) * (float) curve + (float) edge->from->y);
+			int xc2 = (int) ((yv / v_length) * (float) curve + (float) edge->to->x);
+			int yc2 = (int) ((-xv / v_length) * (float) curve + (float) edge->to->y);
+
+			M_DrawBezier2(AGWIDGET(gw),
+				edge->from->x - xOffs, edge->from->y - yOffs,
+				xc1 - xOffs, yc1 - yOffs,
+				xc2 - xOffs, yc2 - yOffs,
+				edge->to->x - xOffs, edge->to->y - yOffs,
+				10, &edge->c);
 		}
 	);
 
-	/* re-select the previously selected vertex, if it still exists */
-	if (selected_node != NULL) {
-		vtx = AG_GraphVertexFind(g_wid, selected_node);
-		if (vtx != NULL) {
-			vtx->flags |= AG_GRAPH_SELECTED;
-		} else {
-			AG_SetPointer(dri, "selected_node", NULL);
+	/* draw the nodes */
+	nocviz_graph_foreach_node(gw->g, vtx,
+		vtx->x = vtx->col * vtx->w * 2;
+		vtx->y = vtx->row * vtx->h * 2;
+		r.x = vtx->x - xOffs - (vtx->w >> 1);
+		r.y = vtx->y - yOffs - (vtx->h >> 1);
+		r.h = vtx->h;
+		r.w = vtx->w;
+		AG_DrawRect(gw, &r, &vtx->c);
+		if (vtx->label_surface >= 0) {
+			AG_WidgetUnmapSurface(gw, vtx->label_surface);
 		}
-	}
+		vtx->label_surface = AG_WidgetMapSurface(gw,
+			AG_TextRender(vtx->title));
+		AG_WidgetBlitSurface(gw, vtx->label_surface, r.x, r.y);
+	);
 
-	if (selected_link != NULL) {
-		edge = AG_GraphEdgeFind(g_wid, selected_link);
-		if (edge != NULL) {
-			edge->flags |= AG_GRAPH_SELECTED;
-		} else {
-			AG_SetPointer(dri, "selected_link", NULL);
-		}
-	}
-
-	/* re-register the event handler */
-	AG_AddEvent(g_wid, "graph-vertex-selected",
-			handle_vertex_selection, "%p(nocviz_graph)", g_data);
-	AG_AddEvent(g_wid, "graph-edge-selected",
-			handle_link_selection, "%p(nocviz_graph)", g_data);
-
-	/* workaround to force the widget to redraw immediately */
-	AG_WidgetHide(g_wid);
-	AG_WidgetShow(g_wid);
-
-	dbprintf("graph update completed.\n");
+	AG_PopClipRect(gw);
 
 }
 
-void graph_color_update(AG_Driver* dri, nocviz_graph* g_data) {
-	AG_Graph* g_wid = AG_GetPointer(dri, "graph_p");
-	AG_GraphVertex* vtx;
-	nocviz_node* n;
-	nocviz_link* l;
-	AG_GraphEdge* edge;
+AG_WidgetClass NV_GraphWidgetClass = {
+	{
+		"AG_Widget:NV_GraphWidget",
+		sizeof(NV_GraphWidget),
+		{ 0,0 },
+		Init,
+		NULL,		/* reset */
+		Destroy,
+		NULL,		/* load */
+		NULL,		/* save */
+		NULL,		/* edit */
+		"NV_GraphWidget",
+		&agWidgetClass._inherit,
+		{{0}, {0}, {0}}
+	},
+	Draw,
+	SizeRequest,
+	SizeAllocate
+};
 
-	nocviz_graph_color_set_dirty(g_data, false);
-
-	/* color all nodes */
-	nocviz_graph_foreach_node(g_data, n,
-		vtx = AG_GraphVertexFind(g_wid, n);
-		if (vtx != NULL) {
-			AG_ObjectLock(vtx->graph);
-			vtx->bgColor = n->c;
-			AG_ObjectUnlock(vtx->graph);
-			AG_Redraw(g_wid);
-		}
-	);
-
-	/* color all links */
-	nocviz_graph_foreach_link(g_data, l,
-		edge = AG_GraphEdgeFind(g_wid, l);
-		if (edge != NULL) {
-			AG_ObjectLock(edge->graph);
-			edge->edgeColor = l->c;
-			AG_ObjectUnlock(edge->graph);
-			AG_Redraw(g_wid);
-		}
-	);
-
-	AG_WidgetHide(g_wid);
-	AG_WidgetShow(g_wid);
-
-}

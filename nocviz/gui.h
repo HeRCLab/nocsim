@@ -11,6 +11,7 @@
 #include "datastore.h"
 #include "graph.h"
 #include "text_widget.h"
+#include "graph_widget.h"
 
 /******************************************************************************
  *

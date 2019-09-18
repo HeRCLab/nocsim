@@ -10,6 +10,7 @@
 #include "datastore.h"
 #include "../common/util.h"
 
+
 /******************************************************************************
  *
  * Graph-representation library, where the graph itself, as well as each node
@@ -38,6 +39,8 @@ typedef struct nocviz_graph_t {
 	bool dirty;
 	bool color_dirty;
 	linkvec* links;
+	struct nocviz_graph_widget* gw;
+
 } nocviz_graph;
 
 typedef enum nocviz_link_type_t {NOCVIZ_LINK_DIRECTED, NOCVIZ_LINK_UNDIRECTED} nocviz_link_type;
@@ -48,7 +51,11 @@ typedef struct nocviz_link_t {
 	nocviz_link_type type;
 	nocviz_ds* ds;
 	char* title;
+
+	/***** values used for GUI ******/
 	AG_Color c;
+	int curve;
+	int label_surface;
 } nocviz_link;
 
 typedef struct nocviz_node_t {
@@ -59,7 +66,16 @@ typedef struct nocviz_node_t {
 	int row;
 	int col;
 	nocviz_ds* ds;
+
+	/***** values used for GUI ******/
 	AG_Color c;
+	int x;
+	int y;
+	int h;
+	int w;
+	unsigned int flags;
+#define NOCVIZ_NODE_SELECTED 0x1
+	int label_surface;
 } nocviz_node;
 
 /* create a new graph */

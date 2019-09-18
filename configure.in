@@ -36,7 +36,7 @@ fi
 # Require other Agar-based libraries.
 #REQUIRE(agar-vg, 1.5.0, ${prefix_agar})
 #REQUIRE(agar-dev, 1.5.0, ${prefix_agar})
-#REQUIRE(agar-math, 1.5.0, ${prefix_agar})
+REQUIRE(agar-math, 1.6.0, ${prefix_agar})
 
 # Import standard routines provided by Agar (without "AG"_ prefix).
 #C_DEFINE(_USE_AGAR_STD)

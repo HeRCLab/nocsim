@@ -12,6 +12,7 @@ nocviz_graph* nocviz_graph_init(void) {
 	g->dirty = true;
 	g->color_dirty = false;
 	g->links = noctools_malloc(sizeof(linkvec));
+	g->gw = NULL;
 	vec_init(g->links);
 
 	return g;
@@ -59,7 +60,13 @@ nocviz_node* __nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	n->title = strdup(id);
 	n->row = 0;
 	n->col = 0;
-	AG_ColorRGBA_8(&n->c, 255,255,255, 128);
+	n->x = 0;
+	n->y = 0;
+	n->h = 32;	/* XXX: should be macro-ed out */
+	n->w = 32;
+	n->flags = 0;
+	n->label_surface = -1;
+	AG_ColorRGBA_8(&n->c, 128,128,128, 255);
 
 	g->dirty = true;
 
@@ -106,6 +113,8 @@ nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocv
 	link->to = to_node;
 	link->type = type;
 	link->ds = nocviz_ds_init();
+	link->curve = 0;
+	link->label_surface = -1;
 	if (asprintf(&(link->title), "%s -> %s", from, to) < 0) {
 		warn("asprintf failure!");
 	}
@@ -186,8 +195,6 @@ void __nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
 
 	dbprintf("freeing node %s (%p)\n", node->id, (void*) node);
 
-	g->dirty = true;
-
 	/* free all links, we have to iterate over every link and node because
 	 * there may be incoming links we don't have handles to from this node
 	 * */
@@ -213,6 +220,9 @@ void __nocviz_graph_free_node(nocviz_graph* g, nocviz_node* node) {
 	free(node->title);
 	kh_destroy(mstrlink, node->adjacent);
 	free(node);
+
+	g->dirty = true;
+
 
 }
 
