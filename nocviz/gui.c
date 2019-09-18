@@ -42,7 +42,6 @@ void LaunchDebugger(AG_Event *event) {
 
 void ToggleEdgeLabels(AG_Event* event) {
 	AG_Driver* dri = get_dri();
-	nocviz_graph* g_data = AG_PTR_NAMED("g_data");
 
 	int* show_edge_labels;
 	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
@@ -53,13 +52,10 @@ void ToggleEdgeLabels(AG_Event* event) {
 		*show_edge_labels = 0;
 	}
 
-	graph_update(dri, g_data);
-
 }
 
 void ToggleNodeLabels(AG_Event* event) {
 	AG_Driver* dri = get_dri();
-	nocviz_graph* g_data = AG_PTR_NAMED("g_data");
 
 	int* show_node_labels;
 	show_node_labels = AG_GetPointer(dri, "show_node_labels");
@@ -69,9 +65,6 @@ void ToggleNodeLabels(AG_Event* event) {
 	} else {
 		*show_node_labels = 0;
 	}
-
-	graph_update(dri, g_data);
-
 }
 
 /* handler where we no longer have a vertex or edge selected */
@@ -83,14 +76,6 @@ void handle_deselection(nocviz_graph* g_data, AG_Driver* dri) {
 	AG_Object* parent;
 	char* key;
 	unsigned int i;
-
-	/* if a node was deleted from the underlying data structure before
-	 * graph_update was called via it's handler, then vtx->userPtr will
-	 * point to un-allocated memory. This guarantees that cannot happen.
-	 */
-	/* if (nocviz_graph_is_dirty(g_data)) { */
-	/*         graph_update(dri, g_data); */
-	/* } */
 
 	/* vtx->userPtr should be safe now */
 	AG_SetPointer(dri, "selected_node", NULL);
