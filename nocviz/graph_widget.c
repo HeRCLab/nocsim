@@ -236,6 +236,7 @@ static void Draw(void* obj) {
 	AG_Color outline_c;
 	int xOffs = gw->xOffs;
 	int yOffs = gw->yOffs;
+	AG_Driver* dri = AG_ObjectFindParent(gw, "agDrivers", NULL);
 
 	AG_PushClipRect(gw, &gw->r);
 
@@ -247,6 +248,9 @@ static void Draw(void* obj) {
 	AG_TextColor(&c);
 
 	AG_ColorRGB_8(&outline_c, 128, 255, 128);
+
+	int* show_node_labels;
+	show_node_labels = AG_GetPointer(dri, "show_node_labels");
 
 	/* draw the links */
 	nocviz_graph_foreach_link(gw->g, edge,
@@ -306,7 +310,7 @@ static void Draw(void* obj) {
 			vtx->surface_dirty = 0;
 		}
 
-		if (vtx->label_surface >= 0) {
+		if ((vtx->label_surface >= 0) && (*show_node_labels == 1)) {
 			AG_WidgetBlitSurface(gw, vtx->label_surface, r.x, r.y);
 		}
 	);

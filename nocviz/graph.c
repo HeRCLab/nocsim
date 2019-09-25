@@ -62,8 +62,8 @@ nocviz_node* __nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	n->col = 0;
 	n->x = 0;
 	n->y = 0;
-	n->h = 32;	/* XXX: should be macro-ed out */
-	n->w = 32;
+	n->h = 40;	/* XXX: should be macro-ed out */
+	n->w = 40;
 	n->flags = 0;
 	n->label_surface = -1;
 	n->surface_dirty = 1;
