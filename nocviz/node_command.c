@@ -111,6 +111,7 @@ int nocviz_subcmd_node_title(ClientData cdata, Tcl_Interp* interp, int objc, Tcl
 
 	free(n->title);
 	n->title = strdup(title);
+	n->surface_dirty = 1;
 	nocviz_graph_set_dirty(g, true);
 
 	return TCL_OK;

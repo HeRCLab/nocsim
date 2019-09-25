@@ -77,6 +77,7 @@ typedef struct nocviz_node_t {
 #define NOCVIZ_NODE_SELECTED 0x1
 #define NOCVIZ_NODE_HOVER 0x2
 	int label_surface;
+	unsigned char surface_dirty;
 } nocviz_node;
 
 /* create a new graph */

@@ -66,6 +66,7 @@ nocviz_node* __nocviz_graph_new_node(nocviz_graph* g, char* id) {
 	n->w = 32;
 	n->flags = 0;
 	n->label_surface = -1;
+	n->surface_dirty = 1;
 	AG_ColorRGBA_8(&n->c, 128,128,128, 255);
 
 	g->dirty = true;

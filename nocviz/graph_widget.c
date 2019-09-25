@@ -289,16 +289,26 @@ static void Draw(void* obj) {
 		r.h = vtx->h;
 		r.w = vtx->w;
 		AG_DrawRect(gw, &r, &vtx->c);
-		if (vtx->label_surface >= 0) {
-			AG_WidgetUnmapSurface(gw, vtx->label_surface);
-		}
 		if (vtx->flags & NOCVIZ_NODE_HOVER) {
 			AG_DrawRectOutline(gw, &r, &outline_c);
 
 		}
-		vtx->label_surface = AG_WidgetMapSurface(gw,
-			AG_TextRender(vtx->title));
-		AG_WidgetBlitSurface(gw, vtx->label_surface, r.x, r.y);
+
+		/* if the title text has changed or we don't have a surface
+		 * yet, update the surface */
+		if ((vtx->surface_dirty != 0) || (vtx->label_surface < 0)) {
+			if (vtx->label_surface >= 0) {
+				AG_WidgetUnmapSurface(gw, vtx->label_surface);
+				vtx->label_surface = -1;
+			}
+			vtx->label_surface = AG_WidgetMapSurface(gw,
+				AG_TextRender(vtx->title));
+			vtx->surface_dirty = 0;
+		}
+
+		if (vtx->label_surface >= 0) {
+			AG_WidgetBlitSurface(gw, vtx->label_surface, r.x, r.y);
+		}
 	);
 
 	AG_PopClipRect(gw);
