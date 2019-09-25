@@ -9,6 +9,12 @@ RUN pip3 install lizard
 RUN apt-get install --yes --force-yes libfreetype6-dev libxinerama-dev libfontconfig-dev libsdl-dev libpng-dev libjpeg-dev
 RUN git clone https://github.com/JulNadeauCA/libagar.git /tmp/libagar/ && \
 	cd /tmp/libagar && \
-	git checkout 28b2d84f127f18c17007f3f75dfd96a1939dffe2 && \
-	cd /tmp/libagar && ./configure --disable-sg --disable-sk --disable-map && \
+	git checkout c343b45ad5c5c1be503d40f5dce13b787c08725d && \
+	cd /tmp/libagar && ./configure --enable-debug --enable-debug-core --disable-sg --disable-sk --disable-map && \
 	make && make install && cd / && rm -rf /tmp
+
+# we don't get /tmp by default, but ./configure needs it
+RUN mkdir -p /tmp && chmod 1777 /tmp
+
+# we want to use the host locales and terminfo
+RUN rm -rf /usr/share/i18n/locales ; rm -rf /usr/lib/locale/locale-archive ; rm -rf /etc/terminfo
