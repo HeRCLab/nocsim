@@ -116,6 +116,7 @@ nocviz_link* __nocviz_graph_new_link(nocviz_graph* g, char* from, char* to, nocv
 	link->ds = nocviz_ds_init();
 	link->curve = 0;
 	link->label_surface = -1;
+	link->surface_dirty = 1;
 	if (asprintf(&(link->title), "%s -> %s", from, to) < 0) {
 		warn("asprintf failure!");
 	}

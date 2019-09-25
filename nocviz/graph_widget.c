@@ -53,6 +53,9 @@ static int MouseOverVertex(nocviz_node *vtx, NV_GraphWidget* gw, int x, int y) {
 	        abs(y - vtx->y + gw->yOffs) <= (vtx->h >> 1));
 }
 
+static int MouseOverEdge(nocviz_link *edge, NV_GraphWidget* gw, int x, int y) {
+	return ((abs(x - edge->hx + gw->xOffs) < 20) && (abs(y - edge->hy + gw->yOffs) < 20));
+}
 
 static void KeyDown(AG_Event *event) {
 	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
@@ -92,6 +95,18 @@ static void UnselectVertex(NV_GraphWidget *gw, nocviz_node* vtx) {
 	AG_Redraw(gw);
 }
 
+static void SelectEdge(NV_GraphWidget *gw, nocviz_link* edge) {
+	edge->flags |= NOCVIZ_LINK_SELECTED;
+	AG_PostEvent(gw, "graph-edge-selected", "%p", edge);
+	AG_Redraw(gw);
+}
+
+static void UnselectEdge(NV_GraphWidget *gw, nocviz_link* edge) {
+	edge->flags &= ~(NOCVIZ_LINK_SELECTED);
+	AG_PostEvent(gw, "graph-edge-unselected", "%p", edge);
+	AG_Redraw(gw);
+}
+
 
 static void MouseButtonDown(AG_Event *event) {
 	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
@@ -100,6 +115,7 @@ static void MouseButtonDown(AG_Event *event) {
 	const int y = AG_INT(3);
 	const AG_KeyMod kmod = AG_GetModState(gw);
 	nocviz_node *vtx;
+	nocviz_link* edge;
 
 	if (!AG_WidgetIsFocused(gw))
 		AG_WidgetFocus(gw);
@@ -117,21 +133,39 @@ static void MouseButtonDown(AG_Event *event) {
 				if (!MouseOverVertex(vtx, gw, x,y)) {
 					continue;
 				}
-				if (vtx->flags & AG_GRAPH_SELECTED) {
+				if (vtx->flags & NOCVIZ_NODE_SELECTED) {
 					UnselectVertex(gw, vtx);
 				} else {
 					SelectVertex(gw, vtx);
 				}
 				);
-		} else {
 
-			/* TODO: handle edge single selection */
+			nocviz_graph_foreach_link(gw->g, edge,
+				if (!MouseOverEdge(edge, gw, x,y)) {
+					continue;
+				}
+				if (edge->flags & NOCVIZ_LINK_SELECTED) {
+					UnselectEdge(gw, edge);
+				} else {
+					SelectEdge(gw, edge);
+				}
+				);
+
+		} else {
 
 			nocviz_graph_foreach_node(gw->g, vtx,
 				if (MouseOverVertex(vtx, gw, x, y)) {
 					SelectVertex(gw, vtx);
 				} else {
 					UnselectVertex(gw, vtx);
+				}
+			);
+
+			nocviz_graph_foreach_link(gw->g, edge,
+				if (MouseOverEdge(edge, gw, x, y)) {
+					SelectEdge(gw, edge);
+				} else {
+					UnselectEdge(gw, edge);
 				}
 			);
 		}
@@ -161,6 +195,7 @@ static void MouseMotion(AG_Event *event) {
 	const int dy = AG_INT(4);
 
 	nocviz_node* vtx;
+	nocviz_link* edge;
 
 	if (gw->flags & NV_GRAPH_PANNING) {
 		gw->xOffs -= dx;
@@ -176,6 +211,15 @@ static void MouseMotion(AG_Event *event) {
 			vtx->flags &= ~(NOCVIZ_NODE_HOVER);
 		}
 	);
+
+	nocviz_graph_foreach_link(gw->g, edge,
+		if (MouseOverEdge(edge, gw, x, y)) {
+			edge->flags |= NOCVIZ_LINK_HOVER;
+		} else {
+			edge->flags &= ~(NOCVIZ_LINK_HOVER);
+		}
+	);
+
 }
 
 static void Init(void* obj) {
@@ -237,6 +281,8 @@ static void Draw(void* obj) {
 	int xOffs = gw->xOffs;
 	int yOffs = gw->yOffs;
 	AG_Driver* dri = AG_ObjectFindParent(gw, "agDrivers", NULL);
+	int* show_node_labels;
+	int* show_edge_labels;
 
 	AG_PushClipRect(gw, &gw->r);
 
@@ -249,13 +295,24 @@ static void Draw(void* obj) {
 
 	AG_ColorRGB_8(&outline_c, 128, 255, 128);
 
-	int* show_node_labels;
 	show_node_labels = AG_GetPointer(dri, "show_node_labels");
+	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
 
 	/* draw the links */
 	nocviz_graph_foreach_link(gw->g, edge,
 
+		/* label coordinates */
+		int lx;
+		int ly;
+		AG_Color edgecolor;
+
 		int curve = edge->curve;
+
+		if (edge->flags & NOCVIZ_NODE_HOVER) {
+			edgecolor = outline_c;
+		} else {
+			edgecolor = edge->c;
+		}
 
 		if (curve == 0) {
 			AG_DrawLine(gw,
@@ -263,7 +320,9 @@ static void Draw(void* obj) {
 				edge->from->y - yOffs,
 				edge->to->x - xOffs,
 				edge->to->y - yOffs,
-				&edge->c);
+				&edgecolor);
+			lx = (edge->from->x + edge->to->x) / 2;
+			ly = (edge->from->y + edge->to->y) / 2;
 		} else {
 
 			double xv = edge->from->x - edge->to->x;
@@ -280,8 +339,34 @@ static void Draw(void* obj) {
 				xc1 - xOffs, yc1 - yOffs,
 				xc2 - xOffs, yc2 - yOffs,
 				edge->to->x - xOffs, edge->to->y - yOffs,
-				10, &edge->c);
+				10, &edgecolor);
+
+			lx = (xc1 + xc2) / 2;
+			ly = (yc1 + yc2) / 2;
 		}
+
+		edge->hx = lx;
+		edge->hy = ly;
+
+		lx -= xOffs;
+		ly -= yOffs;
+
+		/* if the title text has changed or we don't have a surface
+		 * yet, update the surface */
+		if ((edge->surface_dirty != 0) || (edge->label_surface < 0)) {
+			if (edge->label_surface >= 0) {
+				AG_WidgetUnmapSurface(gw, edge->label_surface);
+				edge->label_surface = -1;
+			}
+			edge->label_surface = AG_WidgetMapSurface(gw,
+				AG_TextRender(edge->title));
+			edge->surface_dirty = 0;
+		}
+
+		if ((edge->label_surface >= 0) && (*show_edge_labels == 1)) {
+			AG_WidgetBlitSurface(gw, edge->label_surface, lx, ly);
+		}
+
 	);
 
 	/* draw the nodes */

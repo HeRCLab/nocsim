@@ -61,7 +61,7 @@ void handle_vertex_selection(AG_Event* event) {
 
 void handle_link_selection(AG_Event* event) {
 	/* AddEvent appends automatic arguments to the end */
-	AG_GraphEdge* edge = AG_PTR(2);
+	nocviz_link* edge = AG_PTR(2);
 	nocviz_graph* g_data = AG_PTR_NAMED("nocviz_graph");
 	AG_Driver* dri = get_dri();
 	AG_Box* infobox;
@@ -69,12 +69,11 @@ void handle_link_selection(AG_Event* event) {
 	strvec* section;
 	const char* sectionname;
 	AG_Object* parent;
-	nocviz_link* link = edge->userPtr;
 	char* key;
 	unsigned int i;
 
 	/* link->userPtr should be safe now */
-	AG_SetPointer(dri, "selected_link", edge->userPtr);
+	AG_SetPointer(dri, "selected_link", edge);
 
 	/* invalidate */
 	AG_SetPointer(dri, "selected_node", NULL);
@@ -91,12 +90,12 @@ void handle_link_selection(AG_Event* event) {
 	AG_BoxSetLabelS(sectionbox, "DEBUG DEBUG DEBUG");
 	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "parent=%p", (void*) parent);
 	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "infobox_p=%p", (void*) infobox);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "selected_link=%p", (void*) link);
-	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "link title=%s", link->title);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "selected_link=%p", (void*) edge);
+	AG_LabelNew(sectionbox, AG_LABEL_HFILL, "link title=%s", edge->title);
 #endif
 
 	/* generate the info panel contents */
-	nocviz_ds_foreach_section(link->ds, sectionname, section,
+	nocviz_ds_foreach_section(edge->ds, sectionname, section,
 		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
 		AG_BoxSetLabel(sectionbox, "%s", sectionname);
 		vec_foreach(section, key, i) {
@@ -106,8 +105,8 @@ void handle_link_selection(AG_Event* event) {
 			NV_TextWidgetNew(sectionbox,
 					key,
 					g_data,
-					link->from->id,
-					key)->id2 = strdup(link->to->id);
+					edge->from->id,
+					key)->id2 = strdup(edge->to->id);
 			/* ->id2 is how NV_TextWidget knows we are referring
 			 * to a link rather than a node */
 

@@ -56,6 +56,12 @@ typedef struct nocviz_link_t {
 	AG_Color c;
 	int curve;
 	int label_surface;
+	unsigned char surface_dirty;
+	int hx;		/* hover detection */
+	int hy;
+	unsigned int flags;
+#define NOCVIZ_LINK_SELECTED 0x1
+#define NOCVIZ_LINK_HOVER 0x2
 } nocviz_link;
 
 typedef struct nocviz_node_t {

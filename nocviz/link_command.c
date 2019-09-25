@@ -367,6 +367,7 @@ int nocviz_subcmd_link_title(ClientData cdata, Tcl_Interp* interp, int objc, Tcl
 
 	free(link->title);
 	link->title = strdup(title);
+	link->surface_dirty = 1;
 	nocviz_graph_set_dirty(g, true);
 
 	return TCL_OK;
