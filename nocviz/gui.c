@@ -132,6 +132,7 @@ void* gui_main(void* arg) {
 	AG_Box* box;
 	AG_Pane* inner_pane;
 	AG_Toolbar* tb;
+	AG_StyleSheet* ss;
 
 	/* setup custom widgets */
 	int show_node_labels = 1;
@@ -141,6 +142,9 @@ void* gui_main(void* arg) {
 	if (AG_InitCore(NULL, 0) == -1 ||
 			AG_InitGraphics(NULL) == -1)
 		return NULL;
+
+	AG_LoadStyleSheet(ss, "style.css");
+
 	win = AG_WindowNew(0);
 	AG_WindowSetCaptionS (win, "nocviz-gui");
 	AG_WindowSetGeometry(win, -1, -1, 1100, 900);
@@ -150,7 +154,6 @@ void* gui_main(void* arg) {
 
 	AG_RegisterClass(&NV_TextWidgetClass);
 	AG_RegisterClass(&NV_GraphWidgetClass);
-
 
 	AG_SetPointer(dri, "main_window", win);
 
@@ -214,6 +217,7 @@ void* gui_main(void* arg) {
 	handle_deselection(p->graph, dri);
 
 	AG_WindowShow(win);
+
 
 	AG_EventLoop();
 

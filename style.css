@@ -1,0 +1,12 @@
+AG_Window {
+	color: rgb(196,196,196);
+	text-color: rgb(36,36,36);
+}
+
+AG_Box {
+	color: rgb(196,196,196);
+}
+
+AG_Label{
+	color: rgba(196,196,196,0);
+}
