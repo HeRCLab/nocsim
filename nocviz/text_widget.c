@@ -124,6 +124,21 @@ static void Init(void * obj) {
 			AG_TEXTBOX_READONLY | AG_TEXTBOX_HFILL, this->label_text);
 	this->tb->ed->flags |= AG_EDITABLE_HFILL;
 
+	AG_SetStyle(this->tb, "color", "rgb(196,196,196)");
+	AG_SetStyle(this->tb->ed, "color", "rgb(196,196,196)");
+	AG_SetStyle(this->tb, "text-color", "rgba(36,36,36,0)");
+	AG_SetStyle(this->tb->ed, "text-color", "rgb(36,36,36,0)");
+
+	AG_SetStyle(this->tb, "color#hover", "rgb(196,196,196)");
+	AG_SetStyle(this->tb->ed, "color#hover", "rgb(196,196,196)");
+	AG_SetStyle(this->tb, "text-color#hover", "rgba(36,36,36,0)");
+	AG_SetStyle(this->tb->ed, "text-color#hover", "rgb(36,36,36,0)");
+
+	AG_SetStyle(this->tb, "color#focused", "rgb(196,196,196)");
+	AG_SetStyle(this->tb->ed, "color#focused", "rgb(196,196,196)");
+	AG_SetStyle(this->tb, "text-color#focused", "rgba(36,36,36,0)");
+	AG_SetStyle(this->tb->ed, "text-color#focused", "rgb(36,36,36,0)");
+
 	AGWIDGET(this)->flags |= AG_WIDGET_FOCUSABLE;
 
 	/* redraw at ~60FPS */

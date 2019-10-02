@@ -132,7 +132,7 @@ void* gui_main(void* arg) {
 	AG_Box* box;
 	AG_Pane* inner_pane;
 	AG_Toolbar* tb;
-	AG_StyleSheet* ss;
+	/* AG_StyleSheet* ss; */
 
 	/* setup custom widgets */
 	int show_node_labels = 1;
@@ -143,7 +143,7 @@ void* gui_main(void* arg) {
 			AG_InitGraphics(NULL) == -1)
 		return NULL;
 
-	AG_LoadStyleSheet(ss, "style.css");
+	AG_LoadStyleSheet(NULL, "style.css");
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaptionS (win, "nocviz-gui");
