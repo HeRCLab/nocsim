@@ -22,7 +22,7 @@ void nocsim_namespace_delete(ClientData cdata) {
 
 	/* destroy all nodes */
 	vec_foreach(s->nodes, n, i) {
-		if (n->type == node_PE) {
+		if (n->type == node_PE || n->type == node_router) {
 			vec_foreach(n->pending, f, j) {
 				free(f);
 			}

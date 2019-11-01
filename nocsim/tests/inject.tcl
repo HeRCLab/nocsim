@@ -15,19 +15,19 @@ proc nop {} {
 }
 
 proc r1 {} {
-	if [incoming [dir2int pe]] {
+	if {[incoming [dir2int pe]] == 1} {
 		route [dir2int pe] [dir2int pe]
 	}
 }
 
 proc r2 {} {
-	if [incoming [dir2int pe]] {
+	if {[incoming [dir2int pe]] == 1} {
 		route [dir2int pe] [dir2int n]
 	}
 }
 
 proc r3 {} {
-	if [incoming [dir2int s]] {
+	if {[incoming [dir2int s]] == 1} {
 		route [dir2int s] [dir2int pe]
 	}
 }
