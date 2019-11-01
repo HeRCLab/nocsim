@@ -28,7 +28,7 @@ typedef enum nocsim_node_type_t {node_PE, node_router, type_undefined} nocsim_no
 /* Note that for convenience, we use this to subscript lists. The specific
  * order of values doesn't matter, but they need to be contiguous, and bounded
  * by 0...NOCSIM_NUM_LINKS */
-typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5} nocsim_direction;
+typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5, BACKLOG=100} nocsim_direction;
 
 #define NOCSIM_DIRECTION_TO_STR(dir) \
 	(dir == N) ? "N" : \
@@ -36,10 +36,11 @@ typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5} nocsim_di
 	(dir == E) ? "E" : \
 	(dir == W) ? "W" : \
 	(dir == DIR_UNDEF) ? "UNDEFINED" : \
-	(dir == P) ? "PE" : "ERROR"
+	(dir == P) ? "PE" : \
+  (dir == BACKLOG) ? "BACKLOG" : "ERROR" \
 
 #define NOCSIM_DIRECTION_VALID(dir) \
-	( (dir == N) || (dir == S) || (dir == E) || (dir == W) || (dir == P) )
+	( (dir == N) || (dir == S) || (dir == E) || (dir == W) || (dir == P) || (dir == BACKLOG) )
 
 #define NOCSIM_STR_TO_DIRECTION(s) __extension__ ({ \
 	nocsim_direction d = -1; \
@@ -57,7 +58,10 @@ typedef enum nocsim_direction_t {N=0, S=1, E=2, W=3, P=4, DIR_UNDEF=5} nocsim_di
 	else if (!strncasecmp(s, "west",  32  )  ) { d = W; } \
 	else if (!strncasecmp(s, "PE", 32     )  ) { d = P; } \
 	else if (!strncasecmp(s, "P", 32      )  ) { d = P; } \
-	else                                { d = DIR_UNDEF; } \
+	else if (!strncasecmp(s, "BACKLOG", 32)  ) { d = BACKLOG; } \
+	else if (!strncasecmp(s, "B", 32      )  ) { d = BACKLOG; } \
+	else if (!strncasecmp(s, "backlog", 32)  ) { d = BACKLOG; } \
+	else                                       { d = DIR_UNDEF; } \
 	d;})
 
 typedef enum nocsim_instrument_t {
@@ -109,6 +113,7 @@ typedef enum nocsim_result_t {
 
 /* Max number of links, which is 5 since there are 4 directions + PE. It
  * is important that this is eual to the number of types in nocsim_direction_t
+ * BACKLOG is not counted because it is not a valid routing destination.
  * */
 #define NOCSIM_NUM_LINKS 5
 
