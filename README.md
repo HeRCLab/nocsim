@@ -25,7 +25,7 @@ On Ubuntu 18.04, run sudo apt install --yes libbsd-dev libreadline-dev tcl-dev l
 
 noc-tools is built against the development version of libAgar 1.6.0. At
 present, [SVN revision
-10385](https://github.com/JulNadeauCA/libagar/commit/2cf5cac0d8e52f5752a2d55aea3116655b54e3a3)
+10556](https://github.com/JulNadeauCA/libagar/commit/b29a63d7e9e7cda25f2126df08bd152384b65d40)
 is suggested.
 
 Once all dependencies have been installed, simply run `./configure && make`. On

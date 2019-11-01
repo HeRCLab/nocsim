@@ -9,7 +9,7 @@ RUN pip3 install lizard
 RUN apt-get install --yes --force-yes libfreetype6-dev libxinerama-dev libfontconfig-dev libsdl-dev libpng-dev libjpeg-dev
 RUN git clone https://github.com/JulNadeauCA/libagar.git /tmp/libagar/ && \
 	cd /tmp/libagar && \
-	git checkout c343b45ad5c5c1be503d40f5dce13b787c08725d && \
+	git checkout b29a63d7e9e7cda25f2126df08bd152384b65d40 && \
 	cd /tmp/libagar && ./configure --enable-debug --enable-debug-core --disable-sg --disable-sk --disable-map && \
 	make && make install && cd / && rm -rf /tmp
 
