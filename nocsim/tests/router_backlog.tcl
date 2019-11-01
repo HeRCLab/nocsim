@@ -123,3 +123,6 @@ tcltest::test 001 {should be able to route a flit} -body {
 
 	return [ expr $arrived + $routed + $injected ]
 } -result {3}
+
+namespace delete nocsim
+namespace delete nocviz
