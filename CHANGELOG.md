@@ -4,6 +4,7 @@
 * Deprecate nocsim GUI
 * Add nocviz visualization tools
 * Convert nocsim to a TCL package
+* Implement internal router buffer support
 
 # 1.0.0
 
