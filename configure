@@ -830,7 +830,7 @@ fi
 echo "hdefs[\"MANDIR\"] = \"$MANDIR\"" >>configure.lua
 PACKAGE="nocsim-gui"
 echo "hdefs[\"PACKAGE\"] = \"$PACKAGE\"" >>configure.lua
-VERSION="2.0.0"
+VERSION="2.0.1"
 echo "hdefs[\"VERSION\"] = \"$VERSION\"" >>configure.lua
 $ECHO_N 'checking for a C compiler...'
 $ECHO_N '# checking for a C compiler...' >>config.log
