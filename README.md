@@ -32,6 +32,41 @@ Once all dependencies have been installed, simply run `./configure && make`. On
 Ubuntu 18.04, you will need to provide the path to your TCL installation using
 the `--with-tcl=/usr/include/tcl8.6/` parameter.
 
+## Installation
+
+noc-tools does not prescribe any specific installation method. It is generally
+used by `source`-ing `scripts/noc_tools_load.tcl`. To that end, it is important
+that the `nocsim/` and `nocviz/` directories remain in the same relative paths
+to said script.
+
+## Development Procedures
+
+### `git`
+
+* Feature branches should be used
+	* First create an issue describing the work to be done.
+	* Next create a branch in which to work on the issue.
+	* When the work is complete, open a pull request and have at least
+	  one other person check over your changes.
+	* Merge the pull request into `dev` using a squash merge.
+* Avoid rewriting history on pushed branches (no rebase).
+* All development happens in `dev`, master should never be broken.
+	* Only merge working code into `master`.
+
+### New Release
+
+1. Run `git tag RELEASE_NUMBER` on the commit to release in the `dev` branch.
+	* For example, `git tag 2.0.0`.
+2. Run `git checkout master ; git merge dev ; git push --tags origin master ;
+   git checkout dev ; git push --tags origin dev`
+	* This will merge `dev` into `master`, and push the tagged commit
+	  to both `dev` and `master`.
+3. Update `configure.in` with the new version number/
+4. Re-generate `./configure`.
+5. Create a new section in `CHANGELOG.md`.
+6. Push the update `configure.in`, `configure`, and `CHANGELOG.md` to `dev`
+   (but not `master`) as a new commit.
+
 ### Re-Generating `./configure`
 
 noc-tools uses the [BSDBuild](http://bsdbuild.hypertriton.com/) build system.
@@ -48,9 +83,20 @@ The documentation for `mkconfigure` may be found
 will overwrite specially modified make libraries used by noc-tools with the
 BSDBuild default versions.
 
-## Installation
+### Updating the `Dockerfile`
 
-noc-tools does not prescribe any specific installation method. It is generally
-used by `source`-ing `scripts/noc_tools_load.tcl`. To that end, it is important
-that the `nocsim/` and `nocviz/` directories remain in the same relative paths
-to said script.
+This procedure describes updating the [DockerHub copy of the nocsim_CI
+environment](https://cloud.docker.com/u/herc/repository/docker/herc/nocsim_ci).
+
+From time to time (say when dependencies change), one needs to update
+`scripts/Dockerfile` and have the change propagated into Docker Hub.
+
+1. cd `scripts`
+2. `docker build .`
+3. `docker tag IMAGEID herc/nocsim_ci`
+	* This will be displayed on the last line of `docker build`, for
+	  example `Successfully built de7e6ad8ed35`.
+4. `docker push herc/nocsim_ci:latest`
+
+Note that you will need a Docker Hub account. Someone with `owner` rights on
+the `herc` organization will need to add you to the organization.
