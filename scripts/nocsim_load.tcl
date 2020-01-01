@@ -4,7 +4,4 @@ set frameinfo "[info frame [info frame]]"
 lappend auto_path "[file dirname [file dirname [file normalize [dict get $frameinfo file]]]][file separator]nocsim"
 package require nocsim
 
-lappend auto_path "[file dirname [file dirname [file normalize [dict get $frameinfo file]]]][file separator]nocviz"
-package require nocviz
-
 unset frameinfo
