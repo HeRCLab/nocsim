@@ -1,5 +1,5 @@
 # test that flit buffering in routers works correctly.
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 
 # * import here to allow this legacy test to run.
 namespace import ::nocsim::*
@@ -125,4 +125,4 @@ tcltest::test 001 {should be able to route a flit} -body {
 } -result {3}
 
 namespace delete nocsim
-namespace delete nocviz
+

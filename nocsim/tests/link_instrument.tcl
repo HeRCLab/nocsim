@@ -1,6 +1,6 @@
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 proc testinstrument {from to bidir} {
@@ -42,4 +42,4 @@ tcltest::test 001 {link instrument should run when link is instantiated} -body {
 } -result {0}
 
 namespace delete nocsim
-namespace delete nocviz
+

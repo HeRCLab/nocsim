@@ -2,7 +2,7 @@
 
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 proc nop {} {}
@@ -118,4 +118,4 @@ tcltest::test 0004 {should be impossible to link a router to itself} -body {
 
 
 namespace delete nocsim
-namespace delete nocviz
+

@@ -2,7 +2,7 @@
 
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 proc r1 {} {
@@ -18,4 +18,4 @@ tcltest::test 001 {current should return the current node ID} -body {
 } -result {r1}
 
 namespace delete nocsim
-namespace delete nocviz
+

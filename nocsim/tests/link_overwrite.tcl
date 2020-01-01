@@ -2,7 +2,7 @@
 
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 tcltest::test 001 {should not be possible to overwrite a link on both ends} -body {
@@ -48,4 +48,4 @@ tcltest::test 003 {should not be possible to overwrite a link on dest end } -bod
 } -result {0}
 
 namespace delete nocsim
-namespace delete nocviz
+

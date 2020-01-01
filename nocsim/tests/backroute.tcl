@@ -1,6 +1,6 @@
 # test that backrouting works correctly
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 package require tcltest
@@ -90,4 +90,4 @@ tcltest::test 001 {should be able to route a flit} -body {
 } -result {0}
 
 namespace delete nocsim
-namespace delete nocviz
+

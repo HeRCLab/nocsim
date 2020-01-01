@@ -2,7 +2,7 @@
 
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 proc b_inject {} {
@@ -60,4 +60,4 @@ tcltest::test 001 {should be able to route a flit} -body {
 } -result {3}
 
 namespace delete nocsim
-namespace delete nocviz
+

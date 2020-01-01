@@ -1,6 +1,6 @@
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 tcltest::test 001 {lremove removes a single instance} -body {
@@ -27,4 +27,4 @@ tcltest::test 002 {lremove remove only the first instance of several} -body {
 }
 
 namespace delete nocsim
-namespace delete nocviz
+

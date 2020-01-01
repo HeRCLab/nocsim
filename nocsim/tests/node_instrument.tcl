@@ -1,6 +1,6 @@
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 proc testinstrument {id type row col behavior} {
@@ -36,4 +36,4 @@ tcltest::test 002 {node instruments should run when PE instantiated} -body {
 } -result {0}
 
 namespace delete nocsim
-namespace delete nocviz
+

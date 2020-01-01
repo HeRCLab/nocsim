@@ -2,7 +2,7 @@
 
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 tcltest::test 001 {test that linkinfo works properly} -body {
@@ -21,4 +21,4 @@ tcltest::test 001 {test that linkinfo works properly} -body {
 
 
 namespace delete nocsim
-namespace delete nocviz
+

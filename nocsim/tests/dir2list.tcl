@@ -1,6 +1,6 @@
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 tcltest::test 001 {dir2list should work correctly with valid inputs} -body {
@@ -38,4 +38,4 @@ tcltest::test 002 {dir2list should error with invalid inputs} -body {
 } -result {0}
 
 namespace delete nocsim
-namespace delete nocviz
+

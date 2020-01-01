@@ -2,7 +2,7 @@
 
 package require tcltest
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 namespace import ::nocsim::*
 
 tcltest::test 001 {should be able to instantiate a router} -body {
@@ -68,4 +68,4 @@ tcltest::test 012 {should be able to update router behavior} -body {
 
 
 namespace delete nocsim
-namespace delete nocviz
+

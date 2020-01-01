@@ -1,6 +1,6 @@
 # test the all_adjacent function
 
-source ../../scripts/noc_tools_load.tcl
+source ../../scripts/nocsim_load.tcl
 
 package require tcltest
 
@@ -56,4 +56,4 @@ tcltest::test 001 {all_adjacent should work} -body {
 } -result {0}
 
 namespace delete nocsim
-namespace delete nocviz
+
