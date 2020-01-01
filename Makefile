@@ -2,7 +2,7 @@ TOP=.
 include ${TOP}/Makefile.config
 
 PROJECT=		"noc-tools"
-SUBDIR=			3rdparty nocviz nocsim
+SUBDIR=			3rdparty nocsim $(NOCVIZDIR)
 
 CFLAGS=			-std=C11
 

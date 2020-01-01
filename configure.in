@@ -19,12 +19,26 @@ REGISTER("--with-tcl[=PREFIX]", "TCL installation path [default: auto]")
 REGISTER("--enable-debugger", "Enable Agar debugger - requires libagar to be built with support for debugging [default: no]")
 REGISTER("--enable-devmode", "Enable generation of debugging symbols and other development features [default: no]")
 REGISTER("--enable-werror", "Treat all compiler warnings as errors [default: no]")
+REGISTER("--disable-nocviz", "Disable nocviz, lift requirement for agar [default: no]")
 
 # Require a C compiler.
 REQUIRE(cc)
 
-# Require at least Agar 1.6.0.
-REQUIRE(agar, 1.6.0, ${prefix_agar})
+if [ "${enable_nocviz}" = "no" ] ; then
+	MDEFINE(NOCVIZDIR, "")
+else
+	# Require at least Agar 1.6.0.
+	REQUIRE(agar, 1.6.0, ${prefix_agar})
+
+	# Require other Agar-based libraries.
+	#REQUIRE(agar-vg, 1.5.0, ${prefix_agar})
+	#REQUIRE(agar-dev, 1.5.0, ${prefix_agar})
+	REQUIRE(agar-math, 1.6.0, ${prefix_agar})
+
+	MDEFINE(NOCVIZDIR, "nocviz")
+
+
+fi
 
 if [ -z "$with_tcl" ] ; then
 	REQUIRE(tcl, 8.6.0)
@@ -33,10 +47,6 @@ else
 	MDEFINE(TCL_LIBS, "-ltcl -ltclstub")
 fi
 
-# Require other Agar-based libraries.
-#REQUIRE(agar-vg, 1.5.0, ${prefix_agar})
-#REQUIRE(agar-dev, 1.5.0, ${prefix_agar})
-REQUIRE(agar-math, 1.6.0, ${prefix_agar})
 
 # Import standard routines provided by Agar (without "AG"_ prefix).
 #C_DEFINE(_USE_AGAR_STD)

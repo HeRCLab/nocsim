@@ -1,6 +1,9 @@
 # this simple example shows a small deflection routed network using DOR routing
 
+source "../scripts/nocsim_load.tcl"
+
 package require math::statistics
+namespace import ::nocsim::*
 
 # implements DOR routing for a specific link
 proc DORfrom {dir} {
@@ -59,13 +62,11 @@ proc simpleinject {} {
 }
 
 proc on_arrive {origin dest flitno hops spawned_at injected_at} {
-	lappend age_on_arrive [expr $::nocsim::nocsim_tick - $spawned_at]
+	lappend ::age_on_arrive [expr $::nocsim::nocsim_tick - $spawned_at]
 }
 
 proc on_route {origin dest flitno spawnedat injectedat hops fromnode tonode} {
-	if {$flitno == 37} {
-		conswrite "(tick=$::nocsim::nocsim_tick) flitno $flitno routed from $fromnode to $tonode"
-	}
+	conswrite "(tick=$::nocsim::nocsim_tick) flitno $flitno routed from $fromnode to $tonode"
 }
 
 registerinstrument arrive on_arrive
@@ -73,7 +74,7 @@ registerinstrument arrive on_arrive
 
 create_mesh 10 10 simpleinject simpleDOR
 
-set age_on_arrive {}
+set ::age_on_arrive {}
 
 step 500
 

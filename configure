@@ -450,6 +450,7 @@ echo '    --with-tcl[=PREFIX]         TCL installation path [default: auto]'
 echo '    --enable-debugger           Enable Agar debugger - requires libagar to be built with support for debugging [default: no]'
 echo '    --enable-devmode            Enable generation of debugging symbols and other development features [default: no]'
 echo '    --enable-werror             Treat all compiler warnings as errors [default: no]'
+echo '    --disable-nocviz            Disable nocviz, lift requirement for agar [default: no]'
 echo ''
 echo 'Some influential environment variables:'
 echo '    CC           C compiler command'
@@ -1381,9 +1382,16 @@ echo '* This software requires a C compiler'
 echo '# * This software requires a C compiler' >>config.log
 echo '* '
 echo '# * ' >>config.log
-echo "Required dependency cc not found"
+echo "***"
+echo "*** ERROR: Required dependency cc not found"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
 exit 1
 fi
+if [ "${enable_nocviz}" = "no" ] 
+ then
+NOCVIZDIR=""
+else
 $ECHO_N 'checking for Agar...'
 $ECHO_N '# checking for Agar...' >>config.log
 # BEGIN agar(1.6.0 ${prefix_agar})
@@ -1524,7 +1532,9 @@ main(int argc, char *argv[])
 {
 	AG_InitCore("conf-test", 0);
 	AG_InitGraphics(AG_NULL);
+#ifdef AG_EVENT_LOOP
 	AG_EventLoop();
+#endif
 	AG_Quit();
 	return (0);
 }
@@ -1581,7 +1591,10 @@ echo '* WWW: http://libagar.org'
 echo '# * WWW: http://libagar.org' >>config.log
 echo '* '
 echo '# * ' >>config.log
-echo "Required dependency agar not found"
+echo "***"
+echo "*** ERROR: Required dependency agar not found"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
 exit 1
 fi
 if [ "${MK_VERSION_OK}" != "yes" ]; then
@@ -1595,414 +1608,11 @@ echo '* WWW: http://libagar.org'
 echo '# * WWW: http://libagar.org' >>config.log
 echo '* '
 echo '# * ' >>config.log
-echo "Required dependency agar version mismatch"
+echo "***"
+echo "*** ERROR: Required dependency agar version mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
 exit 1
-fi
-if [ -z "$with_tcl" ] 
- then
-$ECHO_N 'checking for TCL...'
-$ECHO_N '# checking for TCL...' >>config.log
-# BEGIN tcl(8.6.0)
-if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl86 2>/dev/null`" != '' ]; then
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl86 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl86 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl86 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl86 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl86 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_VERSION=`$PKGCONFIG tcl86 --modversion 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl86 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl86 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl86 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl86 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl86 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_CFLAGS=`$PKGCONFIG tcl86 --cflags 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl86 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl86 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl86 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl86 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl86 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_LIBS=`$PKGCONFIG tcl86 --libs 2>/dev/null`
-fi
-if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl 2>/dev/null`" != '' ]; then
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_VERSION=`$PKGCONFIG tcl --modversion 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_CFLAGS=`$PKGCONFIG tcl --cflags 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_LIBS=`$PKGCONFIG tcl --libs 2>/dev/null`
-fi
-if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl87 2>/dev/null`" != '' ]; then
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl87 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl87 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl87 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl87 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl87 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_VERSION=`$PKGCONFIG tcl87 --modversion 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl87 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl87 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl87 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl87 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl87 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_CFLAGS=`$PKGCONFIG tcl87 --cflags 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl87 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl87 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl87 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl87 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl87 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_LIBS=`$PKGCONFIG tcl87 --libs 2>/dev/null`
-fi
-if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl85 2>/dev/null`" != '' ]; then
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl85 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl85 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl85 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl85 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl85 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_VERSION=`$PKGCONFIG tcl85 --modversion 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl85 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl85 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl85 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl85 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl85 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_CFLAGS=`$PKGCONFIG tcl85 --cflags 2>/dev/null`
-if [ "$pfx" != "" ]; then
-MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl85 2>/dev/null`
-if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
-echo "* "
-echo "# * " >>config.log
-echo "* ERROR: According to pkg-config, tcl85 is installed in prefix: "
-echo "# * ERROR: According to pkg-config, tcl85 is installed in prefix: " >>config.log
-echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
-echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "* Please indicate correct tcl85 prefix (or omit for autodetect)."
-echo "# * Please indicate correct tcl85 prefix (or omit for autodetect)." >>config.log
-echo "* "
-echo "# * " >>config.log
-echo "Package prefix mismatch"
-exit 1
-fi
-fi
-TCL_LIBS=`$PKGCONFIG tcl85 --libs 2>/dev/null`
-fi
-if [ "${TCL_VERSION}" != "" ]; then
-if [ "" != "" ]; then
-echo "yes ($TCL_VERSION in )"
-echo "# yes ($TCL_VERSION in )" >>config.log
-else
-echo "yes ($TCL_VERSION)"
-echo "# yes ($TCL_VERSION)" >>config.log
-fi
-MK_VERSION_MAJOR=`echo "$TCL_VERSION" |sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\).*/\1/'`;
-MK_VERSION_MINOR=`echo "$TCL_VERSION" |sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\).*/\2/'`;
-MK_VERSION_MICRO=`echo "$TCL_VERSION" |sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\).*/\3/'`;
-MK_VERSION_OK=no
-if [ $MK_VERSION_MAJOR -gt 8 ]; then
-MK_VERSION_OK=yes
-elif [ $MK_VERSION_MAJOR -eq 8 ]; then
-if [ "$MK_VERSION_MINOR" = '' ]; then
-MK_VERSION_OK=yes
-else
-if [ $MK_VERSION_MINOR -gt 6 ]; then
-MK_VERSION_OK=yes
-elif [ $MK_VERSION_MINOR -eq 6 ]; then
-if [ "$MK_VERSION_MICRO" = '' ]; then
-MK_VERSION_OK=yes
-else
-if [ $MK_VERSION_MICRO -ge 0 ]; then
-MK_VERSION_OK=yes
-fi
-fi
-fi
-fi
-fi
-if [ "${MK_VERSION_OK}" = "no" ]; then
-echo '*'
-echo '# *' >>config.log
-echo "* Minimum required version is 8.6.0 (found $TCL_VERSION)"
-echo "# * Minimum required version is 8.6.0 (found $TCL_VERSION)" >>config.log
-echo '*'
-echo '# *' >>config.log
-fi
-else
-if [ "" != "" ]; then
-echo "no (not in )"
-echo "# no (not in )" >>config.log
-else
-echo 'no'
-echo '# no' >>config.log
-fi
-MK_VERSION_OK="no"
-fi
-if [ "${MK_VERSION_OK}" = "yes" ]; then
-$ECHO_N "checking whether TCL works..."
-$ECHO_N "# checking whether TCL works..." >>config.log
-MK_COMPILE_STATUS=OK
-cat << EOT >conftest$$.c
-#include <tcl.h>
-int sample_command(ClientData Data, Tcl_Interp *interp, int argc, Tcl_Obj *CONST argv[]) {
-		int x;
-		if (Tcl_GetIntFromObj(interp, (Tcl_Obj*) argv[1], &x) != TCL_OK) { return TCL_ERROR; }
-
-		Tcl_SetIntObj(Tcl_GetObjResult(interp), 2 * x);
-		return TCL_OK;
-}
-
-int main (int argc, char *argv[]) {
-		int x;
-
-		Tcl_Interp *myinterp = Tcl_CreateInterp();
-
-		Tcl_CreateObjCommand(myinterp, "sample_command", sample_command, (ClientData) NULL, (Tcl_CmdDeleteProc*) NULL);
-
-		if (Tcl_Eval(myinterp, "sample_command 5") != TCL_OK) { return 1; }
-
-		if (Tcl_GetIntFromObj(myinterp, Tcl_GetObjResult(myinterp), &x) != TCL_OK) { return 2; }
-
-		if (x != 10) { return 3; }
-
-		return(0);
-
-}
-EOT
-echo >>config.log
-echo '# C: HAVE_TCL' >>config.log
-echo "cat << EOT >conftest$$.c" >>config.log
-cat conftest$$.c>>config.log
-echo EOT >>config.log
-echo "$CC $CFLAGS $TEST_CFLAGS ${TCL_CFLAGS} -o $testdir/conftest$$ conftest$$.c ${TCL_LIBS} 2>>config.log">>config.log
-$CC $CFLAGS $TEST_CFLAGS ${TCL_CFLAGS} -o $testdir/conftest$$ conftest$$.c ${TCL_LIBS} 2>>config.log
-if [ "$?" != "0" ]; then
-echo "# failed $?" >>config.log
-MK_COMPILE_STATUS="FAIL $?"
-fi
-if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
-echo 'yes'
-echo '# yes' >>config.log
-HAVE_TCL=yes
-echo "hdefs[\"HAVE_TCL\"] = \"$HAVE_TCL\"" >>configure.lua
-else
-echo 'no'
-echo '# no' >>config.log
-HAVE_TCL=no
-echo 'hdefs["HAVE_TCL"] = nil' >>configure.lua
-fi
-if [ "${keep_conftest}" != "yes" ]; then
-rm -f conftest$$.c $testdir/conftest$$$EXECSUFFIX
-fi
-if [ "${HAVE_TCL}" = "yes" ]; then
-echo "hdefs[\"TCL_CFLAGS\"] = \"$TCL_CFLAGS\"" >>configure.lua
-echo "hdefs[\"TCL_LIBS\"] = \"$TCL_LIBS\"" >>configure.lua
-else
-echo 'hdefs["TCL_CFLAGS"] = nil' >>configure.lua
-TCL_CFLAGS=""
-echo 'hdefs["TCL_LIBS"] = nil' >>configure.lua
-TCL_LIBS=""
-fi
-else
-HAVE_TCL="no"
-TCL_CFLAGS=""
-TCL_LIBS=""
-echo 'hdefs["HAVE_TCL"] = nil' >>configure.lua
-echo 'hdefs["TCL_CFLAGS"] = nil' >>configure.lua
-echo 'hdefs["TCL_LIBS"] = nil' >>configure.lua
-fi
-# END tcl
-if [ "${HAVE_TCL}" != "yes" ]; then
-echo '* '
-echo '# * ' >>config.log
-echo "* $PACKAGE requires TCL (version 8.6.0 or newer)."
-echo "# * $PACKAGE requires TCL (version 8.6.0 or newer)." >>config.log
-echo '* WWW: https://www.tcl-lang.org/'
-echo '# * WWW: https://www.tcl-lang.org/' >>config.log
-echo '* '
-echo '# * ' >>config.log
-echo "Required dependency tcl not found"
-exit 1
-fi
-if [ "${MK_VERSION_OK}" != "yes" ]; then
-echo '* '
-echo '# * ' >>config.log
-echo '* This software requires tcl version >= 8.6.0,'
-echo '# * This software requires tcl version >= 8.6.0,' >>config.log
-echo '* please update that package and try again.'
-echo '# * please update that package and try again.' >>config.log
-echo '* WWW: https://www.tcl-lang.org/'
-echo '# * WWW: https://www.tcl-lang.org/' >>config.log
-echo '* '
-echo '# * ' >>config.log
-echo "Required dependency tcl version mismatch"
-exit 1
-fi
-else
-TCL_CFLAGS="-I$with_tcl"
-TCL_LIBS="-ltcl -ltclstub"
 fi
 $ECHO_N 'checking for Agar-Math...'
 $ECHO_N '# checking for Agar-Math...' >>config.log
@@ -2250,7 +1860,10 @@ echo '* WWW: http://libagar.org'
 echo '# * WWW: http://libagar.org' >>config.log
 echo '* '
 echo '# * ' >>config.log
-echo "Required dependency agar-math not found"
+echo "***"
+echo "*** ERROR: Required dependency agar-math not found"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
 exit 1
 fi
 if [ "${MK_VERSION_OK}" != "yes" ]; then
@@ -2264,8 +1877,461 @@ echo '* WWW: http://libagar.org'
 echo '# * WWW: http://libagar.org' >>config.log
 echo '* '
 echo '# * ' >>config.log
-echo "Required dependency agar-math version mismatch"
+echo "***"
+echo "*** ERROR: Required dependency agar-math version mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
 exit 1
+fi
+NOCVIZDIR="nocviz"
+fi
+if [ -z "$with_tcl" ] 
+ then
+$ECHO_N 'checking for TCL...'
+$ECHO_N '# checking for TCL...' >>config.log
+# BEGIN tcl(8.6.0)
+if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl86 2>/dev/null`" != '' ]; then
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl86 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl86 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl86 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl86 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl86 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_VERSION=`$PKGCONFIG tcl86 --modversion 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl86 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl86 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl86 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl86 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl86 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_CFLAGS=`$PKGCONFIG tcl86 --cflags 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl86 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl86 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl86 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl86 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl86 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_LIBS=`$PKGCONFIG tcl86 --libs 2>/dev/null`
+fi
+if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl 2>/dev/null`" != '' ]; then
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_VERSION=`$PKGCONFIG tcl --modversion 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_CFLAGS=`$PKGCONFIG tcl --cflags 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_LIBS=`$PKGCONFIG tcl --libs 2>/dev/null`
+fi
+if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl87 2>/dev/null`" != '' ]; then
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl87 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl87 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl87 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl87 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl87 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_VERSION=`$PKGCONFIG tcl87 --modversion 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl87 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl87 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl87 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl87 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl87 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_CFLAGS=`$PKGCONFIG tcl87 --cflags 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl87 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl87 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl87 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl87 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl87 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_LIBS=`$PKGCONFIG tcl87 --libs 2>/dev/null`
+fi
+if [ "${PKGCONFIG}" != '' -a "`${PKGCONFIG} --variable=prefix tcl85 2>/dev/null`" != '' ]; then
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl85 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl85 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl85 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl85 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl85 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_VERSION=`$PKGCONFIG tcl85 --modversion 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl85 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl85 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl85 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl85 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl85 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_CFLAGS=`$PKGCONFIG tcl85 --cflags 2>/dev/null`
+if [ "$pfx" != "" ]; then
+MK_EXEC_PKGPREFIX=`$PKGCONFIG --variable=prefix tcl85 2>/dev/null`
+if [ "$MK_EXEC_PKGPREFIX" != "$pfx" ]; then
+echo "* "
+echo "# * " >>config.log
+echo "* ERROR: According to pkg-config, tcl85 is installed in prefix: "
+echo "# * ERROR: According to pkg-config, tcl85 is installed in prefix: " >>config.log
+echo "* $MK_EXEC_PKGPREFIX, but the prefix  was given."
+echo "# * $MK_EXEC_PKGPREFIX, but the prefix  was given." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "* Please indicate correct tcl85 prefix (or omit for autodetect)."
+echo "# * Please indicate correct tcl85 prefix (or omit for autodetect)." >>config.log
+echo "* "
+echo "# * " >>config.log
+echo "***"
+echo "*** ERROR: Package prefix mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+fi
+TCL_LIBS=`$PKGCONFIG tcl85 --libs 2>/dev/null`
+fi
+if [ "${TCL_VERSION}" != "" ]; then
+if [ "" != "" ]; then
+echo "yes ($TCL_VERSION in )"
+echo "# yes ($TCL_VERSION in )" >>config.log
+else
+echo "yes ($TCL_VERSION)"
+echo "# yes ($TCL_VERSION)" >>config.log
+fi
+MK_VERSION_MAJOR=`echo "$TCL_VERSION" |sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\).*/\1/'`;
+MK_VERSION_MINOR=`echo "$TCL_VERSION" |sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\).*/\2/'`;
+MK_VERSION_MICRO=`echo "$TCL_VERSION" |sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\).*/\3/'`;
+MK_VERSION_OK=no
+if [ $MK_VERSION_MAJOR -gt 8 ]; then
+MK_VERSION_OK=yes
+elif [ $MK_VERSION_MAJOR -eq 8 ]; then
+if [ "$MK_VERSION_MINOR" = '' ]; then
+MK_VERSION_OK=yes
+else
+if [ $MK_VERSION_MINOR -gt 6 ]; then
+MK_VERSION_OK=yes
+elif [ $MK_VERSION_MINOR -eq 6 ]; then
+if [ "$MK_VERSION_MICRO" = '' ]; then
+MK_VERSION_OK=yes
+else
+if [ $MK_VERSION_MICRO -ge 0 ]; then
+MK_VERSION_OK=yes
+fi
+fi
+fi
+fi
+fi
+if [ "${MK_VERSION_OK}" = "no" ]; then
+echo '*'
+echo '# *' >>config.log
+echo "* Minimum required version is 8.6.0 (found $TCL_VERSION)"
+echo "# * Minimum required version is 8.6.0 (found $TCL_VERSION)" >>config.log
+echo '*'
+echo '# *' >>config.log
+fi
+else
+if [ "" != "" ]; then
+echo "no (not in )"
+echo "# no (not in )" >>config.log
+else
+echo 'no'
+echo '# no' >>config.log
+fi
+MK_VERSION_OK="no"
+fi
+if [ "${MK_VERSION_OK}" = "yes" ]; then
+$ECHO_N "checking whether TCL works..."
+$ECHO_N "# checking whether TCL works..." >>config.log
+MK_COMPILE_STATUS=OK
+cat << EOT >conftest$$.c
+#include <tcl.h>
+int sample_command(ClientData Data, Tcl_Interp *interp, int argc, Tcl_Obj *CONST argv[]) {
+		int x;
+		if (Tcl_GetIntFromObj(interp, (Tcl_Obj*) argv[1], &x) != TCL_OK) { return TCL_ERROR; }
+
+		Tcl_SetIntObj(Tcl_GetObjResult(interp), 2 * x);
+		return TCL_OK;
+}
+
+int main (int argc, char *argv[]) {
+		int x;
+
+		Tcl_Interp *myinterp = Tcl_CreateInterp();
+
+		Tcl_CreateObjCommand(myinterp, "sample_command", sample_command, (ClientData) NULL, (Tcl_CmdDeleteProc*) NULL);
+
+		if (Tcl_Eval(myinterp, "sample_command 5") != TCL_OK) { return 1; }
+
+		if (Tcl_GetIntFromObj(myinterp, Tcl_GetObjResult(myinterp), &x) != TCL_OK) { return 2; }
+
+		if (x != 10) { return 3; }
+
+		return(0);
+
+}
+EOT
+echo >>config.log
+echo '# C: HAVE_TCL' >>config.log
+echo "cat << EOT >conftest$$.c" >>config.log
+cat conftest$$.c>>config.log
+echo EOT >>config.log
+echo "$CC $CFLAGS $TEST_CFLAGS ${TCL_CFLAGS} -o $testdir/conftest$$ conftest$$.c ${TCL_LIBS} 2>>config.log">>config.log
+$CC $CFLAGS $TEST_CFLAGS ${TCL_CFLAGS} -o $testdir/conftest$$ conftest$$.c ${TCL_LIBS} 2>>config.log
+if [ "$?" != "0" ]; then
+echo "# failed $?" >>config.log
+MK_COMPILE_STATUS="FAIL $?"
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo 'yes'
+echo '# yes' >>config.log
+HAVE_TCL=yes
+echo "hdefs[\"HAVE_TCL\"] = \"$HAVE_TCL\"" >>configure.lua
+else
+echo 'no'
+echo '# no' >>config.log
+HAVE_TCL=no
+echo 'hdefs["HAVE_TCL"] = nil' >>configure.lua
+fi
+if [ "${keep_conftest}" != "yes" ]; then
+rm -f conftest$$.c $testdir/conftest$$$EXECSUFFIX
+fi
+if [ "${HAVE_TCL}" = "yes" ]; then
+echo "hdefs[\"TCL_CFLAGS\"] = \"$TCL_CFLAGS\"" >>configure.lua
+echo "hdefs[\"TCL_LIBS\"] = \"$TCL_LIBS\"" >>configure.lua
+else
+echo 'hdefs["TCL_CFLAGS"] = nil' >>configure.lua
+TCL_CFLAGS=""
+echo 'hdefs["TCL_LIBS"] = nil' >>configure.lua
+TCL_LIBS=""
+fi
+else
+HAVE_TCL="no"
+TCL_CFLAGS=""
+TCL_LIBS=""
+echo 'hdefs["HAVE_TCL"] = nil' >>configure.lua
+echo 'hdefs["TCL_CFLAGS"] = nil' >>configure.lua
+echo 'hdefs["TCL_LIBS"] = nil' >>configure.lua
+fi
+# END tcl
+if [ "${HAVE_TCL}" != "yes" ]; then
+echo '* '
+echo '# * ' >>config.log
+echo "* $PACKAGE requires TCL (version 8.6.0 or newer)."
+echo "# * $PACKAGE requires TCL (version 8.6.0 or newer)." >>config.log
+echo '* WWW: https://www.tcl-lang.org/'
+echo '# * WWW: https://www.tcl-lang.org/' >>config.log
+echo '* '
+echo '# * ' >>config.log
+echo "***"
+echo "*** ERROR: Required dependency tcl not found"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+if [ "${MK_VERSION_OK}" != "yes" ]; then
+echo '* '
+echo '# * ' >>config.log
+echo '* This software requires tcl version >= 8.6.0,'
+echo '# * This software requires tcl version >= 8.6.0,' >>config.log
+echo '* please update that package and try again.'
+echo '# * please update that package and try again.' >>config.log
+echo '* WWW: https://www.tcl-lang.org/'
+echo '# * WWW: https://www.tcl-lang.org/' >>config.log
+echo '* '
+echo '# * ' >>config.log
+echo "***"
+echo "*** ERROR: Required dependency tcl version mismatch"
+echo "*** Failed! See ./config.log for more details."
+echo "***"
+exit 1
+fi
+else
+TCL_CFLAGS="-I$with_tcl"
+TCL_LIBS="-ltcl -ltclstub"
 fi
 if [ "${enable_debugger}" = "yes" ] 
  then
@@ -2341,6 +2407,8 @@ echo "MANDIR=$MANDIR" >>Makefile.config
 echo "mdefs[\"MANDIR\"] = \"$MANDIR\"" >>configure.lua
 echo "MODULEDIR=$MODULEDIR" >>Makefile.config
 echo "mdefs[\"MODULEDIR\"] = \"$MODULEDIR\"" >>configure.lua
+echo "NOCVIZDIR=$NOCVIZDIR" >>Makefile.config
+echo "mdefs[\"NOCVIZDIR\"] = \"$NOCVIZDIR\"" >>configure.lua
 echo "PACKAGE=$PACKAGE" >>Makefile.config
 echo "mdefs[\"PACKAGE\"] = \"$PACKAGE\"" >>configure.lua
 echo "PATH_SEPARATOR=$PATH_SEPARATOR" >>Makefile.config
@@ -2383,7 +2451,10 @@ if [ "${srcdir}" != '' ]; then
 	fi
 	echo 'ok'
 fi
-echo '*'
-echo '* Configuration successful. Use the "make" command to compile,'
-echo '* and complete the installation using "make install".'
-echo '*'
+echo '**'
+echo '** Configuration successful!'
+echo '**'
+echo '** Use "make depend all" to compile. When finished,'
+$ECHO_N '** run "make install" to install under '
+echo "${PREFIX}."
+echo '**'
