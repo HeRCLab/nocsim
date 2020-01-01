@@ -1,6 +1,6 @@
 namespace eval ::nocsim {
 
-	set version 2.0.0
+	set version 2.0.1
 	set MyDescription "nocsim supporting TCL libraries"
 
 	variable home [file join [pwd] [file dirname [info script]]]
