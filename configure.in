@@ -24,8 +24,9 @@ REGISTER("--disable-nocviz", "Disable nocviz, lift requirement for agar [default
 # Require a C compiler.
 REQUIRE(cc)
 
-if [ "${disable_agar}" == "no" ] ; then
-
+if [ "${enable_nocviz}" = "no" ] ; then
+	MDEFINE(NOCVIZDIR, "")
+else
 	# Require at least Agar 1.6.0.
 	REQUIRE(agar, 1.6.0, ${prefix_agar})
 
@@ -36,8 +37,6 @@ if [ "${disable_agar}" == "no" ] ; then
 
 	MDEFINE(NOCVIZDIR, "nocviz")
 
-else
-	MDEFINE(NOCVIZDIR, "")
 
 fi
 

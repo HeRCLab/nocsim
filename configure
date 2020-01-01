@@ -1388,8 +1388,10 @@ echo "*** Failed! See ./config.log for more details."
 echo "***"
 exit 1
 fi
-if [ "${disable_agar}" == "no" ] 
+if [ "${enable_nocviz}" = "no" ] 
  then
+NOCVIZDIR=""
+else
 $ECHO_N 'checking for Agar...'
 $ECHO_N '# checking for Agar...' >>config.log
 # BEGIN agar(1.6.0 ${prefix_agar})
@@ -1882,8 +1884,6 @@ echo "***"
 exit 1
 fi
 NOCVIZDIR="nocviz"
-else
-NOCVIZDIR=""
 fi
 if [ -z "$with_tcl" ] 
  then
