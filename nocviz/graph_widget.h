@@ -6,7 +6,9 @@
 
 #include <agar/core.h>
 #include <agar/gui.h>
-#include <agar/math.h>
+
+#include <agar/math/m.h>
+#include <agar/math/m_bezier_primitives.h>
 
 typedef struct nocviz_graph_widget {
 	struct ag_widget _inherit;

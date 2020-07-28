@@ -143,7 +143,7 @@ void* gui_main(void* arg) {
 			AG_InitGraphics(NULL) == -1)
 		return NULL;
 
-	AG_LoadStyleSheet(NULL, "style.css");
+	//AG_LoadStyleSheet(NULL, "style.css");
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaptionS (win, "nocviz-gui");

@@ -34,7 +34,7 @@ void handle_vertex_selection(AG_Event* event) {
 	infobox = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", infobox);
 
-	AG_SetStyle(infobox, "color", "rgb(196,196,196)");
+	/* AG_SetStyle(infobox, "color", "rgb(196,196,196)"); */
 
 #ifdef EBUG
 	sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
@@ -48,7 +48,7 @@ void handle_vertex_selection(AG_Event* event) {
 	/* generate the info panel contents */
 	nocviz_ds_foreach_section(vtx->ds, sectionname, section,
 		sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
-		AG_SetStyle(sectionbox, "color", "rgb(196,196,196)");
+		/* AG_SetStyle(sectionbox, "color", "rgb(196,196,196)"); */
 		AG_BoxSetLabel(sectionbox, "%s", sectionname);
 		vec_foreach(section, key, i) {
 			/* NV_TextWidget comes from text_widget.{c,h}, and
@@ -90,7 +90,7 @@ void handle_link_selection(AG_Event* event) {
 	infobox = AG_BoxNew(parent, AG_BOX_VERT, AG_BOX_EXPAND);
 	AG_SetPointer(dri, "infobox_p", infobox);
 
-	AG_SetStyle(infobox, "color", "rgb(196,196,196)");
+	/* AG_SetStyle(infobox, "color", "rgb(196,196,196)"); */
 
 #ifdef EBUG
 	sectionbox = AG_BoxNew(infobox, AG_BOX_VERT, AG_BOX_HFILL | AG_BOX_FRAME);
@@ -107,7 +107,7 @@ void handle_link_selection(AG_Event* event) {
 		AG_BoxSetLabel(sectionbox, "%s", sectionname);
 		vec_foreach(section, key, i) {
 
-			AG_SetStyle(sectionbox, "color", "rgb(196,196,196)");
+			/* AG_SetStyle(sectionbox, "color", "rgb(196,196,196)"); */
 
 			/* NV_TextWidget comes from text_widget.{c,h}, and
 			 * will automatically keep polling the given node ID

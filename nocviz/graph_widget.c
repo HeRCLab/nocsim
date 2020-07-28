@@ -45,6 +45,7 @@ NV_GraphWidget* NV_GraphWidgetNew(void* parent, nocviz_graph* g) {
 
 	AG_ObjectAttach(parent, gw);
 
+
 	return gw;
 }
 
