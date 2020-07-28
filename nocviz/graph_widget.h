@@ -35,5 +35,6 @@ typedef struct nocviz_graph_widget {
 extern AG_WidgetClass NV_GraphWidgetClass;
 NV_GraphWidget* NV_GraphWidgetNew(void* parent, nocviz_graph* g);
 void NV_GraphSizeHint(NV_GraphWidget* gw, int w, int h);
+void NV_GraphWidget_RegisterHandlers(NV_GraphWidget* gw);
 
 #endif

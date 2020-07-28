@@ -1,5 +1,8 @@
 #include "gui.h"
 
+static void RunDriversBrowser(AG_Event *event) { AG_DEV_Browser(&agDrivers); }
+
+
 void gui_init(nocviz_gui_handle* h, Tcl_Interp* interp, nocviz_graph* graph) {
 	nocviz_gui_params* p = noctools_malloc(sizeof(nocviz_gui_params));
 	AG_Thread th;
@@ -139,13 +142,21 @@ void* gui_main(void* arg) {
 	int show_edge_labels = 0;
 
 	/* Initialize LibAgar */
-	if (AG_InitCore(NULL, 0) == -1 ||
-			AG_InitGraphics(NULL) == -1)
+	if (AG_InitCore("nocviz-gui", 0) == -1) {
 		return NULL;
+	}
 
-	//AG_LoadStyleSheet(NULL, "style.css");
+	if (AG_InitGraphics("glx") == -1) {
+		return NULL;
+	}
 
-	win = AG_WindowNew(0);
+		
+
+	win = AG_WindowNew(AG_WINDOW_MAIN);
+	if (win == NULL) {
+		return NULL;
+	}
+
 	AG_WindowSetCaptionS (win, "nocviz-gui");
 	AG_WindowSetGeometry(win, -1, -1, 1100, 900);
 
@@ -162,9 +173,9 @@ void* gui_main(void* arg) {
 	inner_pane = AG_PaneNewHoriz(win, AG_PANE_DIV1FILL | AG_PANE_EXPAND);
 
 	/* setup the toolbar for global ops */
-	tb = AG_ToolbarNew(inner_pane->div[1], AG_TOOLBAR_HORIZ, 1, AG_TOOLBAR_HFILL);
-	AG_ToolbarButton(tb, "clear selection", 1,
-			clear_selection_button_handler, "%p(g_data)", p->graph);
+	/* tb = AG_ToolbarNew(inner_pane->div[1], AG_TOOLBAR_HORIZ, 1, AG_TOOLBAR_HFILL); */
+	/* AG_ToolbarButton(tb, "clear selection", 1, */
+	/*                 clear_selection_button_handler, "%p(g_data)", p->graph); */
 
 	/* instantiate the graph */
 	gw = NV_GraphWidgetNew(inner_pane->div[1], p->graph);
@@ -196,6 +207,9 @@ void* gui_main(void* arg) {
 #ifdef ENABLE_DEBUGGER
 		AG_MenuSeparator(menu_file);
 		AG_MenuAction(menu_file, "Launch Debugger", NULL, LaunchDebugger, NULL);
+		AG_MenuAction(menu_file, "Driver Browser", NULL, RunDriversBrowser, NULL);
+
+
 #endif
 	}
 
@@ -218,8 +232,9 @@ void* gui_main(void* arg) {
 
 	AG_WindowShow(win);
 
-
 	AG_EventLoop();
+	AG_DestroyGraphics();
+	AG_Destroy();
 
 	return NULL;
 }

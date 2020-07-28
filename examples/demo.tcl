@@ -138,6 +138,6 @@ set ::min_routed 0
 
 after 5000
 
-step 1000
+#step 1000
 
 vwait forever

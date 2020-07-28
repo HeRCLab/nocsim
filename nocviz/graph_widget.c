@@ -45,7 +45,6 @@ NV_GraphWidget* NV_GraphWidgetNew(void* parent, nocviz_graph* g) {
 
 	AG_ObjectAttach(parent, gw);
 
-
 	return gw;
 }
 
@@ -110,6 +109,8 @@ static void UnselectEdge(NV_GraphWidget *gw, nocviz_link* edge) {
 
 
 static void MouseButtonDown(AG_Event *event) {
+
+	dbprintf("MouseButtonDown()\n");
 	NV_GraphWidget *gw = NV_GRAPHWIDGET_SELF();
 	const int button = AG_INT(1);
 	const int x = AG_INT(2);
@@ -226,7 +227,14 @@ static void MouseMotion(AG_Event *event) {
 static void Init(void* obj) {
 	NV_GraphWidget* gw = obj;
 
-	AGWIDGET(gw)->flags |= AG_WIDGET_FOCUSABLE;
+	AGWIDGET(gw)->flags |= AG_WIDGET_UNFOCUSED_BUTTONUP | \
+			AG_WIDGET_UNFOCUSED_BUTTONDOWN| \
+			AG_WIDGET_UNFOCUSED_MOTION | \
+			AG_WIDGET_UNFOCUSED_KEYDOWN | \
+			AG_WIDGET_UNFOCUSED_KEYUP | \
+			AG_WIDGET_USE_TEXT;
+
+
 
 	gw->xOffs = 0;
 	gw->yOffs = 0;
@@ -235,10 +243,10 @@ static void Init(void* obj) {
 	gw->flags = 0;
 	gw->g->gw = gw;
 
-	AG_SetEvent(gw, "key-down", KeyDown, NULL);
 	AG_SetEvent(gw, "mouse-button-down", MouseButtonDown, NULL);
 	AG_SetEvent(gw, "mouse-button-up", MouseButtonUp, NULL);
 	AG_SetEvent(gw, "mouse-motion", MouseMotion, NULL);
+	AG_SetEvent(gw, "key-down", KeyDown, NULL);
 
 }
 
@@ -291,13 +299,13 @@ static void Draw(void* obj) {
 	AG_ColorRGB_8(&c, 128,128,128);
 	AG_DrawRectOutline(gw, &gw->r, &c);
 
-	AG_ColorBlack(&c);
-	AG_TextColor(&c);
 
 	AG_ColorRGB_8(&outline_c, 128, 255, 128);
 
 	show_node_labels = AG_GetPointer(dri, "show_node_labels");
 	show_edge_labels = AG_GetPointer(dri, "show_edge_labels");
+
+	 AG_PushBlendingMode(gw, AG_ALPHA_SRC, AG_ALPHA_ONE_MINUS_SRC);
 
 	/* draw the links */
 	nocviz_graph_foreach_link(gw->g, edge,
@@ -359,6 +367,7 @@ static void Draw(void* obj) {
 				AG_WidgetUnmapSurface(gw, edge->label_surface);
 				edge->label_surface = -1;
 			}
+
 			edge->label_surface = AG_WidgetMapSurface(gw,
 				AG_TextRender(edge->title));
 			edge->surface_dirty = 0;
@@ -400,6 +409,8 @@ static void Draw(void* obj) {
 			AG_WidgetBlitSurface(gw, vtx->label_surface, r.x, r.y);
 		}
 	);
+
+	 AG_PopBlendingMode(gw);
 
 	AG_PopClipRect(gw);
 
